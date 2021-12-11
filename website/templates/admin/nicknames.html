@@ -1,0 +1,70 @@
+{% extends 'template.html' %}
+{% set title = 'Nickname Manager' %}
+{% block main %}
+<div id="app">
+    {% raw %}
+    <form @submit.prevent="onSubmit">
+        <div class="row mb-2 mt-2">
+            <div class="col-8"><input class="form-control" v-model="search_username"></div>
+            <div class="col-3">
+                <button class="btn btn-primary" @click="search_usernames">Search users</button>
+            </div>
+        </div>
+    </form>
+    <p class="text-warning" v-if="loading">Loading...</p>
+    <p class="text-danger" v-if="err">Error: {{ err }}</p>
+    <div class="row mt-2" v-if="!loading">
+        <table class="table">
+            <tr>
+                <th>User ID</th>
+                <th>Nickname</th>
+                <th>Ingame Nickname</th>
+                <th>Update</th>
+            </tr>
+            <tr v-for="u in found_users">
+                <td>{{ u.user_id }}</td>
+                <td>{{ u.nickname }}</td>
+                <td><input type="text" v-model="u.nickname" /></td>
+                <td><button class="btn btn-danger" @click="update_privileges(u)">Update</button></td>
+            </tr>
+            <tr v-if="found_users.length === 0">
+                <td colspan="5">No users found.</td>
+            </tr>
+        </table>
+    </div>
+    {% endraw %}
+</div>
+<script>
+const app = {
+    data() {
+        return {
+            search_username: "",
+            loading: false,
+            err: false,
+            found_users: []
+        }
+    },
+    methods: {
+        search_usernames() {
+            throttleSearch(async () => {
+                const res = await axios.post('/api/admin/find-users', { query: this.search_username, login: true })
+                if (res.status !== 200)
+                    this.err = res.statusText
+                else {
+                    for (const i of res.data.items)
+                        i.privileges_str = Object.keys(i.privileges).join(", ")
+                    this.found_users = res.data.items
+                    this.err = res.data.error
+                }
+            }, this)()
+        },
+        async update_privileges(u) {
+            await axios.post('/api/admin/change-nickname', { id: u.user_id, new_name: u.nickname })
+            location.reload()
+        }
+    }
+}
+
+Vue.createApp(app).mount('#app')
+</script>
+{% endblock %}

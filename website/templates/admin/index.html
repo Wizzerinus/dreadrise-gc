@@ -1,0 +1,52 @@
+{% extends 'template.html' %}
+{% set title = 'Admin' %}
+{% block main %}
+    <div class="row">
+        <div class="col mt-3">
+            <h1>Administration</h1>
+            <p>Welcome to the administration, <b>{{ session['user']['nickname'] }}!</b></p>
+        </div>
+    </div>
+
+    {% if privs['full_admin'] %}
+    <div class="row">
+        <div class="col mt-3">
+            <h3>Full Admin</h3>
+            <p>
+                <a href="/admin/user-binding">User binding</a>
+                <small class="text-muted">Bind users without login option to registered ones.</small>
+            </p>
+            <p>
+                <a href="/admin/nicknames">Set nickname</a>
+                <small class="text-muted">Set the ingame nickname for a person without one.</small>
+            </p>
+            <p>
+                <a href="/admin/priv-manager">Privilege Manager</a>
+                <small class="text-muted">Manage users' privileges.</small>
+            </p>
+        </div>
+    </div>
+    {% endif %}
+
+    {% if privs['deck_admin'] %}
+    <div class="row">
+        <div class="col mt-3">Deck admin part</div>
+    </div>
+    {% endif %}
+
+    {% if privs['deck_mod'] %}
+    <div class="row">
+        <div class="col mt-3">
+            <h3>Deck Mod</h3>
+            <p>
+                <a href="/admin/tag-manager">Tag Manager</a>
+                <small class="text-muted">Manage deck tags and create new ones.</small>
+            </p>
+            <p>
+                <a href="/admin/rule-manager">Rule Manager</a>
+                <small class="text-muted">Manage rules to automatically assign tags to decks.</small>
+            </p>
+        </div>
+    </div>
+    {% endif %}
+{% endblock %}

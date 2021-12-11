@@ -1,0 +1,357 @@
+{% extends 'template.html' %}
+{% set title = 'Deck Editor' %}
+{% block main %}
+<div id="deck-editor">
+{% if not session['user'] %}
+    <div class="alert alert-warning mt-2">
+        You're not logged in. To save decks, <a href="/" class="alert-link">log in here</a>.
+    </div>
+{% endif %}
+    <div v-if="loading" class="text-danger">Loading deck contents...</div>
+    <div v-if="err" class="text-danger">Error found: [[ err ]]</div>
+    <ul class="nav nav-tabs mt-2">
+        <li class="nav-item">
+            <a class="nav-link active" data-bs-toggle="tab" href="#main">Main</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" data-bs-toggle="tab" href="#deck-text">Text preview</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" data-bs-toggle="tab" href="#deck-check" @click="check">Deck Check</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" data-bs-toggle="tab" href="#deck-check" @click="karsten">Frank Karsten</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" data-bs-toggle="tab" href="#deck-curve" @click="deckImagery">Deck Curve</a>
+        </li>
+    </ul>
+    <div class="tab-content">
+        <div id="main" class="tab-pane fade show active">
+            <form @submit.prevent="onSubmit">
+                <div class="row mb-2 mt-1">
+                    <div class="col-3">
+                        Current card count: <b>[[ total_card_count ]]</b>
+                    </div>
+                    <div class="col-6">
+                        <input type="text" v-model="search_request" class="form-control">
+                    </div>
+                    <div class="col-1">
+                        <button class="btn btn-primary" @click="find">Search</button>
+                    </div>
+                    <div class="col-1">
+                        <button class="btn btn-dark" @click="prevPage()" type="button"
+                            :disabled="loading_cards || search_error || current_page <= 1">Prev</button>
+                    </div>
+                    <div class="col-1">
+                        <button class="btn btn-dark" @click="nextPage()" type="button"
+                            :disabled="loading_cards || search_error || current_page >= max_page">Next</button>
+                    </div>
+                </div>
+            </form>
+            <div class="row">
+                <div v-for="item in sample" class="col p-1 col-1-10">
+                    <div class="card">
+                        <img :src="'/cards/image/' + item.card_id" :alt="item.name" class="img-fluid" role="button"
+                             @click="addCard(item, false)" @contextmenu.prevent="addCard(item, true)">
+                    </div>
+                </div>
+                <span v-if="sample.length === 0" class="text-warning">No matches.</span>
+                <span v-if="search-error" class="text-warning">Error happened: [[ search_error ]]</span>
+            </div>
+            <div class="row position-relative">
+                <div v-for="[x, y, z, w, t] in deck_list" class="col p-1 width-8" :class="['mv-' + z, 'sb-' + (w ? 1 : 0)]"
+                    :style="{top: (35 * (t + 1)) + 'px'}">
+                    <img :src="'/cards/image/' + cleanName(y)" style="max-width: 100%" role="button"
+                        @click="moveCard(y, z, false, w)" @contextmenu.prevent="moveCard(y, z, true, w)" />
+                    <b class="subdisplay">x[[ x ]]</b>
+                </div>
+                <div v-for="[x, y] in card_counts" class="col p-1 width-8 text-center" :class="'mv-' + parseInt(y)">
+                    <b>[[ y ]] (x[[ x ]])</b>
+                </div>
+            </div>
+        </div>
+        <div id="deck-text" class="tab-pane fade">
+            <form @submit.prevent="saveDeck">
+                <input type="hidden" :value="guid">
+                <div class="row mb-2 mt-1">
+                    <div class="col-3">Deck name</div>
+                    <div class="col-9">
+                        <input type="text" v-model="deck_name" class="form-control">
+                    </div>
+                </div>
+                <div class="row mb-2 mt-1">
+                    <div class="col-9">
+                        <select class="form-control" v-model="privacy">
+                            <option value="public">Public</option>
+                            <option value="unlisted">Unlisted</option>
+                            <option value="private">Private</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="row mb-2 mt-1">
+                    <div class="col-9">
+                        <select class="form-control" v-model="format">
+                            {% for id, name in new_deck_formats %}
+                            <option value="{{ id }}">{{ name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+
+                <textarea rows="10" class="form-control mb-2" v-model="deck_str" @input="changes_done = true"></textarea>
+                <div class="row">
+                    <div class="col-auto">
+                        <button type="button" @click="unparse" class="btn btn-warning">Update text from the builder</button>
+                    </div>
+                    <div class="col-auto">
+                        <button type="button" @click="parse" class="btn btn-warning">Load deck from text</button>
+                    </div>
+                    <div class="col-auto">
+                        <button type="submit" class="btn btn-success" :disabled="!can_save || !deck_name">Save</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+        <div id="deck-check" class="tab-pane fade">
+            <div v-if="!deck_check.loading">
+                <b>[[ deck_check.status ]]</b><br /><br />
+                <span v-for="x in deck_check.errors" class="text-danger" v-html="x + '<br>'"></span>
+                <span v-if="deck_check.errors.length === 0" class="text-success">No errors found!<br /></span>
+                <br />
+                <span v-for="x in deck_check.warnings" class="text-secondary" v-html="x + '<br>'"></span>
+                <span v-if="deck_check.warnings.length === 0" class="text-success">No warnings found!<br /></span>
+                <br />
+                <span v-for="x in deck_check.messages" class="text-primary" v-html="x + '<br>'"></span>
+            </div>
+            <span v-if="deck_check.loading" class="text-warning">Checking...</span>
+        </div>
+        <div id="deck-curve" class="tab-pane fade">
+            <div v-if="!imagery.loading">
+                <img :src="imagery.curve_img" /><br />
+                <img :src="imagery.color_img" />
+            </div>
+            <span v-if="imagery.loading" class="text-warning">Loading...</span>
+        </div>
+    </div>
+</div>
+<script>
+const copy = {{ 1 if copy else 0 }}
+const deck_id = '{{ deck_id }}'
+const app = {
+    data() {
+        return {
+            deck_id: deck_id,
+            loading: false,
+            deck_name: "",
+            deck_list: [],
+            card_counts: [],
+            deck_str: "",
+            err: "",
+            loading_cards: false,
+            err_cards: "",
+            guid: copy ? guidGenerator() : deck_id,
+            search_request: "",
+            sample: [],
+            matches: 0,
+            max_page: 0,
+            search_error: "",
+            current_page: 0,
+            mana_values: {},
+            deck_check: {loading: true},
+            imagery: {loading: true},
+            privacy: "public",
+            can_save: {{ 1 if session['user'] else 0 }},
+            changes_done: false,
+            format: '{{ default_format }}'
+        }
+    },
+    computed: {
+        total_card_count() {
+            return this.card_counts.reduce((x, y) => y[1] === 'Sideboard' ? x : x + y[0], 0)
+        }
+    },
+    methods: {
+        addOne(name, mv, sb) {
+            if (mv > 6) mv = 6
+            const existing = this.deck_list.filter(x => x[1] === name && x[2] === mv && x[3] === sb)
+            if (existing.length > 0)
+                existing[0][0]++
+            else {
+                this.deck_list.push([1, name, mv, sb, 0])
+                this.mana_values[name] = mv
+                this.updateColumns().then(() => {})
+            }
+            this.card_counts[sb ? 7 : mv][0]++
+            this.changes_done = true
+        },
+        removeOne(name, mv, sb) {
+            if (mv > 6) mv = 6
+            const existing = this.deck_list.filter(x => x[1] === name && x[2] === mv && x[3] === sb)
+            if (existing.length === 0) return
+            existing[0][0]--
+            if (existing[0][0] <= 0) {
+                this.deck_list = this.deck_list.filter(x => x[0] > 0)
+                this.updateColumns().then(() => {})
+            }
+            this.card_counts[sb ? 7 : mv][0]--
+            this.changes_done = true
+        },
+        async loadManaValues(card_names) {
+            if (card_names.length > 70) return {}
+            const res = await axios.post('/api/card-search/card-defs', { list: card_names, field: 'mana_value' })
+            if (res.status !== 200) {
+                this.err = res.statusText
+                return {}
+            }
+
+            for (const i of Object.keys(res.data))
+                if (res.data[i] > 6)
+                    res.data[i] = 6
+            return res.data
+        },
+        async updateColumns() {
+            const columns = [0, 0, 0, 0, 0, 0, 0, 0]
+
+            for (const i of this.deck_list) {
+                i[2] = this.mana_values[i[1]] || 0
+                const key = i[3] ? 7 : i[2]
+                i[4] = columns[key]++
+            }
+        },
+        parseOneList(y, sideboard = false) {
+            return y.split('\n').filter(x => x && x.slice(0, 9) !== 'Sideboard' &&
+                    x.slice(0, 2) !== '//' && x[0] !== '$' && x.length > 2).map(x => {
+                x = x.replace('SB: ', '').split('_')[0]
+                const split = x.split(' ')
+                const count = parseInt(split.shift())
+                const leftover = split.join(' ')
+                if (isNaN(count))
+                    return [1, x, 0, sideboard, 0]
+                return [count, leftover, 0, sideboard, 0]
+            })
+        },
+        async parse() {
+            let main, side
+            if (this.deck_str.indexOf('Sideboard') > -1)
+                [main, side] = this.deck_str.split('Sideboard')
+            else if (this.deck_str.indexOf('\n\n') > -1)
+                [main, side] = this.deck_str.split('\n\n')
+            else {
+                main = this.deck_str
+                side = ''
+            }
+            this.deck_list = this.parseOneList(main).concat(this.parseOneList(side, true))
+            this.mana_values = await this.loadManaValues(this.deck_list.map(x => x[1]))
+
+            await this.updateColumns()
+
+            this.card_counts = [[0, "0/Lands"], [0, "1"], [0, "2"], [0, "3"],
+                [0, "4"], [0, "5"], [0, "6+"], [0, "Sideboard"]]
+            for (const [count, _, mv, sb] of this.deck_list)
+                this.card_counts[sb ? 7 : mv][0] += count
+        },
+        unparse() {
+            const main = this.deck_list.filter(x => !x[3]).map(x => `${x[0]}x ${x[1]}`).join('\n')
+            const side = this.deck_list.filter(x => x[3]).map(x => `${x[0]}x ${x[1]}`).join('\n')
+            this.deck_str = main + '\n\nSideboard:\n' + side
+        },
+        prevPage() {
+            if (this.current_page <= 1) return
+            this.current_page--
+            this.load()
+        },
+        nextPage() {
+            if (this.current_page >= this.max_page) return
+            this.current_page++
+            this.load()
+        },
+        find() {
+            this.current_page = 1
+            this.load()
+        },
+        load() {
+            throttleSearch(async () => {
+                this.searched = true
+                const res = await axios.post('/api/card-search/cards',
+                    { query: this.search_request, page: this.current_page - 1, page_size: 10 })
+                if (res.status !== 200)
+                    this.search_error = res.statusText
+                else {
+                    this.sample = res.data.sample
+                    this.matches = res.data.matches
+                    this.search_error = res.data.err
+                    this.max_page = res.data.max_page
+                }
+            }, this, 'loading_cards', 'search_error')()
+        },
+        cleanName: cleanName,
+        addCard(obj, sb) {
+            this.addOne(obj.name, obj.mana_value, sb)
+        },
+        moveCard(name, mana_value, keep, sb) {
+            this.removeOne(name, mana_value, sb)
+            if (keep)
+                this.addOne(name, mana_value, !sb)
+        },
+        async check() {
+            this.deck_check = {loading: true}
+            const res = await axios.post('/api/decks/check', { deck_list: this.deck_list })
+            if (res.status === 200)
+                this.deck_check = res.data
+        },
+        async karsten() {
+            this.deck_check = {loading: true}
+            const res = await axios.post('/api/decks/karsten', { deck_list: this.deck_list })
+            if (res.status === 200)
+                this.deck_check = res.data
+        },
+        async loadImage(url) {
+            const res = await axios.post(url, { deck_list: this.deck_list }, { responseType: 'blob' })
+            return await readFileAsync(res.data)
+        },
+        async deckImagery() {
+            this.imagery = {loading: true}
+            const curve_img = await this.loadImage('/imagery/curve')
+            const color_img = await this.loadImage('/imagery/colors')
+            this.imagery = {curve_img, color_img}
+        },
+        async saveDeck() {
+            if (!this.can_save) return
+            const res = await axios.post('/api/decks/create',
+                { deck_list: this.deck_list, id: this.guid, name: this.deck_name,
+                    privacy: this.privacy, format: this.format })
+            if (res.status === 200 && res.data.success) {
+                this.changes_done = false
+                document.location = `/decks/${res.data.deck_id}`
+            } else if (res.status === 200 || (res.data && res.data.error))
+                this.err = res.data.error
+            else
+                this.err = res.statusText
+        }
+    },
+    async created() {
+        this.card_counts = [[0, "0/Lands"], [0, "1"], [0, "2"], [0, "3"],
+            [0, "4"], [0, "5"], [0, "6+"], [0, "Sideboard"]]
+
+        window.onbeforeunload = () => this.changes_done ? true : null
+
+        if (!this.deck_id) return
+        this.loading = true
+        const req = await axios.get(`/api/decks/deck-list-text/${this.deck_id}`)
+        if (req.status !== 200)
+            this.err = req.statusText
+        else {
+            this.deck_name = req.data.name
+            this.deck_str = req.data.str
+            await this.parse()
+        }
+        this.loading = false
+    }
+}
+
+vue = Vue.createApp(app)
+vue.config.compilerOptions.delimiters = ['[[', ']]']
+vue.mount('#deck-editor')
+</script>
+{% endblock %}

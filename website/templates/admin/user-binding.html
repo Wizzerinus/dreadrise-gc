@@ -1,0 +1,85 @@
+{% extends 'template.html' %}
+{% set title = 'User Binding' %}
+{% block main %}
+<div id="app">
+    {% raw %}
+    <form @submit.prevent="onSubmit">
+        <div class="row mb-2 mt-2">
+            <div class="col-8"><input class="form-control" v-model="search_username"></div>
+            <div class="col-3">
+                <button class="btn btn-primary" @click="search_usernames">Search users</button>
+            </div>
+        </div>
+    </form>
+    <p class="text-warning" v-if="loading">Loading...</p>
+    <p class="text-danger" v-if="err">Error: {{ err }}</p>
+    <div class="row mt-2" v-if="!loading">
+        <table class="table">
+            <tr>
+                <th>User ID</th>
+                <th>Nickname</th>
+                <th>Ingame Nickname</th>
+                <th>Authentication</th>
+                <th>Choose</th>
+            </tr>
+            <tr v-for="u in found_users">
+                <td>{{ u.user_id }}</td>
+                <td>{{ u.nickname }}</td>
+                <td>{{ u.nickname }}</td>
+                <td>{{ u.auth_method }}</td>
+                <td><input type="checkbox" v-model="u.chosen" /></td>
+            </tr>
+            <tr v-if="found_users.length === 0">
+                <td colspan="5">No users found.</td>
+            </tr>
+        </table>
+    </div>
+    <div class="row mt-2">
+        <div class="col">
+            <button class="btn btn-danger" @click="bind">Bind the chosen users</button>
+        </div>
+    </div>
+    {% endraw %}
+</div>
+<script>
+const app = {
+    data() {
+        return {
+            loading: false,
+            err: false,
+            found_users: [],
+            search_username: ""
+        }
+    },
+    methods: {
+        search_usernames() {
+            throttleSearch(async () => {
+                const res = await axios.post('/api/admin/find-users', { query: this.search_username })
+                if (res.status !== 200)
+                    this.err = res.statusText
+                else {
+                    this.found_users = res.data.items
+                    this.err = res.data.error
+                }
+            }, this)()
+        },
+        async bind() {
+            const chosen = this.found_users.filter(x => x.chosen)
+            if (chosen.length !== 2)
+                return alert('Can only bind two users at a time.')
+            const chosen_nologin = chosen.filter(x => x.auth_method === 'no_login')
+            if (chosen_nologin.length !== 1)
+                return alert('Can only bind one no-login user at a time.')
+            const chosen_login = this.found_users.filter(x => x.auth_method !== 'no_login')
+            await axios.post('/api/admin/bind-users', {
+                with_login: chosen_login[0].user_id,
+                with_no_login: chosen_nologin[0].user_id
+            })
+            location.reload()
+        }
+    }
+}
+
+Vue.createApp(app).mount('#app')
+</script>
+{% endblock %}

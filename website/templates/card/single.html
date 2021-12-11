@@ -1,0 +1,42 @@
+{% extends 'template.html' %}
+{% set title = data.name %}
+{% set image = '/cards/art/' + data.card_id %}
+{% block main %}
+<h2>{{ data.name }}</h2>
+<div class="row">
+    <div class="{{ cls1 }}">
+        <div class="row row-cols-{{ data.fixed_faces | length }}">
+            {% for face in data.fixed_faces %}
+            <div class="col">
+                <img src="/cards/face-image/{{ data.card_id }}/{{ loop.index0 }}" alt="{{ face.name }}"
+                     class="img-fluid" />
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    <div class="{{ cls2 }}">
+        {% for face in data.faces %}
+            <div>
+                <p><b>{{ face.name }}</b></p>
+                <p>{{ face.types }} — {{ face.mana_cost_str | mana }}</p>
+                <p>{{ face.oracle | oraclize }}</p>
+                {% if face.power %}
+                    <p>{{ face.power }}/{{ face.toughness }}</p>
+                {% elif face.loyalty %}
+                    <p>{{ face.loyalty }} loyalty</p>
+                {% endif %}
+            </div>
+            {% if not loop.last %}
+            <hr />
+            {% endif %}
+        {% endfor %}
+    </div>
+</div>
+<div class="row" style="max-width: 600px">
+    {% for format, status, color in split_legality(data.legality) %}
+        <!--<span class="text-{{ color }}"><b>{{ format }}</b> - {{ status }}</span><br />-->
+        <span class="d-flex badge m-1 bg-{{ color }}{{ ' text-dark' if color == 'warning' else '' }} col-2">{{ format }}</span>
+    {% endfor %}
+</div>
+<a class="btn btn-primary mt-2" href="/decks/with/{{ data.card_id }}">Decks with this card</a>
+{% endblock %}

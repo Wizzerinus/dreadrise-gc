@@ -1,0 +1,43 @@
+{% extends 'template.html' %}
+{% set title = 'Deck Tag Manager' %}
+{% block main %}
+    <form method="post" action="/api/admin/create-tag">
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Description</th>
+                <th>Archetype</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for i, count in data %}
+            <tr>
+                <td>{{ i.name }}</td>
+                <td>{{ i.description }}</td>
+                <td>{{ i.archetype.title() }}</td>
+                <td>
+                    <a class="btn btn-primary" href="/tags/{{ i.tag_id }}">Find</a>
+                    {% if session['user']['privileges']['deck_admin'] and count == 0 %}
+                    <a class="btn btn-danger" href="/admin/delete-tag/{{ i.tag_id }}">Delete</a>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+            <tr>
+                <td><input class="form-control" type="text" placeholder="New tag name" name="tag_name" /></td>
+                <td><input class="form-control" type="text" placeholder="Tag description" name="tag_desc" /></td>
+                <td>
+                    <select name="tag_archetype">
+                        {% for i in archetypes %}
+                        <option value="{{ i }}">{{ i | title }}</option>
+                        {% endfor %}
+                    </select>
+                </td>
+                <td><button type="submit" class="btn btn-primary">Submit</button></td>
+            </tr>
+        </tbody>
+    </table>
+    </form>
+{% endblock %}

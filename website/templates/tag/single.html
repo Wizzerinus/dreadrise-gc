@@ -1,0 +1,81 @@
+{% extends 'template.html' %}
+{% set title = tag.name %}
+{% set d_restrictions = {'archetype': true} %}
+{% set d_data_source = '/api/tags/deck-list/' + tag.tag_id %}
+{% block main %}
+    <img class="w-100 mt-2" src="/cards/art-header/{{ bg_card }}" alt="{{ bg_card }}" />
+    <div class="row mt-2">
+        <div class="col">
+            <h2>
+                {% if tag.archetype != 'unclassified' and tag.archetype.lower() != tag.name.lower() %}
+                    {{ tag.archetype.title() }} &gt;
+                {% endif %}
+                {{ tag.name }} ({{ analysis.full_count }} decks, {{ analysis.wins }}-{{ analysis.losses }})
+            </h2>
+        </div>
+        {% if scraped_formats | length > 1 %}
+        <div class="col-auto">
+            Current format: {{ formats[format] }}
+        </div>
+        <div class="col-auto">
+            <a class="btn btn-primary" href="/formats?redirect_to=tags.{{ tag.tag_id }}">Change format</a>
+        </div>
+        {% endif %}
+    </div>
+    {% if tag.description and tag.description != 'No description' %}
+    <aside class="text-muted">
+        {{ tag.description }}
+    </aside>
+    {% endif %}
+    {% if analysis.example_deck %}
+    <h3>Example deck</h3>
+    <div class="accordion" id="example-deck">
+        <div class="accordion-item">
+            <h2 class="accordion-header">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#example-deck-inside">
+                    {{ analysis.example_deck.deck.name }} by {{ analysis.example_deck.author.nickname }}
+                    ({{ analysis.example_comp.name }}, {{ analysis.example_deck.deck.wins }}-{{ analysis.example_deck.deck.losses }})
+                </button>
+            </h2>
+            <div id="example-deck-inside" class="accordion-collapse collapse" data-bs-parent="#example-deck">
+                <div class="accordion-body">
+                    {% with data=analysis.example_deck %}
+                        {% include 'parts/single-deck.html' %}
+                    {% endwith %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    <h3>Popular cards</h3>
+    {% for sta in analysis.card_type_analysis %}
+    <h5>{{ sta.type }} ({{ sta.average_count }})</h5>
+    <div class="row row-cols-2 row-cols-lg-3 row-cols-xl-4 row-cols-xxl-5">
+        {% for ca in sta.sca %}
+        <div class="col p-1">
+            <div class="card">
+                <div class="card-header">
+                    <b><a href="/cards/{{ ca.card_data.card_id }}" class="text-decoration-none">
+                        {{ ca.card_name | shorten }}
+                    </a></b>
+                </div>
+                <a href="/cards/{{ ca.card_data.card_id }}">
+                    <img class="card-img-top" src="/cards/image/{{ ca.card_data.card_id }}" alt="{{ ca.card_name }}" />
+                </a>
+                <aside class="text-muted">
+                    {{ ca.average }}x in {{ (ca.deck_count * 100 / analysis.full_count) | round(2) }}% decks<br />
+                    {{ ca.winrate }}% winrate
+                </aside>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endfor %}
+
+    <script>
+        const app = Vue.createApp({})
+        app.component('tooltip', card_tooltip)
+        app.config.compilerOptions.delimiters = ['[[', ']]']
+        app.mount('#example-deck')
+    </script>
+{% endblock %}

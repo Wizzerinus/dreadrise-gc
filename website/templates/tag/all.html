@@ -1,0 +1,126 @@
+{% extends 'template.html' %}
+{% set title = 'Archetypes' %}
+{% block main %}
+<div id="app">
+    <form @submit.prevent="onSubmit">
+        <div class="row g-3 align-items-center mb-3 mt-1">
+            <div class="col">
+                <span v-if="loading" class="text-danger">Loading...</span>
+                <span v-if="!loading && err" class="text-danger">Error while fetching archetypes: [[ err ]]</span>
+                <span v-if="!loading && !err" class="text-success">
+                    [[ data.matches ]] archetypes found - current page [[ data.page_num ]]/[[ data.last_page ]]
+                </span>
+            </div>
+            {% if scraped_formats | length > 1 %}
+            <div class="col-auto">
+                Current format: {{ formats[format] }}
+            </div>
+            <div class="col-auto">
+                <a class="btn btn-primary" href="/formats?redirect_to=tags">Change format</a>
+            </div>
+            {% endif %}
+            <div class="col-auto">
+                <button class="btn btn-dark" @click="prevPage()" :disabled="current_page <= 1"
+                        v-if="!loading && !err">Prev</button>
+            </div>
+            <div class="col-auto">
+                <button class="btn btn-dark" @click="nextPage()" :disabled="current_page >= data.last_page"
+                        v-if="!loading && !err">Next</button>
+            </div>
+        </div>
+    </form>
+
+    <div v-if="!loading && !err" class="row row-cols-2 row-cols-md-3 row-cols-xl-4 row-cols-xxl-5">
+        <div v-for="i in data.sample" class="col p-1">
+            <div class="card">
+                <div class="card-header">
+                    <b><a :href="'/tags/' + i.tag + '?format=' + format" class="text-decoration-none">
+                        [[ shorten(i.tag_name, 19) ]]
+                    </a></b>
+                </div>
+                <a :href="'/tags/' + i.tag + '?format=' + format">
+                    <img class="art-img-top card-img-top" :src="'/cards/art/' + i.f_cards[0].card_id" :alt="i.f_cards[0].name" />
+                </a>
+                <span v-for="j in i.f_cards">
+                    <tooltip :id="j.card_id" :name="j.name">[[ j.name ]]</tooltip>
+                    <br />
+                </span>
+                <aside class="text-muted">
+                    [[ i.deck_count ]] decks, [[ i.deck_wins ]]-[[ i.deck_losses ]] ([[ Math.round(i.deck_winrate * 10000) / 100 ]]%)
+                </aside>
+            </div>
+        </div>
+    </div>
+
+
+    <div class="row g-3 align-items-center mb-3 mt-1">
+        <div class="col">
+            <button class="btn btn-primary" v-if="!err" @click="backToTop">Back to top</button>
+        </div>
+        <div class="col-auto">
+            <button class="btn btn-dark" @click="prevPage()" :disabled="current_page <= 1"
+                    v-if="!loading && !err">Prev</button>
+        </div>
+        <div class="col-auto">
+            <button class="btn btn-dark" @click="nextPage()" :disabled="current_page >= data.last_page"
+                    v-if="!loading && !err">Next</button>
+        </div>
+    </div>
+</div>
+
+<script>
+const app = {
+    data() {
+        return {
+            loading: 2,
+            err: false,
+            data: { last_page: 0 },
+            current_page: 1,
+            format: '{{ format }}'
+        }
+    },
+    methods: {
+        prevPage() {
+            if (this.current_page <= 1) return
+            this.current_page--
+            this.load()
+        },
+        nextPage() {
+            if (this.current_page >= this.data.last_page) return
+            this.current_page++
+            this.load()
+        },
+        load() {
+            throttleSearch(async () => {
+                this.searched = true
+                const res = await axios.get(`/api/tags/all/${this.current_page}?format=${this.format}`)
+                if (res.status !== 200)
+                    this.err = res.statusText
+                else {
+                    if (res.data.err)
+                        this.err = res.data.err
+                    else {
+                        this.err = false
+                        this.data = res.data
+                    }
+                }
+            }, this, 'loading', 'err', 'loading_timer', 25000)()
+        },
+        backToTop() {
+            document.body.scrollTop = 0
+            document.documentElement.scrollTop = 0
+        },
+        shorten: shorten
+    },
+
+    created() {
+        this.load()
+    }
+}
+
+app_obj = Vue.createApp(app)
+app_obj.config.compilerOptions.delimiters = ['[[', ']]']
+app_obj.component('tooltip', card_tooltip)
+app_obj.mount('#app')
+</script>
+{% endblock %}

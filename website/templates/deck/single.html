@@ -1,0 +1,48 @@
+{% extends 'template.html' %}
+{% set title = data.deck.name + ' by ' + data.author.nickname %}
+{% block main %}
+    {% include 'parts/single-deck.html' %}
+
+    <div class="row mt-3">
+        {% if comp %}
+        <div class="col-12 col-lg-8 col-xl-6 col-xxl-5">
+            <h4>
+                Competition: <a href="/competitions/{{ data.deck.competition }}">{{ comp.name }}</a>, {{ data.deck.wins }}-{{ data.deck.losses }}
+            </h4>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Result</th>
+                        <th>vs.</th>
+                        <th>Opponent</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for dgr, dname, oid, opponent in opponents %}
+                    <tr>
+                        <td>{{ dgr.player_wins }}-{{ dgr.player_losses }}</td>
+                        {% if oid %}
+                            <td><a href="/decks/{{ oid }}">{{ dname }}</a></td>
+                            <td><a href="/users/{{ opponent.user_id }}">{{ opponent.nickname }}</a></td>
+                        {% else %}
+                            <td>-</td>
+                            <td>BYE</td>
+                        {% endif %}
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% endif %}
+        <div class="col">
+            <img src="/imagery/curve/{{ data.deck.deck_id }}" alt="Deck curve" />
+        </div>
+    </div>
+
+    <script>
+        const app = Vue.createApp({})
+        app.component('tooltip', card_tooltip)
+        app.config.compilerOptions.delimiters = ['[[', ']]']
+        app.mount('#deck-cards')
+    </script>
+{% endblock %}

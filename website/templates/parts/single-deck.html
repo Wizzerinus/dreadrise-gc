@@ -1,0 +1,47 @@
+<h2><a href="/decks/{{ data .deck.deck_id }}">{{ data.deck.name | truncate(50) }}</a></h2>
+<div>
+    <aside class="text-muted d-inline-block me-2">
+        A deck by <a href="/users/{{ data.author.user_id }}">{{ data.author.nickname }}</a>
+    </aside>
+    {% if data.tags %}
+        {% for t_obj in data.tags %}
+            <a class="badge bg-{{ 'secondary' if loop.index > 1 else 'primary' }} text-decoration-none m-1"
+               href="/tags/{{ t_obj.tag_id }}">{{ t_obj.name }}</a>
+        {% endfor %}
+    {% endif %}
+    <aside class="text-muted">
+        {{ data.format }}, {{ data.date_str }}
+    </aside>
+    {% if data.deck.privacy != 'public' %}
+        <aside class="text-danger">Visibility: {{ data.deck.privacy }}</aside>
+    {% endif %}
+    <a href="/decks/editor/{{ data.deck.deck_id }}">Open in editor</a>
+    {% if not data.deck.competition and session['user'] and data.deck.author == session['user']['user_id'] %}
+    <a href="/decks/editor/{{ data.deck.deck_id }}?copy=1">(copy)</a>
+    <a onclick="if (prompt('Enter the deck ID to delete it.') === '{{ data.deck.deck_id }}')
+        document.location = '/decks/delete/{{ data.deck.deck_id }}'"
+       class="text-danger" role="button">(delete)</a>
+    {% endif %}
+</div>
+<img src="/imagery/colors/{{ data.deck.deck_id }}" alt="Deck's colors" />
+<div id="deck-cards" class="row">
+{% for category in data.sorted_cards %}
+    <div class="col">
+    {% for name, l_cards, count in category %}
+        <div>
+            <h4>{{ name }} ({{ count }})</h4>
+            {% for c, c_count in l_cards %}
+                {% if c.card_id %}
+                <tooltip name="{{ c.name }}" id="{{ c.card_id }}">
+                    {{ c_count }}x {{ c.singular_name }}
+                </tooltip>
+                {% else %}
+                    {{ c_count }}x {{ c.singular_name }}
+                {% endif %}
+                <br />
+            {% endfor %}
+        </div>
+    {% endfor %}
+    </div>
+{% endfor %}
+</div>

@@ -1,0 +1,5 @@
+.gitignore export-ignore
+.gitattributes export-ignore
+dev.py export-ignore
+setup.cfg export-ignore
+Pipfile export-ignore

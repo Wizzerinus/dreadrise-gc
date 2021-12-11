@@ -1,0 +1,7 @@
+.mypy_cache
+config/**/secrets.yml
+launcher.wsgi
+.idea
+**/__pycache__
+code.tar.gz
+secrets.tar.gz

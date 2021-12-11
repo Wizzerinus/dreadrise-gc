@@ -1,0 +1,63 @@
+.card-tooltip {
+    position: relative;
+    display: inline-block;
+}
+
+.card-tooltip span {
+    position: relative;
+    display: none;
+}
+
+.card-tooltip:hover span {
+    display: block !important;
+    position: absolute;
+    top: 27px;
+    left: 0;
+    z-index: 1100;
+}
+
+.card-tooltip span img, .card-img-workspace {
+    width: 300px;
+}
+
+.rotated {
+    transform: rotate(90deg) scale(1.25);
+}
+
+/*
+.card a .card-img-top {
+    object-fit: cover;
+    height: 230px;
+}*/
+
+.art-img-top {
+    aspect-ratio: 4/3;
+    object-fit: cover;
+}
+
+.col-1-10 {
+    flex: 0 0 auto;
+    width: 10%;
+}
+
+.width-8 {
+    width: 12.5%;
+    position: absolute;
+}
+
+.mv-0 { left: 0; }
+.mv-1 { left: 12.5%; }
+.mv-2 { left: 25%; }
+.mv-3 { left: 37.5%; }
+.mv-4 { left: 50%; }
+.mv-5 { left: 62.5%; }
+.mv-6 { left: 75%; }
+.sb-1, .mv-NaN { left: 87.5%; }
+
+.subdisplay {
+    position: absolute;
+    top: 10px;
+    left: 20px;
+    color: #fff;
+    text-shadow: -2px 0 #000,0 2px #000,2px 0 #000,0 -2px #000,-1px -1px #000,-1px 1px #000,1px 1px #000,1px -1px #000;
+}

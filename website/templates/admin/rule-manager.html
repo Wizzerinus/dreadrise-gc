@@ -1,0 +1,50 @@
+{% extends 'template.html' %}
+{% set title = 'Deck Rule Manager' %}
+{% block main %}
+    <h2>Existing rules</h2>
+    <div class="row">
+        {% for i, tag, count in rules %}
+        <div class="col-4 mb-3">
+            <div class="card">
+                <form method="post" action="/api/admin/update-rule">
+                    <input type="hidden" name="rule_id" value="{{ i.rule_id }}" />
+                    <div class="card-header">
+                        <div class="row">
+                            <div class="col-6">
+                                {{ tag.name }} x{{ count }}
+                            </div>
+
+                            <label class="col-3">
+                                Priority:
+                            </label>
+                            <div class="col-3">
+                                <input class="form-control" name="priority" type="text" value="{{ i.priority }}" />
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <textarea class="form-control" name="rule_text" rows="3">{{ i.text }}</textarea>
+                        <button class="btn btn-primary mt-2" type="submit">Save</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    <h4>New rule</h4>
+    <form method="post" action="/api/admin/new-rule">
+        <div class="row">
+            <div class="col-auto">
+                <input class="form-control" name="tag_name" list="tag-list" placeholder="Type to search..." />
+                <datalist id="tag-list">
+                    {% for i in tags %}
+                    <option value="{{ i.name }}"></option>
+                    {% endfor %}
+                </datalist>
+            </div>
+            <div class="col-auto">
+                <button class="btn btn-primary" type="submit">Create rule</button>
+            </div>
+        </div>
+    </form>
+{% endblock %}

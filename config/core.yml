@@ -1,0 +1,8 @@
+BRAND: Dreadrise v3
+MONGODB_URL: mongodb://localhost:27017/dreadrise
+DISCORD_CLIENT_ID: 123456123456123456
+DISCORD_CLIENT_SECRET: abcd-123456789123456789123456789
+secret_key: dreadrise-keyboard-cat
+PORT: 3002
+search_disk_use: ''
+session_backend: flask

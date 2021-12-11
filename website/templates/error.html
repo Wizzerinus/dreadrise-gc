@@ -1,0 +1,11 @@
+{% extends 'template.html' %}
+{% set title = 'Error ' + (error | string) %}
+{% set image = '/cards/art/' + card[1] %}
+{% block main %}
+    <h2>Error {{ error }}</h2>
+    {{ error_msg | safe }}
+
+    <div class="container">
+        <img src="/cards/image/{{ card[1] }}" alt="{{ card[0] }}" />
+    </div>
+{% endblock %}

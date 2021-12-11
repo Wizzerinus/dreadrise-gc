@@ -1,0 +1,202 @@
+{% extends 'template.html' %}
+{% set title = 'Deck Search' %}
+{% block main %}
+<div id="app">
+    <div v-if="alert" class="alert alert-dismissible fade show mt-1" :class="'alert-' + alert_style">
+        <span v-html="alert"></span>
+        <button type="button" class="btn-close" @click="alert = alert_style = false"></button>
+    </div>
+    <form @submit.prevent="onSubmit">
+        <div class="row g-3 align-items-center mb-3 mt-1">
+            <div class="col">
+                <input type="text" class="form-control" v-model="query">
+            </div>
+            <div class="col-auto">
+                <button class="btn btn-primary" @click="find()">Search</button>
+            </div>
+            <div class="col-auto">
+                <button class="btn btn-dark" @click="prevPage()"
+                        :disabled="loading || err || current_page <= 1">Prev</button>
+            </div>
+            <div class="col-auto">
+                <button class="btn btn-dark" @click="nextPage()"
+                        :disabled="loading || err || current_page >= max_page">Next</button>
+            </div>
+            <div class="col-auto">
+                <button class="btn btn-primary" @click="copyLink()">Copy link</button>
+            </div>
+        </div>
+    </form>
+
+    <div v-if="loading" class="text-danger">Loading...</div>
+    <div v-if="!loading && !searched" class="text-primary">Make a search request to see decks!</div>
+    <div v-if="!loading && searched && !err && matches == 0" class="text-warning">No matches.</div>
+    <div v-if="!loading && searched && !err && matches > 0" class="text-success">
+        [[ matches ]] decks found, [[ winrate ]]% winrate - current page [[ current_page ]]/[[ max_page ]]
+    </div>
+    <div v-if="!loading && err" class="text-danger">Error during search: [[ err ]]</div>
+
+    <div v-if="searched && !loading && !err && matches > 0" class="row row-cols-1 row-cols-md-2 row-cols-lg-3 row-cols-xl-4">
+        <div v-for="item in sample" class="col p-1">
+            <div class="card">
+                <a :href="'/decks/' + item.deck.deck_id">
+                    <img class="art-img-top card-img-top" :src="'/cards/art/' + cleanName(item.main_card)" :alt="item.main_card" />
+                    <b>[[ shorten(item.deck.name, 35) ]]</b>
+                </a>
+                <span>
+                    <b><a :href="'/tags/' + item.tags[0].tag_id + '?format=' + item.deck.format">[[ item.tags[0].name ]]</a></b> deck
+                    by <a :href="'/users/' + item.author.user_id + '?format=' + item.deck.format">[[ item.author.nickname ]]</a>
+                </span>
+                <aside class="text-muted">
+                    <a :href="'/competitions/' + item.competition.competition_id">[[ item.competition.name ]]</a>,
+                    [[ item.deck.wins ]]-[[ item.deck.losses]]<br>
+                    [[ item.format ]]<br>
+                    [[ item.date_str ]]
+                </aside>
+            </div>
+        </div>
+    </div>
+
+    <div v-if="syn && !searched">
+        <div>
+            <h3>Basics</h3>
+            <div v-for="x in syn.start" v-html="x"></div>
+        </div>
+        <div>
+            <h3>Keywords</h3>
+            <div v-for="x in syn.keywords" v-html="x"></div>
+        </div>
+        <div>
+            <h3>Other</h3>
+            <div v-for="x in syn.extras" v-html="x"></div>
+        </div>
+    </div>
+
+    <button class="btn btn-primary" v-if="!searched && !loading && !syn" @click="syntax">Load the syntax guide</button>
+
+    <div class="row g-3 align-items-center mb-3 mt-1" v-if="searched && !err && matches>0">
+        <div class="col-2 col-lg-1">
+            <button class="btn btn-dark" @click="prevPage()"
+                    :disabled="loading || err || current_page <= 1">Prev</button>
+        </div>
+        <div class="col">
+            <button class="btn btn-primary" @click="backToTop">Back to top</button>
+        </div>
+        <div class="col-2 col-lg-1">
+            <button class="btn btn-dark" @click="nextPage()"
+                    :disabled="loading || err || current_page >= max_page">Next</button>
+        </div>
+    </div>
+</div>
+
+<script>
+const app = {
+    data() {
+        return {
+            loading: false,
+            searched: false,
+            err: false,
+            matches: 0,
+            sample: [],
+            winrate: -1,
+            query: "",
+            current_page: 0,
+            max_page: 0,
+            loading_timer: false,
+            syn: false,
+            alert: false,
+            alert_style: false,
+            cleanName: cleanName,
+            shorten: shorten
+        }
+    },
+    methods: {
+        getLink() {
+            const q = `&q=${this.query}`
+            const p = this.current_page === 0 ? '' : `&page=${this.current_page}`
+            return `/deck-search/?dist={{ cdist }}${q}${p}`
+        },
+        updateURL() {
+            history.pushState({}, 'Dreadrise Deck Search', this.getLink())
+        },
+        async copyLink() {
+            const link = window.location.origin + this.getLink()
+            try {
+                await navigator.clipboard.writeText(link)
+                this.alert_style = 'success'
+                this.alert = 'Successfully copied link to clipboard!'
+            } catch(e) {
+                this.alert_style = 'warning'
+                this.alert = `Failed copying link to clipboard! Copy it manually: <code>${link}</code>`
+            }
+        },
+        prevPage() {
+            if (this.current_page <= 1) return
+            this.updateURL()
+            this.current_page--
+            this.load()
+        },
+        nextPage() {
+            if (this.current_page >= this.max_page) return
+            this.updateURL()
+            this.current_page++
+            this.load()
+        },
+        find() {
+            this.updateURL()
+            this.current_page = 1
+            this.load()
+        },
+        load() {
+            throttleSearch(async () => {
+                this.searched = true
+                const res = await axios.post('/api/deck-search/decks', { query: this.query, page: this.current_page - 1, page_size: 24 })
+                if (res.status !== 200)
+                    this.err = res.statusText
+                else {
+                    this.sample = res.data.sample
+                    this.matches = res.data.matches
+                    this.err = res.data.err
+                    this.max_page = res.data.max_page
+                    this.winrate = res.data.winrate
+                }
+            }, this)()
+        },
+        async syntax() {
+            if (this.loading || this.syn || this.searched) return
+            this.loading = true
+            const result = await axios.get('/api/deck-search/syntax')
+            this.loading = false
+
+            if (result.status !== 200)
+                this.err = result.statusText
+            else
+                this.syn = result.data
+        },
+        setCurrent(item) {
+            this.current_deck = item
+        },
+        backToTop() {
+            document.body.scrollTop = 0
+            document.documentElement.scrollTop = 0
+        }
+    },
+    created() {
+        const url = new URL(document.location)
+        const params = new URLSearchParams(url.search)
+        if (params.has('q')) {
+            this.query = params.get('q')
+            if (params.has('page')) {
+                const page = parseInt(params.get('page'))
+                if (!isNaN(page)) this.current_page = page
+            } else this.current_page = 1
+            this.load()
+        }
+    }
+}
+
+vue = Vue.createApp(app)
+vue.config.compilerOptions.delimiters = ['[[', ']]']
+vue.mount('#app')
+</script>
+{% endblock %}

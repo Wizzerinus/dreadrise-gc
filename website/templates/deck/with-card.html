@@ -1,0 +1,84 @@
+{% extends 'template.html' %}
+{% set title = 'Decks with ' + card.name %}
+{% set image = '/cards/art/' + card.card_id %}
+{% block main %}
+    <img class="w-100 mt-2" src="/cards/art-header/{{ card.card_id }}" alt="{{ card.name }}" />
+    <div class="row mt-2">
+        <div class="col">
+            <h1>Decks with {{ card.name }}</h1>
+        </div>
+        {% if scraped_formats | length > 1 %}
+        <div class="col-auto">
+            Current format: {{ formats[format] }}
+        </div>
+        <div class="col-auto">
+            <a class="btn btn-primary" href="/formats?redirect_to=decks.with.{{ card.card_id }}&only_when_legal={{ card.card_id }}">Change format</a>
+        </div>
+        {% endif %}
+    </div>
+
+    <div id="app">
+        <div class="row">
+            <div class="col-6">
+                <h3>Metagame Breakdown</h3>
+                <div id="breakdown">Loading...</div>
+            </div>
+            <div class="col-6">
+                <h3>Popular cards</h3>
+                <cards :data="data"></cards>
+            </div>
+            <div class="col-12">
+                <h3>Decks</h3>
+                <decks :format="format" hide="" :data="data"></decks>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const app = Vue.createApp({
+            data() {
+                return {
+                    data: {loading: true},
+                    source: '/api/decks/with-card/{{ card.card_id }}?format={{ format }}',
+                    format: '{{ format }}'
+                }
+            },
+            methods: {
+                async load() {
+                    const loaded = await axios.get(this.source)
+                    this.data = loaded.data
+                    for (const i of this.data.decks)
+                        i.sort_data = {
+                            name: i.deck.name,
+                            author: i.author.nickname,
+                            competition: 0,
+                            archetype: i.tags[0].name,
+                            record: i.deck.wins - 0.99 * i.deck.losses
+                        }
+                    for (const i of this.data.popular_cards)
+                        i.sort_data = {
+                            name: i.card.name,
+                            record: i.wins / (i.wins + i.losses + 1),
+                            weight: i.weight
+                        }
+                }
+            },
+            created() {
+                this.load()
+            }
+        })
+        app.component('tooltip', card_tooltip)
+        app.component('decks', deck_list)
+        app.component('cards', popular_cards)
+        app.config.compilerOptions.delimiters = ['[[', ']]']
+        app.mount('#app')
+
+        async function loadBreakdown() {
+            const data = await axios.get('/api/decks/metagame-with-card/{{ card.card_id }}?format={{ format }}')
+            const breakdown = document.getElementById('breakdown')
+            breakdown.innerText = ''
+            Plotly.newPlot(breakdown, data.data, {})
+        }
+        loadBreakdown().then(() => {})
+    </script>
+{% endblock %}

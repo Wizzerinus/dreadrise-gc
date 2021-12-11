@@ -1,0 +1,17 @@
+{% extends 'template.html' %}
+{% set title = 'Change format' %}
+{% block main %}
+    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 row-cols-xxl-4">
+    {% for id, name, fmt in formats %}
+        <div class="col p-1">
+            <div class="card">
+                <a href="/{{ redirect_to }}?format={{ id }}">
+                    <img class="art-img-top card-img-top" src="/cards/art/{{ fmt.card_name | clean }}" alt="{{ fmt.card_name }}" />
+                    <h4>{{ name }}</h4>
+                </a>
+                <aside class="text-muted">{{ fmt.deck_count }} decks</aside>
+            </div>
+        </div>
+    {% endfor %}
+    </div>
+{% endblock %}

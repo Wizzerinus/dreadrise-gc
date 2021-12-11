@@ -1,0 +1,37 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+requests = "~=2.24"
+arrow = "~=1.1.1"
+click = "~=8.0.1"
+colorlog = "~=6.4.1"
+dnspython = "~=1.16.0"
+pyparsing = "~=3.0.6"
+pymongo = "~=3.12.0"
+Flask = "~=2.0.1"
+PyYAML = "~=5.4.1"
+Jinja2 = "~=3.0.1"
+authlib = "~=1.0.0b1"
+pillow = "~=8.3.2"
+plotly = "~=5.3.1"
+
+[dev-packages]
+mypy = "~=0.910"
+flake8 = "~=3.9.2"
+isort = {extras = ["pipfile_deprecated_finder"], version = "~=5.9.3"}
+types-pillow = "~=8.3.2"
+types-PyYAML = "~=6.0.1"
+types-requests = "~=2.26.0"
+mongo-types = "~=0.15.1"
+flake8-print = "*"
+pep8-naming = "*"
+flake8-builtins = "*"
+
+[requires]
+python_version = "3.9"
+
+[pipenv]
+allow_prereleases = true
