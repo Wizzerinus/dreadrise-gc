@@ -145,5 +145,8 @@ def run(debug: bool = False) -> None:
 def gunicorn() -> Flask:
     initlogger()
     for i in distributions:
-        connect(i)
+        if i != 'default':
+            logger.info(f'Connecting to {i}')
+            connect(i)
+            logger.info('Connected')
     return app
