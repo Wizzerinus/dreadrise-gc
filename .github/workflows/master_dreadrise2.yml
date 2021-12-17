@@ -22,10 +22,10 @@ jobs:
         with:
           python-version: '3.9'
 
-      - name: Create and start virtual environment
+      - name: Install pipenv and create requirements
         run: |
-          python -m venv venv
-          source venv/bin/activate
+          pip install pipenv
+          pipenv lock -r > requirements.txt
       
       - name: Install dependencies
         run: pip install -r requirements.txt
