@@ -13,7 +13,7 @@ from shared.helpers.deckcheck.karsten import karsten_dict
 from shared.helpers.metagame import metagame_breakdown
 from shared.helpers.query import deck_privacy
 from shared.helpers.util2 import build_deck
-from shared.type_defaults import bye_user
+from shared.type_defaults import bye_user, get_blank_user
 from shared.types.card import Card
 from shared.types.competition import Competition
 from shared.types.deck import Deck
@@ -46,11 +46,17 @@ def single_deck(db: Database, deck_id: str) -> str:
 
         opponent_zip = []
         for i in loaded_deck.games:
-            xdeck = opposing_decks.get(i.opposing_deck_id)
-            opponent_id = xdeck.author if xdeck else ''
-            opp = opponents.get(opponent_id, bye_user)
-            # this is garbage but I'm too lazy to make a proper struct for this
-            opponent_zip.append((i, xdeck.name if xdeck else '-', xdeck.deck_id if xdeck else '', opp))
+            if not i.opposing_deck_id:
+                opponent_zip.append((i, '-', '', get_blank_user('Bye')))
+            else:
+                xdeck = opposing_decks.get(i.opposing_deck_id)
+                opponent_id = xdeck.author if xdeck else ''
+                if not opponent_id or opponent_id not in opponents:
+                    opponent_zip.append((i, 'Unknown', 'unknown', get_blank_user('Unknown')))
+                else:
+                    opp = opponents.get(opponent_id, bye_user)
+                    # this is garbage but I'm too lazy to make a proper struct for this
+                    opponent_zip.append((i, xdeck.name if xdeck else '-', xdeck.deck_id if xdeck else '', opp))
     else:
         competition = None
         opponent_zip = []

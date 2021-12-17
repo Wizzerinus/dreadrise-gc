@@ -20,10 +20,18 @@
                 <tbody>
                 {% for dgr, dname, oid, opponent in opponents %}
                     <tr>
-                        <td>{{ dgr.player_wins }}-{{ dgr.player_losses }}</td>
-                        {% if oid %}
+                        <td>
+                            {{ dgr.player_wins }}-{{ dgr.player_losses }}
+                            {% if dgr.round %}
+                            ({{ dgr.round }})
+                            {% endif %}
+                        </td>
+                        {% if oid and oid != 'unknown' %}
                             <td><a href="/decks/{{ oid }}">{{ dname }}</a></td>
                             <td><a href="/users/{{ opponent.user_id }}">{{ opponent.nickname }}</a></td>
+                        {% elif oid %}
+                            <td>Unknown</td>
+                            <td>Unknown</td>
                         {% else %}
                             <td>-</td>
                             <td>BYE</td>

@@ -6,10 +6,11 @@ from shared.types.pseudotype import PseudoType
 
 
 class DeckGameRecord(PseudoType):
-    opposing_deck_id: str = 'unknown'
+    opposing_deck_id: str = ''
     result: int = 0  # 0: tie, 1: win, -1: loss
     player_wins: int = 0
     player_losses: int = 0
+    round: str = ''
 
 
 class Deck(PseudoType):

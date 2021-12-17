@@ -3,7 +3,7 @@ from datetime import datetime
 from functools import reduce
 from math import ceil
 from time import sleep
-from typing import Dict, List, Set, Tuple, cast
+from typing import Dict, Iterable, List, Set, Tuple, cast
 
 import arrow
 from pymongo.database import Database
@@ -13,13 +13,14 @@ from shared.card_enums import Archetype
 from shared.helpers.database import connect
 from shared.helpers.util import clean_name
 from shared.types.competition import Competition
-from shared.types.deck import Deck
+from shared.types.deck import Deck, DeckGameRecord
 from shared.types.deck_tag import DeckTag
 from shared.types.user import User, UserPrivileges
 
 logger = logging.getLogger('dreadrise.dist.pd.deck-scraper')
 pdm_host = 'https://pennydreadfulmagic.com'
 page_size = 300
+match_page_size = 500
 
 
 def init() -> Database:
@@ -85,15 +86,15 @@ def check_deck_filter(x: dict) -> bool:
         (x['sourceName'] == 'League' or x['sourceName'] == 'Gatherling') and x['wins'] + x['losses'] > 0
 
 
-def obtain_decks(existing_decks: Set[int], decks: List[Dict], fd: arrow.arrow.Arrow) -> List[Deck]:
-    ans = []
+def obtain_decks(existing_decks: Set[int], decks: List[Dict], fd: arrow.arrow.Arrow) -> Dict[int, Deck]:
+    ans = {}
     for x in decks:
         if not check_deck_filter(x) or x['id'] in existing_decks:
             continue
         existing_decks.add(x['id'])
 
         obtained = obtain_deck(x, fd)
-        ans.append(obtained)
+        ans[x['id']] = obtained
     return ans
 
 
@@ -148,17 +149,17 @@ def get_min_date(decks: List[dict]) -> arrow.arrow.Arrow:
 
 
 def load_all(existing_users: Dict[str, User], existing_competitions: Dict[str, Competition], url: str) -> \
-        Tuple[List[Deck], List[User], List[Competition]]:
+        Tuple[Dict[int, Deck], List[User], List[Competition]]:
     logger.info(f'Loading from {url}0')
     initial_load = fetch_tools.fetch_json(pdm_host + url + '0')
     entries = initial_load['total']
     deck_arr = initial_load['objects']
     pages = ceil(entries / page_size)
-    logger.info(f'Found {entries} entries, loading {pages - 1} extra pages')
+    logger.info(f'Found {entries} decks, loading {pages - 1} extra pages')
 
     existing_decks: Set[int] = set()
     for i in range(1, pages):
-        sleep(1)
+        sleep(0.5)
         logger.info(f'Loading page {i}')
         new_page = fetch_tools.fetch_json(pdm_host + url + str(i))
         deck_arr += new_page['objects']
@@ -170,21 +171,67 @@ def load_all(existing_users: Dict[str, User], existing_competitions: Dict[str, C
     return decks, users, comps
 
 
+def inject_single_match(deck: Deck, record: Dict, not_opponent: bool) -> None:
+    dgr = DeckGameRecord()
+    odi_base = record['opponentDeckId'] if not_opponent else record['deckId']
+    if odi_base:
+        dgr.opposing_deck_id = 'pdm-' + str(odi_base)
+    dgr.player_wins = record['gameWins'] if not_opponent else record['gameLosses']
+    dgr.player_losses = record['gameLosses'] if not_opponent else record['gameWins']
+    dgr.result = dgr.player_wins >= 2
+    if record['elimination']:
+        dgr.round = 'QF' if record['elimination'] == 8 else ('SF' if record['elimination'] == 4 else 'F')
+    deck.games.append(dgr)
+
+
+def inject_matches_from(decks: Dict[int, Deck], objects: Iterable[Dict]) -> None:
+    for i in objects:
+        deck_id, opponent_deck_id = i['deckId'], i['opponentDeckId']
+        if deck_id not in decks:
+            logger.warning(f'Deck {deck_id} not found')
+        else:
+            inject_single_match(decks[deck_id], i, True)
+
+        if opponent_deck_id not in decks:
+            logger.warning(f'Deck {opponent_deck_id} not found')
+        else:
+            inject_single_match(decks[opponent_deck_id], i, False)
+
+
+def inject_matches(decks: Dict[int, Deck], base_url: str) -> None:
+    initial_load = fetch_tools.fetch_json(pdm_host + base_url + '0')
+    entries = initial_load['total']
+    sample = initial_load['objects']
+    pages = ceil(entries / match_page_size)
+    logger.info(f'Found {entries} matches, loading {pages - 1} extra pages')
+
+    for i in range(1, pages):
+        sleep(0.25)
+        logger.info(f'Loading page {i}')
+        new_page = fetch_tools.fetch_json(pdm_host + base_url + str(i))
+        sample += new_page['objects']
+
+    sorted_sample = sorted(sample, key=lambda a: (a['date'], a['round']))
+    inject_matches_from(decks, sorted_sample)
+
+
 def run_all_decks(season_num: str) -> None:
     client = init()
-    logger.warning(f'Deleting everything related to season {season_num} in 5 seconds!')
-    # sleep(5)
-    client.decks.delete_many({'format': f'pds{season_num}'})
-    client.competitions.delete_many({'format': f'pds{season_num}'})
-    logger.warning('Purging complete')
     logger.info('Loading users')
     all_users = {x['user_id']: User().load(x) for x in client.users.find()}
     logger.info('Loading PDM')
     decks, users, comps = load_all(all_users, {},
                                    f'/api/decks/?deckType=all&pageSize={page_size}&seasonId={season_num}&page=')
+    logger.info('Finished loading decks, loading matches')
+    inject_matches(decks, f'/api/matches/?pageSize={match_page_size}&seasonId={season_num}&page=')
+    logger.warning(f'Deleting everything related to season {season_num} in 5 seconds!')
+    # sleep(5)
+    client.decks.delete_many({'format': f'pds{season_num}', 'competition': {'$exists': 1}})
+    client.competitions.delete_many({'format': f'pds{season_num}'})
+    logger.warning('Purging complete')
     if decks:
         logger.info(f'Inserting {len(decks)} decks...')
-        client.decks.insert_many([x.save() for x in decks])
+        client.decks.insert_many([x.save() for x in decks.values()])
     if users:
         logger.info(f'Inserting {len(users)} users...')
         client.users.insert_many([x.save() for x in users])
