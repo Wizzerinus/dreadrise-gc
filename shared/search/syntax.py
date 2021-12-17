@@ -199,9 +199,8 @@ class SearchSyntax(Generic[T]):
                 build_sort[name] = int(value)
         build_sort[self.default] = 1
         build_sort['_id'] = 1
-        aggregation.append({'$sort': build_sort})
 
-        limit_query: List[Dict[str, Any]] = []
+        limit_query: List[Dict[str, Any]] = [{'$sort': build_sort}]
         if cast(int, context['limit']) > -1:
             limit_query.append({'$skip': s})
             limit_query.append({'$limit': context['limit']})
