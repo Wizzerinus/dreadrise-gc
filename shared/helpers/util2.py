@@ -24,9 +24,9 @@ def update_distributions() -> None:
     logger.info('Updating the distributions...')
     for i in distributions:
         if i != 'default':
-            mod = import_module(f'dists.{i}.constants')
+            mod = get_dist_constants(i)
             try:
-                mod.update()  # type: ignore
+                mod.update()
                 logger.info(f'Updated {i}')
             except AttributeError:
                 logger.info(f'Update function for {i} does not exist')

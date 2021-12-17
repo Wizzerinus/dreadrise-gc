@@ -32,6 +32,7 @@ class DistConstants:
             get_deck_weight: Function which returns the importance of the deck. The deck with the highest weight
             is shown as the example deck of the archetype
             new_deck_formats: list of format IDs decks for which can be created
+            update: is called when the server is initialized
     """
     formats: List[str]
     scraped_formats: List[str]
@@ -59,6 +60,10 @@ class DistConstants:
 
     @staticmethod
     def get_deck_weight(d: Deck) -> float:
+        pass
+
+    @staticmethod
+    def update() -> None:
         pass
 
     index_types: List[str]

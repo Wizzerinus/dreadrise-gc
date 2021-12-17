@@ -11,7 +11,7 @@ from shared.types.card import Card
 from shared.types.format_cache import FormatCache
 
 from ..category import add_card_categories
-from ..constants import formats, pd_data
+from ..constants import formats, pd_data, update
 from ..custom_syntax import PDCard
 
 logger = logging.getLogger('dreadrise.dist.pd.card-scraper')
@@ -39,6 +39,8 @@ bulk_data_url = 'https://api.scryfall.com/bulk-data'
 
 
 def run() -> None:
+    logger.info('Updating seasons')
+    update()
     logger.info('Connecting to database')
     client = connect('penny_dreadful')
     logger.info('Loading legalities')

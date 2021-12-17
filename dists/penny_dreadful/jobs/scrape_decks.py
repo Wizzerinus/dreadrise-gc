@@ -3,7 +3,7 @@ from datetime import datetime
 from functools import reduce
 from math import ceil
 from time import sleep
-from typing import Dict, Iterable, List, Set, Tuple, cast
+from typing import Dict, Iterable, List, Set, Tuple, Union, cast
 
 import arrow
 from pymongo.database import Database
@@ -16,6 +16,8 @@ from shared.types.competition import Competition
 from shared.types.deck import Deck, DeckGameRecord
 from shared.types.deck_tag import DeckTag
 from shared.types.user import User, UserPrivileges
+
+from ..constants import pd_data, update
 
 logger = logging.getLogger('dreadrise.dist.pd.deck-scraper')
 pdm_host = 'https://pennydreadfulmagic.com'
@@ -184,16 +186,30 @@ def inject_single_match(deck: Deck, record: Dict, not_opponent: bool) -> None:
     deck.games.append(dgr)
 
 
+def inject_single_bye(deck: Deck, record: Dict) -> None:
+    dgr = DeckGameRecord()
+    dgr.opposing_deck_id = ''
+    dgr.player_wins = 2
+    dgr.player_losses = 0
+    dgr.result = True
+    if record['elimination']:
+        dgr.round = 'QF' if record['elimination'] == 8 else ('SF' if record['elimination'] == 4 else 'F')
+    deck.games.append(dgr)
+
+
 def inject_matches_from(decks: Dict[int, Deck], objects: Iterable[Dict]) -> None:
     for i in objects:
         deck_id, opponent_deck_id = i['deckId'], i['opponentDeckId']
-        if deck_id not in decks:
+        if deck_id and deck_id not in decks:
             logger.warning(f'Deck {deck_id} not found')
+        elif not deck_id:
+            inject_single_bye(decks[deck_id], i)
         else:
             inject_single_match(decks[deck_id], i, True)
 
         if opponent_deck_id not in decks:
-            logger.warning(f'Deck {opponent_deck_id} not found')
+            if opponent_deck_id:
+                logger.warning(f'Deck {opponent_deck_id} not found')
         else:
             inject_single_match(decks[opponent_deck_id], i, False)
 
@@ -211,11 +227,11 @@ def inject_matches(decks: Dict[int, Deck], base_url: str) -> None:
         new_page = fetch_tools.fetch_json(pdm_host + base_url + str(i))
         sample += new_page['objects']
 
-    sorted_sample = sorted(sample, key=lambda a: (a['date'], a['round']))
+    sorted_sample = sorted(sample, key=lambda a: (a['date'] or 0, a['round'] or 0))
     inject_matches_from(decks, sorted_sample)
 
 
-def run_all_decks(season_num: str) -> None:
+def run_all_decks(season_num: Union[int, str]) -> None:
     client = init()
     logger.info('Loading users')
     all_users = {x['user_id']: User().load(x) for x in client.users.find()}
@@ -225,7 +241,7 @@ def run_all_decks(season_num: str) -> None:
     logger.info('Finished loading decks, loading matches')
     inject_matches(decks, f'/api/matches/?pageSize={match_page_size}&seasonId={season_num}&page=')
     logger.warning(f'Deleting everything related to season {season_num} in 5 seconds!')
-    # sleep(5)
+    sleep(5)
     client.decks.delete_many({'format': f'pds{season_num}', 'competition': {'$exists': 1}})
     client.competitions.delete_many({'format': f'pds{season_num}'})
     logger.warning('Purging complete')
@@ -239,6 +255,19 @@ def run_all_decks(season_num: str) -> None:
         logger.info(f'Inserting {len(comps)} competitions...')
         client.competitions.insert_many([x.save() for x in comps])
     logger.info('Operation complete.')
+
+
+def run_all_seasons() -> None:
+    logger.info('Loading seasons')
+    update()
+    last_season = pd_data['last_season']
+    if not last_season:
+        logger.error('PDM is down, aborting')
+        return
+
+    for i in range(15, last_season + 1):
+        logger.info(f'Working on season {i}')
+        run_all_decks(i)
 
 
 def run_archetypes() -> None:

@@ -12,6 +12,7 @@ from shared.helpers.database import connect
 from shared.helpers.logging import initlogger
 from shared.helpers.magic import process_mana_cost_text, process_oracle
 from shared.helpers.util import clean_name, get_legality_color, shorten_name
+from shared.helpers.util2 import update_distributions
 from website.data_engines.sessions.bridge import get_session, save_session
 from website.routers.admin import b_admin, b_admin_api
 from website.routers.auth import b_auth, oauth
@@ -144,6 +145,7 @@ def run(debug: bool = False) -> None:
 
 def gunicorn() -> Flask:
     initlogger()
+    update_distributions()
     for i in distributions:
         if i != 'default':
             logger.info(f'Connecting to {i}')

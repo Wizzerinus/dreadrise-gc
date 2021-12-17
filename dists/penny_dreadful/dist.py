@@ -47,6 +47,15 @@ def scrape_decks(season_num: str) -> None:
 
 
 @pd.command()
+def scrape_all_decks() -> None:
+    """Scrape decks from the PD API."""
+    from .jobs.scrape_decks import run_all_seasons
+    logger.info('Running all seasons...')
+    run_all_seasons()
+    logger.info('Scraping complete.')
+
+
+@pd.command()
 def generate_format() -> None:
     """Cache the PD legality lists."""
     from .jobs.generate_format import run
