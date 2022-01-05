@@ -2,7 +2,7 @@ import logging
 
 from shared import fetch_tools
 from shared.helpers.deckcheck.default import (check_general_legality, check_maindeck_size, check_max_count,
-                                              check_sideboard_size)
+                                              check_sideboard_size, check_restricted_list)
 from shared.types.card import Card
 from shared.types.deck import Deck
 
@@ -107,7 +107,7 @@ def get_crop_location(card: Card) -> str:
 
 deck_checkers = [check_sideboard_size, check_maindeck_size, check_max_count, check_general_legality,
                  check_gyruda, check_jegantha, check_kaheera, check_keruga, check_lurrus,
-                 check_lutri, check_obosh, check_umori, check_yorion, check_zirda]
+                 check_lutri, check_obosh, check_umori, check_yorion, check_zirda, check_restricted_list]
 
 index_types = ['kickoff', 'pd500']
 

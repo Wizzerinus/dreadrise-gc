@@ -1,3 +1,4 @@
+from itertools import chain
 from typing import Dict, Tuple
 
 from shared.helpers.deckcheck.core import DeckCheckStatus, deck_check_statuses
@@ -43,8 +44,18 @@ def check_sideboard_size(d: Deck, c: Dict[str, Card]) -> Tuple[DeckCheckStatus, 
 
 
 def check_general_legality(d: Deck, c: Dict[str, Card]) -> Tuple[DeckCheckStatus, str]:
-    bad_cards = [x for x in d.mainboard if x not in c or c[x].legality.get(d.format, '') != 'legal']
-    bad_sb_cards = [x + ' (sideboard)' for x in d.sideboard if x not in c or c[x].legality.get(d.format, '') != 'legal']
+    bad = ['banned', 'not_legal']
+    bad_cards = [x for x in d.mainboard if x not in c or c[x].legality.get(d.format, '') in bad]
+    bad_sb_cards = [x + ' (sideboard)' for x in d.sideboard if x not in c or c[x].legality.get(d.format, '') in bad]
     if bad_cards or bad_sb_cards:
         return deck_check_statuses[2], 'The following cards are illegal: ' + ', '.join(bad_cards + bad_sb_cards)
+    return deck_check_statuses[0], ''
+
+
+def check_restricted_list(d: Deck, c: Dict[str, Card]) -> Tuple[DeckCheckStatus, str]:
+    bad_cards = [x for x in chain(d.mainboard.keys(), d.sideboard.keys()) if x in c and
+                 c[x].legality.get(d.format, '') == 'restricted' and d.mainboard.get(x, 0) + d.sideboard.get(x, 0) > 1]
+    if bad_cards:
+        return deck_check_statuses[2], 'The following cards are restricted but are present in more than 1 copy: ' + \
+               ', '.join(bad_cards)
     return deck_check_statuses[0], ''
