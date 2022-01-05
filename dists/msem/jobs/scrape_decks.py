@@ -8,7 +8,7 @@ from pymongo.database import Database
 
 from shared import fetch_tools
 from shared.helpers.database import connect
-from shared.helpers.exceptions import DreadriseError
+from shared.helpers.exceptions import DreadriseError, RisingDataError
 from shared.helpers.util import clean_card, clean_name, shorten_name
 from shared.types.card import Card
 from shared.types.competition import Competition
@@ -50,10 +50,14 @@ def _create_user(db: Database, username: str, user_discord: Optional[int]) -> st
     return user_id
 
 
-def get_match(x: dict, position: int) -> DeckGameRecord:
+def get_match(x: dict, position: int, legacy: Dict[str, str] = None) -> DeckGameRecord:
     dg = DeckGameRecord()
-    opposing_uid = x['players'][1 - position]['list']
-    dg.opposing_deck_id = opposing_uid if opposing_uid and 'bye' not in opposing_uid.lower() else None
+    try:
+        opposing_uid = legacy[x['players'][1 - position]['username']] if legacy else x['players'][1 - position]['list']
+        dg.opposing_deck_id = opposing_uid if opposing_uid and 'bye' not in opposing_uid.lower() else None
+    except KeyError:
+        # bye
+        pass
     dg.player_wins = int(x['players'][position]['wins'])
     dg.player_losses = int(x['players'][position]['losses'])
     # dg.winner = bool(x['players'][position]['victor' if 'victor' in x['players'][position] else 'winner'])
@@ -61,11 +65,12 @@ def get_match(x: dict, position: int) -> DeckGameRecord:
     return dg
 
 
-def _build_deck_record(deck: Deck, matches: list, uid: str) -> None:
-    first_matches = [(k, get_match(x, 0)) for k, x in enumerate(matches) if 'list' in x['players'][0] and
-                     x['players'][0]['list'] == uid]
-    second_matches = [(k, get_match(x, 1)) for k, x in enumerate(matches) if 'list' in x['players'][1] and
-                      x['players'][1]['list'] == uid]
+def _build_deck_record(deck: Deck, matches: list, uid: str, legacy: Dict[str, str] = None) -> None:
+    key = 'list' if not legacy else 'username'
+    first_matches = [(k, get_match(x, 0, legacy)) for k, x in enumerate(matches) if key in x['players'][0] and
+                     x['players'][0][key] == uid]
+    second_matches = [(k, get_match(x, 1, legacy)) for k, x in enumerate(matches) if key in x['players'][1] and
+                      x['players'][1][key] == uid]
     all_games = first_matches + second_matches
     deck.games = [x[1] for x in sorted(all_games)]
     deck.wins = len([x for x in all_games if x[1].result == 1])
@@ -74,19 +79,14 @@ def _build_deck_record(deck: Deck, matches: list, uid: str) -> None:
 
 
 def smart_clean(name: str, cards: Dict[str, Card]) -> str:
-    name = clean_card(name)
+    name = clean_card(name).split(' // ')[0]
     if name not in cards:
         logger.error(f'Card {name} not found')
         return name
     return cards[name].name
 
 
-def run() -> None:
-    """
-    Downloads a MSEM competition from the server and saves them into the database.
-    :return: nothing
-    """
-
+def run_json(json: dict, timeout: bool = True) -> None:
     logger.info('Connecting to the database')
     client = connect('msem')
     logger.info('Loading cards')
@@ -98,73 +98,96 @@ def run() -> None:
             for f in v.faces:
                 all_cards[f.name] = v
             all_cards[' // '.join([x.name for x in v.faces])] = v
-    logger.info('Scraping MSEM decks')
-    json = fetch_tools.fetch_json(_competition_file_path)
     logger.info('{n} decks, {m} matches loaded'.format(n=len(json['decks']), m=len(json['matches'])))
 
-    try:
-        comp_name, date, decks, matches = json['competition_name'], json['date'], json['decks'], json['matches']
-        date_object = arrow.get('20' + date.replace('_', '-')).datetime
+    comp_name, date, decks, matches = json['competition_name'], json['date'], json['decks'], json['matches']
+    date_object = arrow.get('20' + date.replace('_', '-')).datetime
 
-        old_comp = client.competitions.find_one({'name': comp_name})
-        # comp = Competition.objects(name=comp_name).first()
-        if old_comp:
+    old_comp = client.competitions.find_one({'name': comp_name})
+    # comp = Competition.objects(name=comp_name).first()
+    if old_comp:
+        if timeout:
             logger.warning(f'Deleting {comp_name} in 5 seconds!')
             sleep(5)
-            client.competitions.delete_one({'name': comp_name})
-            client.decks.delete_many({'competition': clean_name(comp_name)})
-            logger.warning(f'Deleted {comp_name}.')
+        client.competitions.delete_one({'name': comp_name})
+        client.decks.delete_many({'competition': clean_name(comp_name)})
+        logger.warning(f'Deleted {comp_name}.')
 
-        comp = Competition()
-        comp.competition_id = clean_name(comp_name)
-        comp.name = comp_name
-        comp.format = 'msem'
-        comp.type = 'gp' if 'GP' in comp_name or 'Grand Prix' in comp_name else 'league'
-        comp.date = date_object
-        client.competitions.insert_one(comp.save())
-        logger.info('Created the competition')
+    comp = Competition()
+    comp.competition_id = clean_name(comp_name)
+    comp.name = comp_name
+    comp.format = 'msem'
+    comp.type = 'gp' if 'GP' in comp_name or 'Grand Prix' in comp_name else 'league'
+    comp.date = date_object
+    client.competitions.insert_one(comp.save())
+    logger.info('Created the competition')
 
-        for m in matches:
-            for u in m['players']:
-                if 'list' in u:
-                    u['list'] = clean_name(u['list'][1:].replace('.txt', ''))
-        logger.info('Parsed matches')
+    for m in matches:
+        for u in m['players']:
+            if 'list' in u:
+                u['list'] = clean_name(u['list'][1:].replace('.txt', ''))
+    logger.info('Parsed matches')
 
-        decks_by_id = {}
-        for item in decks:
-            deckname, cards, deck_id = item['name'] if 'name' in item else 'No name', item['cards'], item['deck_id']
-            discord = item['user_discord'] if 'user_discord' in item else None
-            # this default username is tough but we'd have to work w/ it
-            username = item['user'] if 'user' in item else deck_id.split('/')[-1].replace('.txt', '')[:-1]
-            user_id = _create_user(client, shorten_name(username), discord)
+    decks_by_id = {}
+    decks_by_name = {}
+    legacy_deck_ids = {}
+    for item in decks:
+        deckname, cards, deck_id = item['name'] if 'name' in item else 'No name', item['cards'], item.get('deck_id', '')
+        discord = item['user_discord'] if 'user_discord' in item else None
+        # this default username is tough but we'd have to work w/ it
+        if not deck_id and 'user' not in item:
+            raise RisingDataError('Some deck is missing both User and Deck ID keys!')
+        username = item['user'] if 'user' in item else deck_id.split('/')[-1].replace('.txt', '')[:-1]
+        user_id = _create_user(client, shorten_name(username), discord)
 
-            d = Deck()
-            d.date = date_object
-            # if comp_type == CompetitionType.GP:
-            # d.deck_id = f'{comp.comp_id}--{clean_name(username)}'
-            # else:
+        d = Deck()
+        d.date = date_object
+        # if comp_type == CompetitionType.GP:
+        # d.deck_id = f'{comp.comp_id}--{clean_name(username)}'
+        # else:
+        if deck_id:
             d.deck_id = clean_name(deck_id[1:].replace('.txt', ''))
-            d.format = 'msem'
-            d.name = deckname
-            if 'name' not in item:
-                d.is_name_placeholder = True
-            d.author = user_id
-            d.competition = comp.competition_id
-            d.mainboard = {smart_clean(name, all_cards): value['mainCount'] for name, value in cards.items() if
-                           value['mainCount'] > 0}
-            d.sideboard = {smart_clean(name, all_cards): value['sideCount'] for name, value in cards.items() if
-                           value['sideCount'] > 0}
-            d.is_sorted = False
             decks_by_id[d.deck_id] = d
-        logger.info('Finished building decks')
+        else:
+            d.deck_id = comp.competition_id + '-' + clean_name(username)
+            decks_by_name[username] = d
+            legacy_deck_ids[username] = d.deck_id
+        d.format = 'msem'
+        d.name = deckname
+        if 'name' not in item:
+            d.is_name_placeholder = True
+        d.author = user_id
+        d.competition = comp.competition_id
+        d.mainboard = {smart_clean(name, all_cards): value['mainCount'] for name, value in cards.items() if
+                       value['mainCount'] > 0}
+        d.sideboard = {smart_clean(name, all_cards): value['sideCount'] for name, value in cards.items() if
+                       value['sideCount'] > 0}
+        d.is_sorted = False
+    logger.info('Finished building decks')
 
-        for deck_id, d in decks_by_id.items():
-            _build_deck_record(d, matches, deck_id)
-        logger.info('Finished building records')
+    if decks_by_name:
+        logger.warning(f'Using obsolete data format for {comp_name}!')
+        for deck_name, d in decks_by_name.items():
+            _build_deck_record(d, matches, deck_name, legacy_deck_ids)
+    for deck_id, d in decks_by_id.items():
+        _build_deck_record(d, matches, deck_id, None)
+    logger.info('Finished building records')
 
-        client.decks.insert_many([x.save() for x in decks_by_id.values()])
-        logger.info('Operation complete.')
+    client.decks.insert_many([x.save() for x in decks_by_id.values()] + [x.save() for x in decks_by_name.values()])
+    logger.info('Operation complete.')
 
+
+def run() -> None:
+    """
+    Downloads a MSEM competition from the server and saves them into the database.
+    :return: nothing
+    """
+
+    logger.info('Loading MSEM decks')
+    json = fetch_tools.fetch_json(_competition_file_path)
+
+    try:
+        run_json(json)
     except (DreadriseError, KeyError, ValueError):
         logger.error('A error occured!')
         traceback.print_exc()

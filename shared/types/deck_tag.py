@@ -1,8 +1,8 @@
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 from shared.card_enums import Archetype, Color
 from shared.helpers.tagging.color import color_rule_applies
-from shared.helpers.tagging.text import text_rule_applies
+from shared.helpers.tagging.text import compile_rule, text_rule_applies
 from shared.types.card import Card
 from shared.types.deck import Deck
 from shared.types.pseudotype import PseudoType
@@ -26,9 +26,12 @@ class DeckRule(PseudoType):
 
 class TextDeckRule(DeckRule):
     text: str
+    compiled: Optional[list] = None
 
     def applies_to(self, d: Deck, cards: Dict[str, Card]) -> bool:
-        return text_rule_applies(d, self.text)
+        if not self.compiled:
+            self.compiled = compile_rule(self.text)
+        return text_rule_applies(d, self.compiled)
 
 
 class ColorDeckRule(DeckRule):

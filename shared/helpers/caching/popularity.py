@@ -12,10 +12,10 @@ from shared.types.deck_tag import DeckTag
 def count(decks: List[Deck], cards: Dict[str, Card]) -> Dict[str, float]:
     card_counts: Dict[str, int] = Counter()
     for i in decks:
-        if i.wins > 0 or i.losses > 0:
+        if i.competition:
             for j, c in i.mainboard.items():
                 if j in cards and cards[j].main_type != 'land':
-                    card_counts[j] += c * (i.wins * 2 + i.losses)
+                    card_counts[j] += c * (i.wins * 2 + i.losses + 1)
     max_popularity = max(card_counts.values()) + 1 if len(card_counts) > 0 else 1
     return {x: c / max_popularity for x, c in card_counts.items()}
 

@@ -57,5 +57,5 @@ def check_restricted_list(d: Deck, c: Dict[str, Card]) -> Tuple[DeckCheckStatus,
                  c[x].legality.get(d.format, '') == 'restricted' and d.mainboard.get(x, 0) + d.sideboard.get(x, 0) > 1]
     if bad_cards:
         return deck_check_statuses[2], 'The following cards are restricted but are present in more than 1 copy: ' + \
-               ', '.join(bad_cards)
+                                       ', '.join(bad_cards)
     return deck_check_statuses[0], ''

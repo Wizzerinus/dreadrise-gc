@@ -2,7 +2,7 @@ import logging
 
 from shared import fetch_tools
 from shared.helpers.deckcheck.default import (check_general_legality, check_maindeck_size, check_max_count,
-                                              check_sideboard_size, check_restricted_list)
+                                              check_restricted_list, check_sideboard_size)
 from shared.types.card import Card
 from shared.types.deck import Deck
 
@@ -123,3 +123,6 @@ def get_sideboard_importance(c: Card, w: int) -> int:
 def get_deck_weight(deck: Deck) -> float:
     base = {'league': -1, 'tournament': 0, 'kickoff': 0.5, 'pd500': 1}[deck.source]
     return base + deck.wins - deck.losses * 0.55
+
+
+parse_gateway = None

@@ -7,6 +7,7 @@ from shared.types.deck import Deck
 
 from .checking import (check_adam, check_alvarez, check_garth, check_harriet, check_holcomb, check_hugo, check_mable,
                        check_marisa, check_searle, check_tabia, check_valencia)
+from .gateway import parse
 
 formats = ['freeform', 'msem', 'msedh']
 new_deck_formats = ['freeform', 'msem', 'msedh']
@@ -24,11 +25,7 @@ competition_localization = {
 }
 
 scraped_formats = ['msem']
-enabled_modules = {
-    'admin',
-    'archetyping',
-    'cropping'
-}
+enabled_modules = {'admin', 'archetyping', 'cropping', 'gateway'}
 
 category_descriptions = [
     ('hugo', 'Can be put into decks with Hugo of the Shadowstaff First Mate'),
@@ -86,3 +83,6 @@ def get_sideboard_importance(c: Card, w: int) -> int:
 def get_deck_weight(deck: Deck) -> float:
     base = {'league': -1, 'gp': 0}[deck.source]
     return base + deck.wins - deck.losses * 0.55
+
+
+parse_gateway = parse

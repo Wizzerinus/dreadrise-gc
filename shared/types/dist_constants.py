@@ -33,6 +33,9 @@ class DistConstants:
             is shown as the example deck of the archetype
             new_deck_formats: list of format IDs decks for which can be created
             update: is called when the server is initialized
+            parse_gateway: Parses a gateway query. The query will include the "gateway_key" field (checked at top level)
+            and the "action" field (must be checked by the distribution). The output must include "success" (bool)
+            and "reason" if success=false.
     """
     formats: List[str]
     scraped_formats: List[str]
@@ -64,6 +67,10 @@ class DistConstants:
 
     @staticmethod
     def update() -> None:
+        pass
+
+    @staticmethod
+    def parse_gateway(data: dict) -> dict:
         pass
 
     index_types: List[str]

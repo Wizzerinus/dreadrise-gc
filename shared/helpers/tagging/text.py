@@ -21,26 +21,32 @@ def _get_parser() -> pp.ParserElement:
     return multiple_card_names + comparison + number
 
 
-def text_rule_applies(d: Deck, rule: str) -> bool:
+def compile_rule(rule: str) -> list:
+    if not rule:
+        return []
+
+    parser = _get_parser()
+    try:
+        return [parser.parse_string(x) for x in rule.split('\n')]
+    except pyparsing.exceptions.ParseException as e:
+        logger.error('Error while running text rules: %s - %s!', rule, e.msg)
+        return []
+
+
+def text_rule_applies(d: Deck, compiled_rule: list) -> bool:
     """
     Checks whether a text rule applies to a deck.
     The rule should be formatted as:
     <card_a> + <card_b> + <card_c> >= (= <= > <) (number)
     each card is either [Card name] for maindeck, side.[Card name] for sideboard, or *.[Card name] for any.
     :param d: the deck
-    :param rule: the rule written with the rules above
+    :param compiled_rule: the rule compiled from one with the rules above
     :return: true if applies, false otherwise
     """
-    if not rule:
+    if not compiled_rule:
         return False
-    parser = _get_parser()
-    split = rule.split('\n')
-    try:
-        parsed = [parser.parse_string(x) for x in split]
-    except pyparsing.exceptions.ParseError as e:
-        logger.error('Error while running text rules: %s!', e.msg)
-        return False
-    for i in parsed:
+
+    for i in compiled_rule:
         current_sum = 0
         current_mode = -1
         comp = ''

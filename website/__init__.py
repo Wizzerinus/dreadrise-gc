@@ -20,8 +20,8 @@ from website.routers.card import b_card
 from website.routers.card_search import b_card_search, b_card_search_api
 from website.routers.competition import b_competition, b_competition_api
 from website.routers.deck import b_deck, b_deck_api
-# from website.routers.gateway import b_gateway
 from website.routers.deck_search import b_deck_search, b_deck_search_api
+from website.routers.gateway import b_gateway
 from website.routers.imagery import b_imagery
 from website.routers.index import b_index
 from website.routers.tag import b_tags, b_tags_api
@@ -58,9 +58,7 @@ app.register_blueprint(b_tags, url_prefix='/tags')
 app.register_blueprint(b_tags_api, url_prefix='/api/tags')
 
 app.register_blueprint(b_imagery, url_prefix='/imagery')
-# app.register_blueprint(b_gateway, url_prefix='/api/lackey')
-
-logger = logging.getLogger('dreadrise.website')
+app.register_blueprint(b_gateway, url_prefix='/api/gateway')
 
 
 def find_random_card(dist: Distribution, txt: str, default: str) -> Tuple[str, str]:

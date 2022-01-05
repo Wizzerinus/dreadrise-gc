@@ -45,7 +45,8 @@ def run_all_popularities(client: Database, postprocess_playability: Callable[[Ca
         client.card_playability.delete_many({})
 
         formats = {x.format for x in all_competitions}
-        formats.add('_all')
+        if len(formats) > 1:
+            formats.add('_all')
         format_counts = {x: len([y for y in all_decks if y.format == x or x == '_all']) for x in formats}
         for x in formats:
             if format_counts[x]:
@@ -76,9 +77,12 @@ def run_all_popularities(client: Database, postprocess_playability: Callable[[Ca
                     postprocess_playability(i, x, format_counts[x])
                 logger.info(f'Calculated {len(staple_cache)} staples entries')
 
-                logger.info('Inserting staples...')
-                client.card_playability.insert_many([y.save() for y in staple_cache])
-                logger.info('Insert complete.')
+                if len(staple_cache) > 0:
+                    logger.info('Inserting staples...')
+                    client.card_playability.insert_many([y.save() for y in staple_cache])
+                    logger.info('Insert complete.')
+                else:
+                    logger.info('Staples not detected.')
             else:
                 logger.info(f'Skipping format {x}')
 

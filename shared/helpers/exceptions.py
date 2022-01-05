@@ -28,3 +28,7 @@ class SearchDataError(DreadriseError):
 
 class SearchSyntaxError(DreadriseError):
     pass
+
+
+class InvalidArgumentError(DreadriseError):
+    pass
