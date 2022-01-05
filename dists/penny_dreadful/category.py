@@ -88,9 +88,10 @@ def add_card_categories(c: Card) -> None:
         if _is_typed(c.types):
             categories.append('fetchable')
 
+    # foretell is a special action, dash is an alternate cost so removing them
     activated_keywords = ['equip', 'cycling', 'transfigure', 'unearth', 'levelup', 'outlast', 'crew',
-                          'ninjutsu', 'commanderninjutsu', 'transmute', 'forecast', 'auraswap', 'foretell', 'reinforce',
-                          'scavenge', 'embalm', 'eternalize', 'fortify', 'adapt', 'dash', 'monstrosity', 'landcycling']
+                          'ninjutsu', 'commanderninjutsu', 'transmute', 'forecast', 'auraswap', 'reinforce',
+                          'scavenge', 'embalm', 'eternalize', 'fortify', 'adapt', 'monstrosity', 'landcycling']
     kaheera_types = ['Cat', 'Elemental', 'Nightmare', 'Dinosaur', 'Beast']
     if c.mana_value % 2 == 0:
         categories.append('gyruda')
