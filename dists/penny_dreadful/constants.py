@@ -1,10 +1,13 @@
 import logging
 
 from shared import fetch_tools
-from shared.helpers.deckcheck.default import check_maindeck_size, check_max_count, check_sideboard_size
+from shared.helpers.deckcheck.default import (check_general_legality, check_maindeck_size, check_max_count,
+                                              check_sideboard_size)
 from shared.types.card import Card
 from shared.types.deck import Deck
 
+from .checking import (check_gyruda, check_jegantha, check_kaheera, check_keruga, check_lurrus, check_lutri,
+                       check_obosh, check_umori, check_yorion, check_zirda)
 from .custom_syntax import SearchSyntaxCardPD, SearchSyntaxDeckPD
 
 logger = logging.getLogger('dreadrise.dist.pd')
@@ -102,7 +105,9 @@ def get_crop_location(card: Card) -> str:
     return card.image.replace('/normal/', '/art_crop/')
 
 
-deck_checkers = [check_sideboard_size, check_maindeck_size, check_max_count]
+deck_checkers = [check_sideboard_size, check_maindeck_size, check_max_count, check_general_legality,
+                 check_gyruda, check_jegantha, check_kaheera, check_keruga, check_lurrus,
+                 check_lutri, check_obosh, check_umori, check_yorion, check_zirda]
 
 index_types = ['kickoff', 'pd500']
 

@@ -1,11 +1,12 @@
-from shared.helpers.deckcheck.default import check_maindeck_size, check_max_count, check_sideboard_size
+from shared.helpers.deckcheck.default import (check_general_legality, check_maindeck_size, check_max_count,
+                                              check_sideboard_size)
 from shared.search.syntaxes.card import SearchSyntaxCard
 from shared.search.syntaxes.deck import SearchSyntaxDeck
 from shared.types.card import Card
 from shared.types.deck import Deck
 
 from .checking import (check_adam, check_alvarez, check_garth, check_harriet, check_holcomb, check_hugo, check_mable,
-                       check_marisa, check_msem_legality, check_searle, check_tabia, check_valencia)
+                       check_marisa, check_searle, check_tabia, check_valencia)
 
 formats = ['freeform', 'msem', 'msedh']
 new_deck_formats = ['freeform', 'msem', 'msedh']
@@ -69,7 +70,7 @@ default_card = 'into-the-unknown'
 
 deck_checkers = [check_adam, check_tabia, check_mable, check_marisa, check_hugo, check_garth, check_harriet,
                  check_holcomb, check_searle, check_alvarez, check_valencia,
-                 check_msem_legality, check_sideboard_size, check_maindeck_size, check_max_count]
+                 check_general_legality, check_sideboard_size, check_maindeck_size, check_max_count]
 
 index_types = ['gp']
 

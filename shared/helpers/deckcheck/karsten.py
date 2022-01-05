@@ -57,7 +57,7 @@ def get_ij_producers(d: Deck, all_cards: Dict[str, Card], color_combo: str, num:
 def check_karsten(dist: Distribution, d: Deck) -> List[Tuple[str, str, int, int]]:  # first int- expected, second- found
     """Checks single colored and double colored costs up to 3 symbols. More than 3 symbols are considered 3."""
     all_cards = load_cards_from_decks(dist, [d])
-    colors: List[ManaSymbol] = ['white', 'blue', 'black', 'red', 'green']
+    colors: List[ManaSymbol] = ['white', 'blue', 'black', 'red', 'green', 'colorless', 'snow']
     color_combos: List[ManaSymbol] = ['white/blue', 'blue/black', 'black/red', 'red/green', 'green/white',
                                       'white/black', 'blue/red', 'black/green', 'red/white', 'green/blue']
     answer: List[Tuple[str, str, int, int]] = []
@@ -79,7 +79,7 @@ def check_karsten(dist: Distribution, d: Deck) -> List[Tuple[str, str, int, int]
 
 def stringify(u: Tuple[str, str, int, int]) -> str:
     color_sym = '{' + u[1].replace('white', 'W').replace('blue', 'U').replace('black', 'B') \
-        .replace('red', 'R').replace('green', 'G') + '}'
+        .replace('red', 'R').replace('green', 'G').replace('snow', 'S').replace('colorless', 'C') + '}'
     return f'<b>{u[0]}</b> - expected {u[2]}x {process_mana_cost_text(color_sym)}, got {u[3]}'
 
 

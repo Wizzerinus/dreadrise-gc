@@ -3,7 +3,7 @@ from datetime import datetime
 from typing import Dict, List, Optional, Set
 
 from shared.card_enums import (CardType, Color, Legality, ManaDict, ManaType, Rarity, basics, card_types, color_order,
-                               color_symbols_to_colors, mana_types, rarities)
+                               color_symbols_single, color_symbols_to_colors, mana_types, rarities)
 from shared.helpers.exceptions import RisingDataError
 from shared.helpers.magic import process_mana_cost_text, process_oracle
 from shared.helpers.util import clean_name, sum_mana_costs
@@ -47,10 +47,10 @@ class CardFace(PseudoType):
                 if k in self.types:
                     produces_set.add(v)
 
-        for i in mana_types:
+        for i, j in zip(color_symbols_single, mana_types):
             regex_color_produce = re.compile(f'add.*{{{i}}}', re.I)
             if regex_color_produce.search(self.oracle):
-                produces_set.add(i)
+                produces_set.add(j)
 
         regex_rainbow = re.compile(r'\badd\b.*\b(of any color|any combination of colors|any one color|'
                                    r'one mana of that color|different colors|any of the)\b', re.I)

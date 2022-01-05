@@ -92,9 +92,7 @@
                 <div class="row mb-2 mt-1">
                     <div class="col-9">
                         <select class="form-control" v-model="format">
-                            {% for id, name in new_deck_formats %}
-                            <option value="{{ id }}">{{ name }}</option>
-                            {% endfor %}
+                            <option v-for="k in all_formats" :value="k[0]">[[ k[1] ]]</option>
                         </select>
                     </div>
                 </div>
@@ -163,7 +161,8 @@ const app = {
             privacy: "public",
             can_save: {{ 1 if session['user'] else 0 }},
             changes_done: false,
-            format: '{{ default_format }}'
+            format: '{{ default_format }}',
+            all_formats: []
         }
     },
     computed: {
@@ -296,7 +295,7 @@ const app = {
         },
         async check() {
             this.deck_check = {loading: true}
-            const res = await axios.post('/api/decks/check', { deck_list: this.deck_list })
+            const res = await axios.post('/api/decks/check', { deck_list: this.deck_list, format: this.format })
             if (res.status === 200)
                 this.deck_check = res.data
         },
@@ -336,6 +335,12 @@ const app = {
 
         window.onbeforeunload = () => this.changes_done ? true : null
 
+        const formats = await axios.get('/api/decks/formats')
+        if (formats.status !== 200) {
+            this.err = formats.statusText
+            return
+        } else this.all_formats = formats.data.objects
+
         if (!this.deck_id) return
         this.loading = true
         const req = await axios.get(`/api/decks/deck-list-text/${this.deck_id}`)
@@ -344,6 +349,8 @@ const app = {
         else {
             this.deck_name = req.data.name
             this.deck_str = req.data.str
+            this.format = req.data.format
+            this.all_formats.push([req.data.format, req.data.format_str])
             await this.parse()
         }
         this.loading = false

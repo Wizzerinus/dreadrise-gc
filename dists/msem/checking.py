@@ -6,14 +6,6 @@ from shared.types.card import Card
 from shared.types.deck import Deck
 
 
-def check_msem_legality(d: Deck, c: Dict[str, Card]) -> Tuple[DeckCheckStatus, str]:
-    bad_cards = [x for x in d.mainboard if x not in c or c[x].legality['msem'] != 'legal']
-    bad_sb_cards = [x + ' (sideboard)' for x in d.sideboard if x not in c or c[x].legality['msem'] != 'legal']
-    if bad_cards or bad_sb_cards:
-        return deck_check_statuses[2], 'The following cards are illegal in MSEM: ' + ', '.join(bad_cards + bad_sb_cards)
-    return deck_check_statuses[0], ''
-
-
 def check_adam(d: Deck, c: Dict[str, Card]) -> Tuple[DeckCheckStatus, str]:
     if 'Adam of the Ironside' not in d.sideboard:
         return deck_check_statuses[0], ''
@@ -118,7 +110,7 @@ def check_tabia(d: Deck, c: Dict[str, Card]) -> Tuple[DeckCheckStatus, str]:
     if 'Tabia of the Lionheart' not in d.sideboard:
         return deck_check_statuses[0], ''
     card_types = ['Creature', 'Planeswalker', 'Artifact', 'Enchantment', 'Instant', 'Sorcery', 'Tribal']
-    type_breakdown = {x: [y for y in d.mainboard if y in c and x in c[y].types] for x in card_types}
+    type_breakdown = {x: [y for y in d.mainboard if y in c and x in c[y].faces[0].types] for x in card_types}
     type_counts = {x: sum([d.mainboard[y] for y in z]) for x, z in type_breakdown.items()}
     bad_types = [x for x, z in type_counts.items() if z > 8]
     if bad_types:

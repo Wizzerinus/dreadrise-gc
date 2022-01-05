@@ -110,7 +110,6 @@ def inject_configuration() -> Dict[str, Any]:
         'cdist': cdist,
         'split_legality': split_legality,
         'scraped_formats': stuff.scraped_formats,
-        'new_deck_formats': [(x, localization.get(x, x)) for x in stuff.new_deck_formats],
         'default_format': stuff.default_format
     }
 

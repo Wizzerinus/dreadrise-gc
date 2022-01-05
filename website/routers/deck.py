@@ -197,7 +197,9 @@ def deck_list_text(db: Database, deck_id: str) -> dict:
     appendix = ' by ' + user['nickname'] if user and deck['author'] != user['user_id'] else ''
     return {
         'name': deck['name'] + appendix,
-        'str': load_from_dict(deck['mainboard']) + '\n\nSideboard:\n' + load_from_dict(deck['sideboard'])
+        'str': load_from_dict(deck['mainboard']) + '\n\nSideboard:\n' + load_from_dict(deck['sideboard']),
+        'format': deck['format'],
+        'format_str': split_import().format_localization.get(deck['format'], deck['format'])
     }
 
 
@@ -207,6 +209,7 @@ def check_deck() -> dict:
     req = cast(Dict[str, Any], request.get_json())
     deck_list = req['deck_list']
     deck = build_deck(deck_list)
+    deck.format = str(req['format'])
     status, errors, warnings, messages = deck_check(get_dist(), deck, constants.deck_checkers)
     return {
         'status': status,
@@ -228,6 +231,14 @@ def karsten() -> dict:
         'warnings': warnings,
         'messages': messages
     }
+
+
+@b_deck_api.route('/formats')
+def formats() -> dict:
+    stuff = split_import()
+    localization = stuff.format_localization
+    fmts = [(x, localization.get(x, x)) for x in stuff.new_deck_formats]
+    return {'objects': fmts}
 
 
 @b_deck_api.route('/create', methods=['POST'])
