@@ -18,7 +18,7 @@
         {% for face in data.faces %}
             <div>
                 <p><b>{{ face.name }}</b></p>
-                <p>{{ face.types }} — {{ face.mana_cost_str | mana }}</p>
+                <p>{{ face.types }}{% if face.mana_cost_str %} — {{ face.mana_cost_str | mana }}{% endif %}</p>
                 <p>{{ face.oracle | oraclize }}</p>
                 {% if face.power %}
                     <p>{{ face.power }}/{{ face.toughness }}</p>
@@ -37,6 +37,16 @@
         <!--<span class="text-{{ color }}"><b>{{ format }}</b> - {{ status }}</span><br />-->
         <span class="d-flex badge m-1 bg-{{ color }}{{ ' text-dark' if color == 'warning' else '' }} col-2">{{ format }}</span>
     {% endfor %}
+</div>
+<h4>Printed in</h4>
+<div class="row" style="max-width: 600px">
+    <div class="row row-cols-4">
+        {% for set in data.sets %}
+        <div class="col-auto badge m-1 bg-dark">
+            <span class="text-warning">{{ set }}</span> | {{ sets[set].name }}
+        </div>
+        {% endfor %}
+    </div>
 </div>
 <a class="btn btn-primary mt-2" href="/decks/with/{{ data.card_id }}">Decks with this card</a>
 {% endblock %}

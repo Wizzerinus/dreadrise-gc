@@ -1,11 +1,14 @@
 import re
 from typing import List, cast
 
+import arrow
+
 from shared.card_enums import color_symbols_to_colors, colors_single
 from shared.helpers.magic import calculate_mana_value, get_rarity, process_mana_cost_dict
 from shared.helpers.util import int_def
 from shared.types.card import Card, CardFace
 from shared.types.format_cache import FormatCache
+from shared.types.set import Expansion
 
 
 def get(key: str, d: dict, d2: dict) -> str:
@@ -75,3 +78,11 @@ def build_card(i: dict, formats: List[str], fcs: List[FormatCache]) -> Card:
     c.max_count = 4
 
     return c
+
+
+def build_expansion(i: dict) -> Expansion:
+    e = Expansion()
+    e.name = i['name']
+    e.code = i['code'].upper()
+    e.release_date = arrow.get(i['released_at']).datetime
+    return e

@@ -4,11 +4,12 @@ from shared.card_enums import mana_symbols
 from shared.helpers.exceptions import SearchDataError
 from shared.helpers.magic import get_rarity
 from shared.helpers.mana_parsing import get_mana_cost
+from shared.helpers.util import ireg
 from shared.search.functions import (SearchFilterAttribute, SearchFilterFunction, SearchFilterLowercase,
                                      SearchFilterUppercase, SearchFunction, SearchFunctionArrayValidator,
                                      SearchFunctionColor, SearchFunctionExact, SearchFunctionFloat, SearchFunctionInt,
                                      SearchFunctionString, SearchTransformerDelay)
-from shared.search.syntax import SearchFilter, SearchSyntax
+from shared.search.syntax import SearchFilter, SearchSyntax, SearchAnswer
 from shared.search.tokenizer import SearchGroup, SearchToken
 from shared.types.card import Card
 
@@ -80,6 +81,48 @@ def ensure_playability_join(ctx: dict) -> None:
     ctx['pipeline'].append({'id': 'remove_playability_id', '$unset': 'a_playability._id'})
 
 
+def ensure_expansion_join(ctx: dict) -> None:
+    if 'expansion_joined' in ctx:
+        return
+    ctx['expansion_joined'] = 1
+    ctx['pipeline'].append({'id': 'join_on_expansion', '$lookup': {
+        'from': 'expansions', 'localField': 'sets',
+        'foreignField': 'code', 'as': 'a_sets'
+    }})
+    ctx['pipeline'].append({'id': 'remove_expansion_id', '$unset': 'a_sets._id'})
+
+
+def ensure_latest_expansion(ctx: dict) -> None:
+    if 'latest_expansion_joined' in ctx:
+        return
+    ensure_expansion_join(ctx)
+    ctx['latest_expansion_joined'] = 1
+    ctx['pipeline'].append({'id': 'calc_latest_expansion', '$addFields': {
+        'a_latest_date': {'$min': {'$map': {
+            'input': '$a_sets.release_date', 'in': {'$toLong': '$$this'}
+        }}}
+    }})
+    ctx['pipeline'].append({'id': 'get_latest_expansion', '$addFields': {
+        'a_latest_set': {'$first': {'$filter': {
+            'input': '$a_sets', 'cond': {'$eq': [{'$toLong': '$$this.release_date'}, '$a_latest_date']}
+        }}}
+    }})
+    ctx['pipeline'].append({'id': 'remove_latest_expansion_id', '$unset': 'a_latest_set._id'})
+
+
+def ensure_expansion_date(ctx: dict, exp: str) -> None:
+    k = f'expansion_{exp}_calculated'
+    if k in ctx:
+        return
+    ctx[k] = 1
+
+
+def get_set_request(val: str, target: str = 'a_sets', allow_prelim: bool = True) -> SearchAnswer:
+    if len(val) == 3 and allow_prelim:
+        return {'sets': val.upper()}
+    return {'$or': [{f'{target}.name': ireg(val)}, {f'{target}.code': val.upper()}]}, False
+
+
 class SearchFunctionOrder(SearchFunction):
     @staticmethod
     def get_orders(tok: SearchToken) -> List[str]:
@@ -130,6 +173,20 @@ class SearchFunctionPlayability(SearchFunction):
         return {'a_playability.playability': self.get_target(tok)}, False
 
 
+class SearchFunctionSet(SearchFunction):
+    def process(self, tok: SearchToken, context: dict) -> SearchAnswer:
+        if len(tok.value) == 3:
+            return {'sets': tok.value.upper()}
+        ensure_expansion_join(context)
+        return get_set_request(tok.value)
+
+
+class SearchFunctionFirstPrint(SearchFunction):
+    def process(self, tok: SearchToken, context: dict) -> SearchAnswer:
+        ensure_latest_expansion(context)
+        return get_set_request(tok.value, 'a_latest_set', False)
+
+
 class SearchSyntaxCard(SearchSyntax):
     def __init__(self) -> None:
         super().__init__('cards', 'name', Card)
@@ -163,8 +220,10 @@ class SearchSyntaxCard(SearchSyntax):
                       'Search the card\'s layout.')
         self.add_func('color-identity', SearchFunctionColor('color_identity'),
                       'Search the card\'s color identity.', ['ci', 'id'])
-        self.add_func('set', SearchFunctionExact('sets').add_filter(SearchFilterUppercase()),
+        self.add_func('set', SearchFunctionSet(),
                       'Search the sets card appeared in.', ['e'])
+        self.add_func('fprint', SearchFunctionFirstPrint(),
+                      'Search the first set the card appeared in.', ['fp'])
         self.add_func('rarity', SearchFunctionExact('rarities')
                       .add_filter(SearchFilterFunction(get_rarity))
                       .add_filter(SearchFilterAttribute('value')),

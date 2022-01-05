@@ -1,11 +1,14 @@
 import logging
-from typing import Callable, Dict, List, cast
+from typing import Callable, Dict, List, cast, Tuple
+
+import arrow
 
 from shared.card_enums import Color, color_symbols_to_colors, colors
 from shared.helpers.exceptions import ScrapeError
 from shared.helpers.magic import get_rarity, process_mana_cost_dict
 from shared.helpers.util import int_def
 from shared.types.card import Card, CardFace
+from shared.types.set import Expansion
 
 logger = logging.getLogger('dreadrise.engine.cockatrice')
 
@@ -38,7 +41,8 @@ def process_cockatrice_card(card: dict, image_getter: Callable[[dict], str]) -> 
     return f
 
 
-def process_cockatrice_set(cset: dict, image_getter: Callable[[str, dict], str], formats: Dict[str, str]) -> List[Card]:
+def process_cockatrice_set(cset: dict, image_getter: Callable[[str, dict], str], formats: Dict[str, str]) -> \
+        Tuple[List[Card], Expansion]:
     if 'cards' not in cset or 'name' not in cset or 'code' not in cset:
         raise ScrapeError('Invalid cockatrice set dictionary.')
 
@@ -73,4 +77,9 @@ def process_cockatrice_set(cset: dict, image_getter: Callable[[str, dict], str],
         answer.append(c)
 
     logger.info(f'{set_name}: {len(answer)} cards')
-    return answer
+
+    ex = Expansion()
+    ex.name = set_name
+    ex.code = set_id
+    ex.release_date = arrow.get(cset['releaseDate']).datetime
+    return answer, ex

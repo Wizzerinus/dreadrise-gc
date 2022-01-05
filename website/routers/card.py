@@ -7,8 +7,9 @@ from pymongo.database import Database
 from werkzeug import Response
 
 from shared import fetch_tools
+from shared.helpers.db_loader import load_expansions
 from shared.types.card import Card
-from website.util import split_database, split_import
+from website.util import split_database, split_import, get_dist
 
 b_card = Blueprint('card', __name__)
 
@@ -16,6 +17,7 @@ b_card = Blueprint('card', __name__)
 @b_card.route('/<card_id>')
 @split_database
 def single_card(db: Database, card_id: str) -> str:
+    dist = get_dist()
     card_obj = db.cards.find_one({'card_id': card_id})
     if not card_obj:
         flash(f'Card with ID {card_id} not found.')
@@ -25,7 +27,8 @@ def single_card(db: Database, card_id: str) -> str:
         'col-12 col-md-6 col-lg-4 col-xxl-3' if not card.image_join() else 'col-12 col-lg-8 col-xl-6'
     class2 = 'col-12 col-lg-6 col-xl-7' if card.layout == 'split' else \
         'col-12 col-md-6 col-lg-8' if not card.image_join() else 'col-12 col-lg-4 col-xl-6'
-    return render_template('card/single.html', data=card, cls1=class1, cls2=class2)
+    expansions = load_expansions(dist)
+    return render_template('card/single.html', data=card, cls1=class1, cls2=class2, sets=expansions)
 
 
 def rotated_image(url: str, angle: Literal[0, 90, 180, 270]) -> Response:

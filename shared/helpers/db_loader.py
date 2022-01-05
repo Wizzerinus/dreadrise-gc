@@ -13,6 +13,7 @@ from shared.types.card import Card
 from shared.types.competition import Competition
 from shared.types.deck import Deck
 from shared.types.deck_tag import DeckTag
+from shared.types.set import Expansion
 from shared.types.user import User
 
 CardType = List[Tuple[Card, int]]  # [(card_name, card_count)]
@@ -351,3 +352,9 @@ def load_deck_analysis(dist: Distribution, decks: List[Deck], threshold: float =
     da.full_count = len(decks)
 
     return da
+
+
+def load_expansions(dist: Distribution) -> Dict[str, Expansion]:
+    db = connect(dist)
+    cursor = db.expansions.find({})
+    return {x['code']: Expansion().load(x) for x in cursor}

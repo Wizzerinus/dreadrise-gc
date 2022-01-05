@@ -27,6 +27,7 @@ def setup_indexes(d: Database) -> None:
     d.users.create_index('login', unique=True, sparse=True, name='user login')
     d.users.create_index('user_id', unique=True, name='user ID')
     d.users.create_index('nickname', unique=True, sparse=True, name='user nickname I')
+    d.expansions.create_index('code', unique=True, name='expansion code')
 
 
 def connect(dist: Distribution) -> Database:

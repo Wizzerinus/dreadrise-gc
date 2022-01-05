@@ -1,6 +1,7 @@
 import logging
 import traceback
 from time import sleep
+from typing import List, Dict
 
 import arrow
 
@@ -8,6 +9,7 @@ from shared import fetch_tools
 from shared.helpers.card_engines.cockatrice import process_cockatrice_set
 from shared.helpers.database import connect
 from shared.helpers.exceptions import DreadriseError, RisingDataError
+from shared.types.set import Expansion
 
 from ..category import add_card_categories
 
@@ -21,7 +23,17 @@ def _get_image_url(set_id: str, card_dict: dict) -> str:
 
 
 def _is_masterpiece(set_id: str) -> bool:
-    return set_id == 'CHAMPIONS' or 'MPS' in set_id or set_id in {'MS1', 'MS2', 'MS3', 'L1', 'L2', 'L3', 'PLAY'}
+    return 'MPS' in set_id or set_id in {'MS1', 'MS2', 'MS3', 'L1', 'L2', 'L3', 'PLAY'}
+
+
+exclusions = ['Velir, the Sunderer', 'Masahita, Bloodotongue', 'Acin, the Toymaker Avatar', 'Yatiri del Carnaval',
+              'Small Gifts', 'Big Presents', 'Massive Surprises']
+
+
+def process_sets(expansions: Dict[str, Expansion], sets: List[str]) -> List[str]:
+    sets = list(set(sets))
+    sets.sort(key=lambda x: expansions[x].release_date, reverse=True)
+    return sets
 
 
 def run() -> None:
@@ -35,16 +47,19 @@ def run() -> None:
 
     try:
         cards = {}
+        expansions = []
         for i in data['data'].values():
             set_id = i['code']
             if set_id == 'FLP' or set_id == 'LAIR':  # foreign language promos
                 logger.info(f'Skipping {set_id}')
                 continue
-            cset = process_cockatrice_set(i, _get_image_url, {'MSEM2': 'msem', 'MSEDH': 'msedh'})
+            cset, exp = process_cockatrice_set(i, _get_image_url, {'MSEM2': 'msem', 'MSEDH': 'msedh'})
+            expansions.append(exp)
             set_date = arrow.get(i['releaseDate'])
 
             for card in cset:
-                if 'Conspiracy' in card.faces[0].types:
+                cname = card.faces[0].name
+                if 'Conspiracy' in card.faces[0].types or cname in exclusions or 'Playtest' in cname:
                     continue
 
                 card.release_date = set_date.datetime
@@ -67,9 +82,11 @@ def run() -> None:
                     card.sets += old_sets
                     cards[card_name] = card
 
+        expansion_dict = {x.code: x for x in expansions}
         card_arr = []
         for i in cards.values():
             try:
+                i.sets = process_sets(expansion_dict, i.sets)
                 i.process()
                 add_card_categories(i)
                 card_arr.append(i)
@@ -83,7 +100,10 @@ def run() -> None:
         client = connect('msem')
         client.cards.delete_many({})
         client.cards.insert_many([x.save() for x in card_arr])
-        logger.info('Insert complete.')
+        logger.info('Inserted cards.')
+        client.expansions.delete_many({})
+        client.expansions.insert_many([x.save() for x in expansions])
+        logger.info('Inserted expansions.')
 
     except (DreadriseError, KeyError, ValueError):
         logger.error('A error occured!')

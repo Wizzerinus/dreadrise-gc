@@ -3,7 +3,7 @@ from time import sleep
 from typing import Dict, cast
 
 from shared import fetch_tools
-from shared.helpers.card_engines.scryfall import build_card
+from shared.helpers.card_engines.scryfall import build_card, build_expansion
 from shared.helpers.database import connect
 from shared.helpers.exceptions import RisingDataError
 from shared.helpers.magic import get_rarity
@@ -36,6 +36,7 @@ def update_card(c: Card, i: Dict) -> None:
 
 
 bulk_data_url = 'https://api.scryfall.com/bulk-data'
+expansion_url = 'https://api.scryfall.com/sets'
 
 
 def run() -> None:
@@ -82,6 +83,11 @@ def run() -> None:
                 cards[i['name']].ltime = max_pd
     logger.info(f'{len(cards)} cards processed')
 
+    logger.info('Loading expansions')
+    data = fetch_tools.fetch_json(expansion_url)
+    logger.info('Expansions loaded')
+    expansions = [build_expansion(x) for x in data['data']]
+
     card_arr = []
     for i in cards.values():
         try:
@@ -97,4 +103,7 @@ def run() -> None:
     logger.warning('Starting the operation...')
     client.cards.delete_many({})
     client.cards.insert_many([x.save() for x in card_arr])
-    logger.info('Insert complete.')
+    logger.info('Inserted cards.')
+    client.expansions.delete_many({})
+    client.expansions.insert_many([x.save() for x in expansions])
+    logger.info('Inserted expansions.')
