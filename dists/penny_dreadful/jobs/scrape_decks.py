@@ -257,7 +257,7 @@ def run_all_decks(season_num: Union[int, str]) -> None:
     logger.info('Operation complete.')
 
 
-def run_all_seasons() -> None:
+def run_all_seasons(min_season: int = 1) -> None:
     logger.info('Loading seasons')
     update()
     last_season = pd_data['last_season']
@@ -265,7 +265,7 @@ def run_all_seasons() -> None:
         logger.error('PDM is down, aborting')
         return
 
-    for i in range(15, last_season + 1):
+    for i in range(min_season, last_season + 1):
         logger.info(f'Working on season {i}')
         run_all_decks(i)
 

@@ -47,11 +47,12 @@ def scrape_decks(season_num: str) -> None:
 
 
 @pd.command()
-def scrape_all_decks() -> None:
+@click.argument('first_season_num')
+def scrape_all_decks(first_season_num: str) -> None:
     """Scrape decks from the PD API."""
     from .jobs.scrape_decks import run_all_seasons
     logger.info('Running all seasons...')
-    run_all_seasons()
+    run_all_seasons(int(first_season_num))
     logger.info('Scraping complete.')
 
 
