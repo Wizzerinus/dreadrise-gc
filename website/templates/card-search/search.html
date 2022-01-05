@@ -72,7 +72,8 @@
                     :disabled="loading || err || current_page <= 1">Prev</button>
         </div>
         <div class="col">
-            <button class="btn btn-primary" @click="backToTop">Back to top</button>
+            <button class="btn btn-primary me-2" @click="backToTop">Back to top</button>
+            <button class="btn btn-primary" @click="clear">Clear search</button>
         </div>
         <div class="col-2 col-lg-1">
             <button class="btn btn-dark" @click="nextPage()"
@@ -122,6 +123,8 @@ const app = {
     },
     methods: {
         getLink() {
+            if (!this.query)
+                return '/card-search/?dist={{ cdist }}'
             const q = `&q=${this.query}`
             const p = this.current_page === 0 ? '' : `&page=${this.current_page}`
             return `/card-search/?dist={{ cdist }}${q}${p}`
@@ -188,6 +191,11 @@ const app = {
         backToTop() {
             document.body.scrollTop = 0
             document.documentElement.scrollTop = 0
+        },
+        clear() {
+            this.searched = false
+            this.query = ''
+            this.updateURL()
         }
     },
     created() {
