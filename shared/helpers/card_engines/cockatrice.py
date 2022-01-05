@@ -1,5 +1,5 @@
 import logging
-from typing import Callable, Dict, List, cast, Tuple
+from typing import Callable, Dict, List, Tuple, cast
 
 import arrow
 

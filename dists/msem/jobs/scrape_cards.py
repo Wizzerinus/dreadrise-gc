@@ -1,7 +1,7 @@
 import logging
 import traceback
 from time import sleep
-from typing import List, Dict
+from typing import Dict, List
 
 import arrow
 

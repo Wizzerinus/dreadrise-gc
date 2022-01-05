@@ -5,11 +5,11 @@ from shared.helpers.exceptions import SearchDataError
 from shared.helpers.magic import get_rarity
 from shared.helpers.mana_parsing import get_mana_cost
 from shared.helpers.util import ireg
-from shared.search.functions import (SearchFilterAttribute, SearchFilterFunction, SearchFilterLowercase,
-                                     SearchFilterUppercase, SearchFunction, SearchFunctionArrayValidator,
-                                     SearchFunctionColor, SearchFunctionExact, SearchFunctionFloat, SearchFunctionInt,
-                                     SearchFunctionString, SearchTransformerDelay)
-from shared.search.syntax import SearchFilter, SearchSyntax, SearchAnswer
+from shared.search.functions import (SearchFilterAttribute, SearchFilterFunction, SearchFilterLowercase, SearchFunction,
+                                     SearchFunctionArrayValidator, SearchFunctionColor, SearchFunctionExact,
+                                     SearchFunctionFloat, SearchFunctionInt, SearchFunctionString,
+                                     SearchTransformerDelay)
+from shared.search.syntax import SearchAnswer, SearchFilter, SearchSyntax
 from shared.search.tokenizer import SearchGroup, SearchToken
 from shared.types.card import Card
 

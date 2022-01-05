@@ -9,7 +9,7 @@ from werkzeug import Response
 from shared import fetch_tools
 from shared.helpers.db_loader import load_expansions
 from shared.types.card import Card
-from website.util import split_database, split_import, get_dist
+from website.util import get_dist, split_database, split_import
 
 b_card = Blueprint('card', __name__)
 

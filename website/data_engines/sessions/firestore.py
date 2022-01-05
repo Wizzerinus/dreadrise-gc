@@ -12,7 +12,7 @@ connection: Dict[str, Any] = {'db': None, 'sessions': None}
 
 
 def initialize() -> None:
-    from google.cloud import firestore
+    from google.cloud import firestore  # type: ignore
 
     connection['db'] = firestore.Client()
     connection['sessions'] = connection['db'].collection('sessions')
