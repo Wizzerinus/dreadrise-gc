@@ -1,5 +1,5 @@
 from itertools import chain
-from typing import Callable, Dict, List, Set, Tuple
+from typing import Any, Callable, Dict, List, Set, Tuple
 
 import arrow
 
@@ -248,12 +248,13 @@ def load_competition_single(dist: Distribution, com: Competition, req_fields: Se
     lc.competition = com
 
     if 'decks' in req_fields:
-        loaded_decks = [Deck().load(x) for x in db.decks.find({'competition': com.competition_id})]
-        lc.deck_count = len(loaded_decks)
+        q: Dict[str, Any] = {'competition': com.competition_id}
+        lc.deck_count = db.decks.count(q)
         if lc.deck_count > 250:
             min_wins = 5 if lc.deck_count > 1000 else 4
-            loaded_decks = [x for x in loaded_decks if x.wins >= min_wins]
+            q['wins'] = {'$gte': min_wins}
             lc.partial_load = True
+        loaded_decks = [Deck().load(x) for x in db.decks.find(q)]
         if 'cards' in req_fields:
             lc.cards = load_cards_from_decks(dist, loaded_decks)
         if 'users' in req_fields:
