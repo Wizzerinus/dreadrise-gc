@@ -247,13 +247,13 @@ def formats() -> dict:
 def create_deck(db: Database) -> dict:
     session = g.actual_session
     if 'user' not in session:
-        return {'success': False, 'error': 'You need to be logged in to save decks!'}
+        return {'success': False, 'reason': 'You need to be logged in to save decks!'}
 
     req = cast(Dict[str, Any], request.get_json())
     deck_list = req['deck_list']
     deck_name = req['name']
     if not deck_name:
-        return {'success': False, 'error': 'Cannot create a deck without a name!'}
+        return {'success': False, 'reason': 'Cannot create a deck without a name!'}
     deck_id = req['id']
     priv = req['privacy']
     fmt = req['format']
@@ -274,7 +274,7 @@ def create_deck(db: Database) -> dict:
 
     can_edit = not deck.competition and 'user' in session and deck.author == session['user']['user_id']
     if not can_edit:
-        return {'success': False, 'error': 'Cannot edit this deck!'}
+        return {'success': False, 'reason': 'Cannot edit this deck!'}
     db.decks.update_one({'deck_id': deck_id},
                         {'$set': {
                             'name': deck_name,

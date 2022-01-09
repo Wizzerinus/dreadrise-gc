@@ -119,12 +119,12 @@ def find_users(db: Database) -> Dict[str, Any]:
         ans = list(db.users.find(query))
         return {
             'items': ans,
-            'error': False
+            'success': True
         }
     except OperationFailure as e:
         return {
-            'items': [],
-            'error': str(e)
+            'success': False,
+            'reason': str(e)
         }
 
 

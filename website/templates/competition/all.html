@@ -86,8 +86,8 @@ const app = {
                 if (res.status !== 200)
                     this.err = res.statusText
                 else {
-                    if (res.data.err)
-                        this.err = res.data.err
+                    if (!res.data.success)
+                        this.err = res.data.reason
                     else {
                         this.err = false
                         this.data = res.data

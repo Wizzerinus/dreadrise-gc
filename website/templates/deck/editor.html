@@ -276,10 +276,12 @@ const app = {
                     { query: this.search_request, page: this.current_page - 1, page_size: 10 })
                 if (res.status !== 200)
                     this.search_error = res.statusText
+                else if (!res.data.success)
+                    this.search_error = res.data.reason
                 else {
                     this.sample = res.data.sample
                     this.matches = res.data.matches
-                    this.search_error = res.data.err
+                    this.search_error = false
                     this.max_page = res.data.max_page
                 }
             }, this, 'loading_cards', 'search_error')()
@@ -323,8 +325,8 @@ const app = {
             if (res.status === 200 && res.data.success) {
                 this.changes_done = false
                 document.location = `/decks/${res.data.deck_id}`
-            } else if (res.status === 200 || (res.data && res.data.error))
-                this.err = res.data.error
+            } else if (res.status === 200 || (res.data && res.data.reason))
+                this.err = res.data.reason
             else
                 this.err = res.statusText
         }

@@ -73,6 +73,8 @@ def find_random_card(dist: Distribution, txt: str, default: str) -> Tuple[str, s
 
 @app.errorhandler(404)  # type: ignore
 def page_not_found(*args: Any):  # type: ignore
+    if '/api/' in request.full_path:
+        return {'success': False, 'reason': f'Page not found: {request.full_path}'}, 403
     markup = Markup(f'<code>{request.full_path}</code>')
     return render_template('error.html', error=404, card=find_random_card(get_dist(), 'lost', 'island'),
                            error_msg=f'Page {markup} not found.'), 404
@@ -80,6 +82,8 @@ def page_not_found(*args: Any):  # type: ignore
 
 @app.errorhandler(401)  # type: ignore
 def page_forbidden(*args: Any):  # type: ignore
+    if '/api/' in request.full_path:
+        return {'success': False, 'reason': f'Access denied: {request.full_path}'}, 401
     return render_template('error.html', error=401, card=find_random_card(get_dist(), 'forbid', 'swamp'),
                            error_msg='You don\'t have access to this page.'), 401
 
@@ -87,6 +91,8 @@ def page_forbidden(*args: Any):  # type: ignore
 @app.errorhandler(500)  # type: ignore
 def page_error(*args: Any):  # type: ignore
     logger.error('500 error! %s', args)
+    if '/api/' in request.full_path:
+        return {'success': False, 'reason': 'Internal server error!'}, 500
     return render_template('error.html', error=500, card=find_random_card(get_dist(), 'chaos', 'mountain'),
                            error_msg='The server errored. Notify the Dreadrise developer about this.'), 500
 

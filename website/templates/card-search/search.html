@@ -166,10 +166,12 @@ const app = {
                 const res = await axios.post('/api/card-search/cards', { query: this.query, page: this.current_page - 1, page_size: 60 })
                 if (res.status !== 200)
                     this.err = res.statusText
+                else if (!res.data.success)
+                    this.err = res.data.reason
                 else {
                     this.sample = res.data.sample
                     this.matches = res.data.matches
-                    this.err = res.data.err
+                    this.err = false
                     this.max_page = res.data.max_page
                 }
             }, this)()

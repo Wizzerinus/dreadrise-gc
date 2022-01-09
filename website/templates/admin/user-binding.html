@@ -57,9 +57,11 @@ const app = {
                 const res = await axios.post('/api/admin/find-users', { query: this.search_username })
                 if (res.status !== 200)
                     this.err = res.statusText
+                else if (!res.data.success)
+                    this.err = res.data.reason
                 else {
                     this.found_users = res.data.items
-                    this.err = res.data.error
+                    this.err = false
                 }
             }, this)()
         },

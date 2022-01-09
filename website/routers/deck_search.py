@@ -52,14 +52,12 @@ def api_card_search(db: Database) -> Dict[str, Any]:
             'sample': sample_arr,
             'winrate': winrate,
             'max_page': ceil(matches / page_size),
-            'err': False
+            'success': True
         }
     except DreadriseError as e:
         return {
-            'matches': 0,
-            'sample': 0,
-            'max_page': 0,
-            'err': str(e)
+            'success': False,
+            'reason': str(e)
         }
 
 
