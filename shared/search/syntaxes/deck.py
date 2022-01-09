@@ -1,7 +1,8 @@
 from typing import Any, Dict, List, Tuple
 
 from shared.helpers.util import ireg
-from shared.search.functions import SearchFunctionDate, SearchFunctionInt, SearchFunctionString
+from shared.search.functions import (SearchFilterLowercase, SearchFunctionDate, SearchFunctionExact, SearchFunctionInt,
+                                     SearchFunctionString)
 from shared.search.syntax import SearchAnswer, SearchFilter, SearchFunction, SearchSyntax
 from shared.search.tokenizer import SearchToken
 from shared.types.deck import Deck
@@ -21,7 +22,7 @@ class SearchSyntaxDeck(SearchSyntax):
                       'Search the deck\'s author.', ['player', 'user', 'u'])
         self.add_func('competition', SearchFunctionString('competition'),
                       'Search the competition the deck was played in.', ['comp', 'source', 's', 'in'])
-        self.add_func('format', SearchFunctionString('format'),
+        self.add_func('format', SearchFunctionExact('format').add_filter(SearchFilterLowercase()),
                       'Search the format the deck was played in.', ['f'])
         self.add_func('date', SearchFunctionDate('date'),
                       'Search the date the deck was played at.', ['time'])
