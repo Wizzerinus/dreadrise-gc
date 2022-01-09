@@ -45,7 +45,8 @@ class SearchSyntaxDeck(SearchSyntax):
     def parse(self, data: str, context: dict) -> Tuple[dict, dict]:
         d1, d2 = super().parse(data, context)
         context['facets']['winrate'] = self.get_winrate_facet()
-        context['sort'].append('deck_id~-1')
+        context['sort'].append('date~-1')
+        context['sort'].append('deck_id~1')
         return {'$and': [{'competition': {'$exists': 1}}, d1]}, d2
 
 

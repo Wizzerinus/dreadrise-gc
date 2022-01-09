@@ -170,8 +170,9 @@ def load_multiple_decks(dist: Distribution, decks: List[Deck]) -> Tuple[List[Loa
         ld.main_card = get_main_card(dist, deck, ld.card_defs)
         ld.tags = [all_tags.get(x, default_tag) for x in deck.tags]
         ld.sorted_cards = sort_deck_cards(ld)
-        ld.main_card = max([(y, x) for x, y in deck.mainboard.items()
-                            if x in card_defs and card_defs[x].main_type != 'land'])[1]
+        if deck.mainboard:
+            ld.main_card = max([(y, x) for x, y in deck.mainboard.items()
+                                if x in card_defs and card_defs[x].main_type != 'land'])[1]
         ld.format = constants.format_localization.get(deck.format, 'Unknown')
         ld.date_str = arrow.get(deck.date).humanize()
         comp = all_competitions.get(deck.competition)

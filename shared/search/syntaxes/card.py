@@ -9,6 +9,7 @@ from shared.search.functions import (SearchFilterAttribute, SearchFilterFunction
                                      SearchFunctionArrayValidator, SearchFunctionColor, SearchFunctionExact,
                                      SearchFunctionFloat, SearchFunctionInt, SearchFunctionString,
                                      SearchTransformerDelay)
+from shared.search.renamer import rename_query
 from shared.search.syntax import SearchAnswer, SearchFilter, SearchSyntax
 from shared.search.tokenizer import SearchGroup, SearchToken
 from shared.types.card import Card
@@ -200,8 +201,8 @@ class SearchSyntaxCard(SearchSyntax):
 
         left, right = self.process_token(tok, context, operator, invert)
         if face_search:
-            left = self.rename_query(left, lambda a: f'faces.{a}')
-            right = self.rename_query(right, lambda a: f'faces.{a}')
+            left = rename_query(left, lambda a: f'faces.{a}')
+            right = rename_query(right, lambda a: f'faces.{a}')
 
         if tok.invert:
             left = {'$nor': [left]}

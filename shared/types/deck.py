@@ -16,15 +16,21 @@ class DeckGameRecord(PseudoType):
 class Deck(PseudoType):
     def pre_load(self, data: dict) -> None:
         super().pre_load(data)
-        self.games = []
-        for i in data['games']:
-            cf = DeckGameRecord()
-            cf.load(i)
-            self.games.append(cf)
+        if 'games' in data:
+            self.games = []
+            for i in data['games']:
+                cf = DeckGameRecord()
+                cf.load(i)
+                self.games.append(cf)
+        else:
+            self.games_disabled = True
 
     def virtual_save(self) -> dict:
         dct = super().virtual_save()
-        dct['games'] = [x.save() for x in self.games]
+        if not hasattr(self, 'games_disabled'):
+            dct['games'] = [x.save() for x in self.games]
+        else:
+            del dct['games_disabled']
         return dct
 
     deck_id: str = 'unknown'
@@ -48,9 +54,10 @@ class Deck(PseudoType):
     privacy: DeckPrivacy = 'public'
 
     assigned_rules: List[str] = []
+    games_disabled: bool
 
     def process(self) -> None:
-        if self.wins == -1:
+        if self.wins == -1 and not hasattr(self, 'games_disabled'):
             self.wins = len([x for x in self.games if x.result > 0])
             self.losses = len([x for x in self.games if x.result < 0])
             self.ties = len([x for x in self.games if x.result == 0])

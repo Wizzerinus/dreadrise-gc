@@ -1,0 +1,217 @@
+{% extends 'template.html' %}
+{% set title = 'Matchups' %}
+{% block main %}
+<div id="app">
+    <div v-if="alert" class="alert alert-dismissible fade show mt-1" :class="'alert-' + alert_style">
+        <span v-html="alert"></span>
+        <button type="button" class="btn-close" @click="alert = alert_style = false"></button>
+    </div>
+    <form @submit.prevent="onSubmit">
+        <div class="row g-3 align-items-center mb-3 mt-1">
+            <div class="col">
+                <input type="text" class="form-control" v-model="q1" placeholder="Hero request">
+            </div>
+            <div class="col">
+                <input type="text" class="form-control" v-model="q2" placeholder="Enemy request">
+            </div>
+            <div class="col-auto">
+                <button class="btn btn-primary" @click="find()">Search</button>
+            </div>
+            <div class="col-auto">
+                <button class="btn btn-dark" @click="prevPage()"
+                        :disabled="loading || err || current_page <= 1">Prev</button>
+            </div>
+            <div class="col-auto">
+                <button class="btn btn-dark" @click="nextPage()"
+                        :disabled="loading || err || current_page >= max_page">Next</button>
+            </div>
+            <div class="col-auto">
+                <button class="btn btn-primary" @click="copyLink()">Copy link</button>
+            </div>
+        </div>
+    </form>
+
+    <div v-if="loading" class="text-danger">Loading...</div>
+    <div v-if="!loading && !searched" class="text-primary">Make a search request to see the matchups!</div>
+    <div v-if="!loading && searched && !err && matches == 0" class="text-warning">No matches.</div>
+    <div v-if="!loading && searched && !err && matches > 0" class="text-success">
+        [[ matches ]] matches found, [[ winrate ]]% winrate - current page [[ current_page ]]/[[ max_page ]]
+    </div>
+    <div v-if="!loading && err" class="text-danger">Error during search: [[ err ]]</div>
+
+    <table v-if="searched && !loading && !err && matches > 0" class="table">
+        <thead>
+            <tr>
+                <th>Deck</th>
+                <th>Author</th>
+                <th>Result</th>
+                <th>Opposing deck</th>
+                <th>Opposing author</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr v-for="item in sample" class="col p-1">
+                <td><b><a :href="'/decks/' + item.deck_id">[[ shorten(item.name, 28) ]]</a></b></td>
+                <td><a :href="'/users/' + item.author">[[ item.author_name ]]</a></td>
+                <td :class="'text-' + (item.winner ? 'success' : 'danger')">[[ item.game_wins ]]-[[ item.game_losses ]]</td>
+                <td><b><a :href="'/decks/' + item.enemy_deck_id">[[ item.enemy_name ]]</a></b></td>
+                <td><a :href="'/users/' + item.enemy_author">[[ item.enemy_author_name ]]</a></td>
+            </tr>
+        </tbody>
+    </table>
+
+    <div v-if="syn && !searched">
+        <div>
+            <h3>Basics</h3>
+            <div v-for="x in syn.start" v-html="x"></div>
+        </div>
+        <div>
+            <h3>Keywords</h3>
+            <div v-for="x in syn.keywords" v-html="x"></div>
+        </div>
+        <div>
+            <h3>Other</h3>
+            <div v-for="x in syn.extras" v-html="x"></div>
+        </div>
+    </div>
+
+    <button class="btn btn-primary" v-if="!searched && !loading && !syn" @click="syntax">Load the syntax guide</button>
+
+    <div class="row g-3 align-items-center mb-3 mt-1" v-if="searched && !err && matches>0">
+        <div class="col-2 col-lg-1">
+            <button class="btn btn-dark" @click="prevPage()"
+                    :disabled="loading || err || current_page <= 1">Prev</button>
+        </div>
+        <div class="col">
+            <button class="btn btn-primary me-2" @click="backToTop">Back to top</button>
+            <button class="btn btn-primary" @click="clear">Clear search</button>
+        </div>
+        <div class="col-2 col-lg-1">
+            <button class="btn btn-dark" @click="nextPage()"
+                    :disabled="loading || err || current_page >= max_page">Next</button>
+        </div>
+    </div>
+</div>
+
+<script>
+const app = {
+    data() {
+        return {
+            loading: false,
+            searched: false,
+            err: false,
+            matches: 0,
+            sample: [],
+            winrate: -1,
+            q1: "",
+            q2: "",
+            current_page: 0,
+            max_page: 0,
+            loading_timer: false,
+            syn: false,
+            alert: false,
+            alert_style: false,
+            cleanName: cleanName,
+            shorten: shorten
+        }
+    },
+    methods: {
+        getLink() {
+            if (!this.q1 || !this.q2)
+                return '/deck-search/?dist={{ cdist }}'
+            const q = `&q1=${this.q1}&q2=${this.q2}`
+            const p = this.current_page === 0 ? '' : `&page=${this.current_page}`
+            return `/deck-search/matchups?dist={{ cdist }}${q}${p}`
+        },
+        updateURL() {
+            history.pushState({}, 'Dreadrise Deck Search', this.getLink())
+        },
+        async copyLink() {
+            const link = window.location.origin + this.getLink()
+            try {
+                await navigator.clipboard.writeText(link)
+                this.alert_style = 'success'
+                this.alert = 'Successfully copied link to clipboard!'
+            } catch(e) {
+                this.alert_style = 'warning'
+                this.alert = `Failed copying link to clipboard! Copy it manually: <code>${link}</code>`
+            }
+        },
+        prevPage() {
+            if (this.current_page <= 1) return
+            this.updateURL()
+            this.current_page--
+            this.load()
+        },
+        nextPage() {
+            if (this.current_page >= this.max_page) return
+            this.updateURL()
+            this.current_page++
+            this.load()
+        },
+        find() {
+            this.updateURL()
+            this.current_page = 1
+            this.load()
+        },
+        load() {
+            throttleSearch(async () => {
+                this.searched = true
+                const res = await axios.post('/api/deck-search/matchups', { q1: this.q1, q2: this.q2, page: this.current_page - 1, page_size: 50 })
+                if (res.status !== 200)
+                    this.err = res.statusText
+                else if (!res.data.success)
+                    this.err = res.data.reason
+                else {
+                    this.sample = res.data.sample
+                    this.matches = res.data.matches
+                    this.err = false
+                    this.max_page = res.data.max_page
+                    this.winrate = res.data.winrate
+                }
+            }, this)()
+        },
+        async syntax() {
+            if (this.loading || this.syn || this.searched) return
+            this.loading = true
+            const result = await axios.get('/api/deck-search/syntax')
+            this.loading = false
+
+            if (result.status !== 200)
+                this.err = result.statusText
+            else
+                this.syn = result.data
+        },
+        setCurrent(item) {
+            this.current_deck = item
+        },
+        backToTop() {
+            document.body.scrollTop = 0
+            document.documentElement.scrollTop = 0
+        },
+        clear() {
+            this.searched = false
+            this.query = ''
+            this.updateURL()
+        }
+    },
+    created() {
+        const url = new URL(document.location)
+        const params = new URLSearchParams(url.search)
+        if (params.has('q1') && params.has('q2')) {
+            this.q1 = params.get('q1')
+            this.q2 = params.get('q2')
+            if (params.has('page')) {
+                const page = parseInt(params.get('page'))
+                if (!isNaN(page)) this.current_page = page
+            } else this.current_page = 1
+            this.load()
+        }
+    }
+}
+
+vue = Vue.createApp(app)
+vue.config.compilerOptions.delimiters = ['[[', ']]']
+vue.mount('#app')
+</script>
+{% endblock %}

@@ -8,6 +8,8 @@ from pyparsing import ParseResults
 
 from shared.helpers import configuration
 from shared.helpers.exceptions import SearchDataError
+from shared.search.renamer import AggregationRenameController, OperatorControllerDict, rename_field_name, \
+    rename_expression, OperatorControllerSingular, rename_nothing, rename_query
 from shared.search.tokenizer import SearchGroup, SearchToken, tokenize_string
 from shared.types.pseudotype import PseudoType
 
@@ -68,6 +70,7 @@ class SearchSyntax(Generic[T]):
     funcs: Dict[str, Tuple[SearchFunction, str, List[str], bool]]
     table_name: str
     model: Type[T]
+    arc: AggregationRenameController
 
     def __init__(self, table_name: str, default: str, model: Type[T]):
         self.default = default
@@ -75,6 +78,30 @@ class SearchSyntax(Generic[T]):
         self.default_object = {default: {'$exists': 1}}
         self.table_name = table_name
         self.model = model
+        self.arc = AggregationRenameController()
+        self.add_arc_methods()
+
+    def add_arc_methods(self):
+        self.arc.add_operator('addFields', OperatorControllerDict({'*': (rename_field_name, rename_expression)}))
+        self.arc.add_operator('count', OperatorControllerSingular(rename_field_name))
+        # not adding facet due to complexity
+        self.arc.add_operator('group', OperatorControllerDict({
+            '_id': (rename_nothing, rename_expression),
+            '*': (rename_field_name, rename_expression)
+        }))
+        self.arc.add_operator('lookup', OperatorControllerDict({
+            'localField': (rename_nothing, rename_field_name),
+            'as': (rename_nothing, rename_field_name)
+        }))
+        self.arc.add_operator('match', OperatorControllerSingular(rename_query))
+        self.arc.add_operator('project', OperatorControllerDict({'*': (rename_field_name, rename_expression)}))
+        self.arc.add_operator('redact', OperatorControllerSingular(rename_expression))
+        self.arc.add_operator('replaceRoot', OperatorControllerDict({'newRoot': (rename_nothing, rename_expression)}))
+        self.arc.add_operator('replaceWith', OperatorControllerSingular(rename_expression))
+        self.arc.add_operator('sort', OperatorControllerDict({'*': (rename_field_name, rename_nothing)}))
+        self.arc.add_operator('sortByCount', OperatorControllerSingular(rename_expression))
+        self.arc.add_operator('unset', OperatorControllerSingular(rename_field_name))
+        self.arc.add_operator('unwind', OperatorControllerSingular(rename_expression))
 
     def add_func(self, name: str, func: SearchFunction, desc: str, aliases: List[str] = None) -> None:
         aliases = aliases or []
@@ -114,21 +141,6 @@ class SearchSyntax(Generic[T]):
             post_aggregation = {'$nor': [post_aggregation]}
         return pre_aggregation, post_aggregation
 
-    def rename_query(self, q: Any, func: Callable[[str], str]) -> Any:
-        ans = {}
-        if not isinstance(q, dict):
-            return q
-        for i, j in q.items():
-            if i[0] == '$' and isinstance(j, list):
-                ans[i] = [self.rename_query(x, func) for x in j]
-            elif i[0] == '$':
-                ans[i] = self.rename_query(j, func)
-            elif isinstance(j, list):
-                ans[func(i)] = [self.rename_query(x, func) for x in j]
-            else:
-                ans[func(i)] = self.rename_query(j, func)
-        return ans
-
     def join(self, operator: str, data: List[Dict[str, Any]]) -> dict:
         min_count = 1 if operator != 'or' else 2
         while len(data) < min_count:
@@ -167,8 +179,8 @@ class SearchSyntax(Generic[T]):
         results = tokenize_string(data)
         return self.parse_recursive(results, context)
 
-    def search(self, db: Database, q: str, lim: int = 60, s: int = 0) -> Tuple[int, List[T], Dict[str, Any]]:
-        data = q.rstrip()
+    def create_pipeline(self, q: str, lim: int = 60, skip: int = 0) -> Tuple[List[Dict[str, Any]], List[Any], Any]:
+        data = str(q).rstrip() if q else ''
         if not data:
             raise SearchDataError('Please provide one or more search operators.')
 
@@ -202,23 +214,41 @@ class SearchSyntax(Generic[T]):
 
         limit_query: List[Dict[str, Any]] = [{'$sort': build_sort}]
         if cast(int, context['limit']) > -1:
-            limit_query.append({'$skip': s})
+            limit_query.append({'$skip': skip})
             limit_query.append({'$limit': context['limit']})
 
         facets = cast(Dict[str, List[Any]], context['facets'])
         facets['sample'] = limit_query
         aggregation.append({'$facet': facets})
-        extras = [x for x in facets if x not in ['sample', 'count']]
+        extra_facets = [x for x in facets if x not in ['sample', 'count']]
+        return aggregation, extra_facets, (query_left, query_right)
 
+    @staticmethod
+    def remove_facets(pipeline: List[Dict[str, Any]]) -> Tuple[List[Dict[str, Any]], List[Dict[str, Any]]]:
+        facets = []
+        pipeline2 = []
+        for i in pipeline:
+            if '$facet' in i:
+                facets.append(i)
+            else:
+                pipeline2.append(i)
+        return pipeline2, facets
+
+    def search(self, db: Database, q: str, lim: int = 60, s: int = 0) -> Tuple[int, List[T], Dict[str, Any]]:
+        aggregation, extra_facets, debug_data = self.create_pipeline(q, lim, s)
+        return self.search_with_pipeline(db, aggregation, extra_facets, debug_data)
+
+    def search_with_pipeline(self, db: Database, agg: List[Dict[str, Any]], ef: List[Any], debug: Any) -> \
+            Tuple[int, List[T], Dict[str, Any]]:
         try:
             allow_disk_use = bool(configuration.get('search_disk_use'))
-            agg = list(db[self.table_name].aggregate(aggregation, allowDiskUse=allow_disk_use))
+            agg = list(db[self.table_name].aggregate(agg, allowDiskUse=allow_disk_use))
             matches = agg[0]['count'][0]['count'] if len(agg[0]['count']) > 0 else 0
             sample = agg[0]['sample'] if matches else []
-            extra_dict = {x: agg[0][x] for x in extras}
+            extra_dict = {x: agg[0][x] for x in ef}
             return matches, [self.model().load(x) for x in sample], extra_dict
         except OperationFailure as e:
-            logger.debug((query_left, query_right))
+            logger.debug(debug)
             logger.error(e)
             raise SearchDataError(e)
 
