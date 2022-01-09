@@ -1,5 +1,4 @@
 from math import ceil
-from pprint import pprint
 from typing import Any, Dict, List, cast
 
 import arrow
@@ -79,7 +78,7 @@ def api_matchup_search(db: Database) -> Dict[str, Any]:
         constants = split_import()
         dss = constants.deck_search_syntax()
         hero, ef_hero, dd_hero = dss.create_pipeline(q1, page_size, current_page * page_size)
-        intermediate = [
+        intermediate: List[Dict[str, Any]] = [
             {'$unwind': '$games'},
             {'$lookup': {'from': 'decks', 'localField': 'games.opposing_deck_id',
                          'foreignField': 'deck_id', 'as': 'enemy'}},
@@ -117,11 +116,11 @@ def api_matchup_search(db: Database) -> Dict[str, Any]:
         else:
             winrate = 0
 
-        user_id_list = [x.author for x in sample] + [x.enemy_author for x in sample]
+        user_id_list = [x.author for x in sample] + [x.enemy_author for x in sample]  # type: ignore
         users = {x['user_id']: x['nickname'] for x in db.users.find({'user_id': {'$in': user_id_list}})}
         for x in sample:
-            x.author_name = users[x.author]
-            x.enemy_author_name = users[x.enemy_author]
+            x.author_name = users[x.author]  # type: ignore
+            x.enemy_author_name = users[x.enemy_author]  # type: ignore
 
         return {
             'matches': matches,

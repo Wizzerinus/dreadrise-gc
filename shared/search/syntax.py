@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from logging import getLogger
-from typing import Any, Callable, Dict, Generic, Iterable, List, Tuple, Type, TypeVar, Union, cast
+from typing import Any, Dict, Generic, Iterable, List, Tuple, Type, TypeVar, Union, cast
 
 from pymongo.database import Database
 from pymongo.errors import OperationFailure
@@ -8,8 +8,8 @@ from pyparsing import ParseResults
 
 from shared.helpers import configuration
 from shared.helpers.exceptions import SearchDataError
-from shared.search.renamer import AggregationRenameController, OperatorControllerDict, rename_field_name, \
-    rename_expression, OperatorControllerSingular, rename_nothing, rename_query
+from shared.search.renamer import (AggregationRenameController, OperatorControllerDict, OperatorControllerSingular,
+                                   rename_expression, rename_field_name, rename_nothing, rename_query)
 from shared.search.tokenizer import SearchGroup, SearchToken, tokenize_string
 from shared.types.pseudotype import PseudoType
 
@@ -81,7 +81,7 @@ class SearchSyntax(Generic[T]):
         self.arc = AggregationRenameController()
         self.add_arc_methods()
 
-    def add_arc_methods(self):
+    def add_arc_methods(self) -> None:
         self.arc.add_operator('addFields', OperatorControllerDict({'*': (rename_field_name, rename_expression)}))
         self.arc.add_operator('count', OperatorControllerSingular(rename_field_name))
         # not adding facet due to complexity

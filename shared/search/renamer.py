@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Dict, List, Any, Callable, Tuple
+from typing import Any, Callable, Dict, List, Tuple
 
 RenameMethod = Callable[[Any, Callable[[str], str]], Any]
 
@@ -97,13 +97,13 @@ class OperatorControllerDict(OperatorController):
 class AggregationRenameController:
     operators: Dict[str, OperatorController]
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.operators = {}
 
-    def add_operator(self, name: str, oc: OperatorController):
+    def add_operator(self, name: str, oc: OperatorController) -> None:
         self.operators['$' + name] = oc
 
-    def rename_pipeline(self, pipeline: List[Dict[str, Any]], renamer: Callable[[str], str]):
+    def rename_pipeline(self, pipeline: List[Dict[str, Any]], renamer: Callable[[str], str]) -> List[Dict[str, Any]]:
         result = []
         for i in pipeline:
             if not i:
