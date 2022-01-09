@@ -191,11 +191,12 @@ def import_deck_data(dist: Distribution, lc: LoadedCompetition, decks: List[Deck
     for i in decks:
         ld = LoadedDeck()
         ld.deck = i
-        ld.card_defs = {x: y for x, y in lc.cards.items() if x in i.mainboard or x in i.sideboard}
+        # Since this method is only called when loading a competition, we don't need a lot of these
+        # ld.card_defs = {x: y for x, y in lc.cards.items() if x in i.mainboard or x in i.sideboard}
         ld.tags = [lc.tags.get(x, default_tag) for x in i.tags]
         ld.author = lc.users.get(i.author, get_blank_user(i.author))
-        ld.main_card = get_main_card(dist, i, lc.cards)
-        ld.sorted_cards = sort_deck_cards(ld)
+        # ld.main_card = get_main_card(dist, i, lc.cards)
+        # ld.sorted_cards = sort_deck_cards(ld)
         ld.competition = lc.competition
         loaded_decks.append(ld)
     return loaded_decks
@@ -265,7 +266,7 @@ def load_competition_single(dist: Distribution, com: Competition, req_fields: Se
             lc.tags = {x['tag_id']: DeckTag().load(x) for x in db.deck_tags.find({'tag_id': {'$in': tag_list}})}
         lc.decks = import_deck_data(dist, lc, loaded_decks)
     else:
-        lc.deck_count = db.decks.find({'competition': com.competition_id}).count()
+        lc.deck_count = db.decks.count({'competition': com.competition_id})
 
     main_card_obj = db.competition_popularities.find_one({'competition': com.competition_id, 'format': com.format},
                                                          sort=[('true_popularity', -1)])
