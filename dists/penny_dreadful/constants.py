@@ -26,7 +26,7 @@ format_localization = {
 pd_data = {'last_season': 0}
 default_format = 'pdsx'
 
-enabled_modules = {'xd'}
+enabled_modules = {'gateway'}
 
 
 def update() -> None:
@@ -125,4 +125,14 @@ def get_deck_weight(deck: Deck) -> float:
     return base + deck.wins - deck.losses * 0.55
 
 
-parse_gateway = None
+def parse_gateway(data: dict) -> dict:
+    """Right now this is only used for git pulling."""
+    from .jobs.update_prod import run
+    logger.warning('Pulling the prod changes...')
+    try:
+        run()
+        logger.info('Update complete.')
+        return {'success': True}
+    except FileNotFoundError as e:
+        logger.error('Update failed!')
+        return {'success': False, 'reason': str(e)}

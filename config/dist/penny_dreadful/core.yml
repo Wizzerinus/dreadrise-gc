@@ -1,2 +1,3 @@
 BRAND: Dreadrise II
 MONGODB_URL: mongodb://localhost:27017/pd
+gateway_key: pd-gateway-keyboard-cat

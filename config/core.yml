@@ -7,3 +7,4 @@ gateway_key: gateway-keyboard-cat
 PORT: 3002
 search_disk_use: ''
 session_backend: flask
+repo_location: /home/dreadrise

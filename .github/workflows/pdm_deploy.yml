@@ -1,0 +1,18 @@
+name: Deploy to PDM
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: PDM Deploy
+        uses: fjogeleit/http-request-action@master
+        with:
+          url: 'https://dreadrise.wizzerinus.tk/api/gateway/penny_dreadful/'
+          method: 'POST'
+          data: '{"gateway_key": "${{ secrets.DREADRISE_DEPLOYMENT_KEY }}"}'
+          timeout: 30000
