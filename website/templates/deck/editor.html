@@ -221,7 +221,7 @@ const app = {
         parseOneList(y, sideboard = false) {
             return y.split('\n').filter(x => x && x.slice(0, 9) !== 'Sideboard' &&
                     x.slice(0, 2) !== '//' && x[0] !== '$' && x.length > 2).map(x => {
-                x = x.replace('SB: ', '').split('_')[0]
+                x = x.replace('SB: ', '').replace(' ', '').split('_')[0]
                 const split = x.split(' ')
                 const count = parseInt(split.shift())
                 const leftover = split.join(' ')
