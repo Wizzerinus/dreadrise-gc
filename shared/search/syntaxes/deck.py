@@ -36,6 +36,10 @@ class SearchSyntaxDeck(SearchSyntax):
                       'Search the cards in the mainboard of the deck.', ['main', 'card', 'maindeck', 'md'])
         self.add_func('sideboard', SearchFunctionCard('sideboard_list'),
                       'Search the cards in the sideboard of the deck.', ['side', 'sb'])
+        self.add_func('emainboard', SearchFunctionCard('mainboard_list', True),
+                      'Search the cards in the mainboard of the deck with exact matching.', ['ecard', 'emd'])
+        self.add_func('esideboard', SearchFunctionCard('sideboard_list', True),
+                      'Search the cards in the sideboard of the deck with exact matching.', ['eside', 'esb'])
 
     @staticmethod
     def get_winrate_facet() -> List[Dict[str, Any]]:
@@ -67,9 +71,10 @@ class SearchFilterCardList(SearchFilter):
 
 
 class SearchFunctionCard(SearchFunction):
-    def __init__(self, field: str):
+    def __init__(self, field: str, exact: bool = False):
         super().__init__()
         self.field = field
+        self.exact = exact
         self.add_filter(SearchFilterCardList())
 
     def process(self, tok: SearchToken, context: dict) -> SearchAnswer:
@@ -79,8 +84,7 @@ class SearchFunctionCard(SearchFunction):
             num = 1
 
         cmps = {'=': '$eq', '>': '$gt', '<': '$lt', '>=': '$gte', '<=': '$lte', ':': '$eq'}
+        base_dict = {'k': ireg(tok.value)} if not self.exact else {'k': ireg(f'^{tok.value}$')}
         if tok.comparator != ':':
-            base_dict = {'k': ireg(tok.value), 'v': {cmps[tok.comparator]: num}}
-        else:
-            base_dict = {'k': ireg(tok.value)}
+            base_dict['v'] = {cmps[tok.comparator]: num}
         return {self.field: {'$elemMatch': base_dict}}, False
