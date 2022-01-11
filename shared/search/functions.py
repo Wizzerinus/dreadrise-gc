@@ -150,15 +150,6 @@ class SearchFilterFunction(SearchFilter):
         return tok
 
 
-class SearchFilterAttribute(SearchFilter):
-    def __init__(self, a: str):
-        self.attr = a
-
-    def invoke(self, tok: SearchToken, context: dict) -> SearchToken:
-        tok.value = getattr(tok.value, self.attr)
-        return tok
-
-
 class SearchFilterComprehension(SearchFilter):
     def __init__(self, f: Callable[[Any], Any]):
         self.func = f

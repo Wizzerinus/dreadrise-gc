@@ -5,7 +5,7 @@ from shared.helpers.exceptions import SearchDataError
 from shared.helpers.magic import get_rarity
 from shared.helpers.mana_parsing import get_mana_cost
 from shared.helpers.util import ireg
-from shared.search.functions import (SearchFilterAttribute, SearchFilterFunction, SearchFilterLowercase, SearchFunction,
+from shared.search.functions import (SearchFilterFunction, SearchFilterLowercase, SearchFunction,
                                      SearchFunctionArrayValidator, SearchFunctionColor, SearchFunctionExact,
                                      SearchFunctionFloat, SearchFunctionInt, SearchFunctionString,
                                      SearchTransformerDelay)
@@ -226,8 +226,7 @@ class SearchSyntaxCard(SearchSyntax):
         self.add_func('fprint', SearchFunctionFirstPrint(),
                       'Search the first set the card appeared in.', ['fp'])
         self.add_func('rarity', SearchFunctionExact('rarities')
-                      .add_filter(SearchFilterFunction(get_rarity))
-                      .add_filter(SearchFilterAttribute('value')),
+                      .add_filter(SearchFilterFunction(get_rarity)),
                       'Search the rarities the card appeared in.', ['r'])
         self.add_func('category', SearchFunctionExact('categories')
                       .add_filter(SearchFilterLowercase())

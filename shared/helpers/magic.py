@@ -5,7 +5,7 @@ from jinja2 import Markup
 
 from shared.card_enums import (Color, ManaDict, ManaSymbol, Rarity, color_combo_localization, color_symbols_single,
                                color_symbols_to_colors, color_symbols_to_mana_types, colors, colors_single,
-                               mana_symbols, rarities)
+                               mana_symbols, rarities, rarity_map)
 from shared.helpers.exceptions import RisingDataError, SearchSyntaxError
 from shared.helpers.util import int_def
 
@@ -80,14 +80,10 @@ def get_rarity(s: str) -> Rarity:
     :return: the respective Rarity enum element
     """
     s = s.lower()
-    if s == 'mythic rare':
-        return 'mythic'
-    elif s == 'basic land':
-        return 'basic'
-    elif s in rarities:
+    if s in rarities:
         return cast(Rarity, s)
-    elif s == 'bonus' or s == 's':
-        return 'special'
+    elif s in rarity_map:
+        return rarity_map[s]
     raise RisingDataError(f'Unknown rarity: {s}')
 
 

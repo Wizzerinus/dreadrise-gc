@@ -30,6 +30,14 @@ card_types: Tuple[CardType, ...] = get_args(CardType)
 
 Rarity = Literal['special', 'mythic', 'rare', 'uncommon', 'common', 'basic']
 rarities: Tuple[Rarity, ...] = get_args(Rarity)
+rarity_map: Dict[str, Rarity] = {
+    'c': 'common',
+    'u': 'uncommon',
+    'r': 'rare',
+    'm': 'mythic', 'mythic-rare': 'mythic',
+    's': 'special', 'bonus': 'special',
+    'l': 'basic', 'land': 'basic', 'b': 'basic'
+}
 
 Legality = Literal['legal', 'restricted', 'not_legal', 'banned']
 legalities: Tuple[Legality, ...] = get_args(Legality)
