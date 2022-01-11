@@ -10,10 +10,11 @@ function throttleSearch(run, obj, key1 = 'loading', key2 = 'err', key3 = 'loadin
         try {
             await run()
             obj[key1] = false
-            clearTimeout(obj[key3])
         } catch(e) {
             obj[key1] = false
             obj[key2] = e
+        } finally {
+            clearTimeout(obj[key3])
         }
     }
 }
