@@ -2,10 +2,22 @@ from typing import Any, Dict, List, Tuple
 
 from shared.helpers.util import ireg
 from shared.search.functions import (SearchFilterLowercase, SearchFunctionDate, SearchFunctionExact, SearchFunctionInt,
-                                     SearchFunctionString)
+                                     SearchFunctionString, SearchTransformerDelay)
 from shared.search.syntax import SearchAnswer, SearchFilter, SearchFunction, SearchSyntax
 from shared.search.tokenizer import SearchToken
 from shared.types.deck import Deck
+
+
+def ensure_author_join(ctx: dict) -> None:
+    if 'author_joined' in ctx:
+        return
+    ctx['author_joined'] = 1
+    ctx['pipeline'].append({'id': 'join_on_author', '$lookup': {
+        'from': 'users', 'localField': 'author',
+        'foreignField': 'user_id', 'as': 'a_author'
+    }})
+    ctx['pipeline'].append({'id': 'unwind_author', '$unwind': '$a_author'})
+    ctx['pipeline'].append({'id': 'remove_author_id', '$unset': 'a_author._id'})
 
 
 class SearchSyntaxDeck(SearchSyntax):
@@ -18,7 +30,9 @@ class SearchSyntaxDeck(SearchSyntax):
                       'Search the deck\'s ID.')
         self.add_func('name', SearchFunctionString('name'),
                       'Search the deck\'s name.', ['n'])
-        self.add_func('author', SearchFunctionString('author'),
+        self.add_func('author', SearchFunctionString('a_author.nickname')
+                      .add_filter(SearchFilterAuthorJoin())
+                      .add_transformer(SearchTransformerDelay()),
                       'Search the deck\'s author.', ['player', 'user', 'u'])
         self.add_func('competition', SearchFunctionString('competition'),
                       'Search the competition the deck was played in.', ['comp', 'source', 's', 'in'])
@@ -88,3 +102,9 @@ class SearchFunctionCard(SearchFunction):
         if tok.comparator != ':':
             base_dict['v'] = {cmps[tok.comparator]: num}
         return {self.field: {'$elemMatch': base_dict}}, False
+
+
+class SearchFilterAuthorJoin(SearchFilter):
+    def invoke(self, tok: SearchToken, context: dict) -> SearchToken:
+        ensure_author_join(context)
+        return tok
