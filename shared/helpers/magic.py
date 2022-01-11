@@ -70,7 +70,7 @@ def calculate_mana_value(cost: ManaDict) -> int:
     :param cost: The card's mana cost in dictionary form
     :return: mana value of the card
     """
-    return sum([2 * c if x[0] == 'p' else (0 if 'zero' in x else c) for x, c in cost.items()])
+    return sum([2 * c if x[0] == 'p' else (0 if x == 'zero' or x == 'x' else c) for x, c in cost.items()])
 
 
 def get_rarity(s: str) -> Rarity:
