@@ -56,6 +56,14 @@ def scrape_last_season() -> None:
 
 
 @pd.command()
+def full_update() -> None:
+    """Scrape archetypes from the PD API, decks from the PD API, and recalculate the popularities."""
+    scrape_archetypes.callback()
+    scrape_last_season.callback()
+    calculate_ls_popularities.callback()
+
+
+@pd.command()
 @click.argument('first_season_num')
 def scrape_all_decks(first_season_num: str) -> None:
     """Scrape decks from the PD API."""
@@ -75,11 +83,20 @@ def generate_format() -> None:
 
 
 @pd.command()
-def calculate_popularities() -> None:
+def full_recalculate_popularities() -> None:
     """Create the rules for color combinations."""
-    from .jobs.calculate_popularities import run
+    from .jobs.calculate_popularities import run_all_seasons
     logger.info('Starting calculation...')
-    run()
+    run_all_seasons()
+    logger.info('Calculation complete.')
+
+
+@pd.command()
+def calculate_ls_popularities() -> None:
+    """Create the rules for color combinations."""
+    from .jobs.calculate_popularities import run_single_season
+    logger.info('Starting calculation...')
+    run_single_season()
     logger.info('Calculation complete.')
 
 
