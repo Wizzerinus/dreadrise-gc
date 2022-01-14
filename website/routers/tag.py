@@ -71,6 +71,7 @@ def api_archetypes(db: Database, page: int = 1) -> dict:
         del i['_id']
         i['f_cards'] = [{'name': cards[i].singular_name, 'card_id': cards[i].card_id} for i in i['cards']]
     return {
+        'success': True,
         'matches': tcount,
         'sample': tags,
         'page_size': 60,

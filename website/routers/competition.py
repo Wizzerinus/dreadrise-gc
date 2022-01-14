@@ -49,6 +49,7 @@ def api_competitions(db: Database, page: int = 0) -> dict:
     dist = get_dist()
     loaded_comps = [load_competition_single(dist, x, set()).jsonify() for x in comps]
     return {
+        'success': True,
         'matches': ccount,
         'sample': loaded_comps,
         'page_size': 12,

@@ -2,7 +2,7 @@
 {% set title = 'Archetypes' %}
 {% block main %}
 <div id="app">
-    <form @submit.prevent="onSubmit">
+    <form v-if="!err" @submit.prevent="onSubmit">
         <div class="row g-3 align-items-center mb-3 mt-1">
             <div class="col">
                 <span v-if="loading" class="text-danger">Loading...</span>
@@ -29,6 +29,8 @@
             </div>
         </div>
     </form>
+
+    <div v-if="err" class="text-danger">Error found: [[ err ]]</div>
 
     <div v-if="!loading && !err" class="row row-cols-2 row-cols-md-3 row-cols-xl-4 row-cols-xxl-5">
         <div v-for="i in data.sample" class="col p-1">
@@ -94,6 +96,7 @@ const app = {
             throttleSearch(async () => {
                 this.searched = true
                 const res = await axios.get(`/api/tags/all/${this.current_page}?format=${this.format}`)
+                console.log(res)
                 if (res.status !== 200)
                     this.err = res.statusText
                 else {

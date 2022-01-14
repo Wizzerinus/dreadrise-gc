@@ -2,7 +2,7 @@
 {% set title = 'Competitions' %}
 {% block main %}
 <div id="app">
-    <form @submit.prevent="onSubmit">
+    <form v-if="!err" @submit.prevent="onSubmit">
         <div class="row g-3 align-items-center mb-3 mt-1">
             <div class="col">
                 <span v-if="loading" class="text-danger">Loading...</span>
@@ -29,6 +29,8 @@
             </div>
         </div>
     </form>
+
+    <div v-if="err" class="text-danger">Error found: [[ err ]]</div>
 
     <div v-if="!loading && !err" class="row row-cols-1 row-cols-md-2 row-cols-lg-3 row-cols-xxl-4">
         <div v-for="i in data.sample" class="col p-1">
