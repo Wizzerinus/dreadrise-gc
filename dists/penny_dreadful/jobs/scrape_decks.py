@@ -270,6 +270,18 @@ def run_all_seasons(min_season: int = 1) -> None:
         run_all_decks(i)
 
 
+def run_last_season() -> None:
+    logger.info('Loading seasons')
+    update()
+    last_season = pd_data['last_season']
+    if not last_season:
+        logger.error('PDM is down, aborting')
+        return
+
+    logger.info(f'Working on season {last_season}')
+    run_all_decks(last_season)
+
+
 def run_archetypes() -> None:
     client = init()
     logger.info('Loading archetypes')
