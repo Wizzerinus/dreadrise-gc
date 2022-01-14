@@ -49,8 +49,9 @@ def discord_authorize(db: Database) -> Response:
         user = db.users.find_one({'login': f'discord.{uid}'})
         if not user:
             user = {
+                'user_id': f'd-{uid}',
                 'login': f'discord.{uid}',
-                'username': data['username'],
+                'nickname': data['username'],
                 'privileges': {}
             }
             db.users.insert_one(user)
