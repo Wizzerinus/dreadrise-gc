@@ -4,7 +4,7 @@ from shared.helpers.caching.ordered_popularities import run_ordered_popularities
 from shared.helpers.database import connect
 from shared.types.caching import CardPlayability
 
-from ..constants import update, scraped_formats, pd_data
+from ..constants import pd_data, scraped_formats, update
 
 logger = logging.getLogger('dreadrise.dist.pd.popularity')
 

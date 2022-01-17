@@ -1,6 +1,6 @@
 import logging
 import traceback
-from typing import List, Callable
+from typing import Callable, List
 
 from pymongo.database import Database
 
@@ -79,8 +79,8 @@ def run_ordered_popularities(client: Database, postprocess_playability: Callable
 
                 logger.info('Calculating staples cache...')
                 staple_cache = run_playability(x, all_cards, local_decks)
-                for i in staple_cache:
-                    postprocess_playability(i, x, format_counts[x])
+                for j in staple_cache:
+                    postprocess_playability(j, x, format_counts[x])
                 logger.info(f'Calculated {len(staple_cache)} staples entries')
 
                 if len(staple_cache) > 0:

@@ -58,9 +58,9 @@ def scrape_last_season() -> None:
 @pd.command()
 def full_update() -> None:
     """Scrape archetypes from the PD API, decks from the PD API, and recalculate the popularities."""
-    scrape_archetypes.callback()
-    scrape_last_season.callback()
-    calculate_ls_popularities.callback()
+    scrape_archetypes.callback()  # type: ignore
+    scrape_last_season.callback()  # type: ignore
+    calculate_ls_popularities.callback()  # type: ignore
 
 
 @pd.command()

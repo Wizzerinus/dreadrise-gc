@@ -31,7 +31,7 @@ def mypy() -> int:
     from mypy.api import run
     stdout, stderr, e = run(['dists', 'shared', 'website'])
     errors = [x for x in stdout.split('\n') if ' error:' in x and 'found module but no type hints' not in x and
-              'stubs not installed' not in x]
+              'stubs not installed' not in x and 'Skipping analyzing' not in x]
 
     if errors:
         print(f'mypy failed with error {e}')
