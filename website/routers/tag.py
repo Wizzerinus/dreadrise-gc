@@ -60,6 +60,8 @@ def api_archetypes(db: Database, page: int = 1) -> dict:
     q: Dict[str, Any] = {'cards.0': {'$exists': True}}
     if 'all' not in fmt:
         q['format'] = fmt
+    else:
+        q['format'] = '_all'
     tcount = db.archetype_cache.find(q).count()
     # I have no idea why mongotypes doesn't support cursor slicing
     tags = list(db.archetype_cache.find(  # type: ignore
