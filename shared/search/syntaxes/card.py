@@ -251,7 +251,7 @@ class SearchSyntaxCard(SearchSyntax):
                       'Search the card\'s mana value.', ['mv', 'cmc'])
         self.add_func('oracle', SearchFunctionOracle(),
                       'Search the card\'s oracle text. Supports <code>~</code> and regular expressions.', ['o'])
-        self.add_func('type', SearchFunctionString('type'),
+        self.add_func('type', SearchFunctionString('types'),
                       'Search the card\'s type line.', ['t'])
         self.add_func('main-type', SearchFunctionExact('sets').add_filter(SearchFilterLowercase()),
                       'Search the main type of the card.', ['mt'])
