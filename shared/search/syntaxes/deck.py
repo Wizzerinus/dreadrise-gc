@@ -20,6 +20,18 @@ def ensure_author_join(ctx: dict) -> None:
     ctx['pipeline'].append({'id': 'remove_author_id', '$unset': 'a_author._id'})
 
 
+def ensure_competition_join(ctx: dict) -> None:
+    if 'competition_joined' in ctx:
+        return
+    ctx['competition_joined'] = 1
+    ctx['pipeline'].append({'id': 'join_on_competition', '$lookup': {
+        'from': 'competitions', 'localField': 'competition',
+        'foreignField': 'competition_id', 'as': 'a_competition'
+    }})
+    ctx['pipeline'].append({'id': 'unwind_author', '$unwind': '$a_competition'})
+    ctx['pipeline'].append({'id': 'remove_author_id', '$unset': 'a_competition._id'})
+
+
 class SearchSyntaxDeck(SearchSyntax):
     def __init__(self) -> None:
         super().__init__('decks', 'name', Deck)
@@ -34,7 +46,9 @@ class SearchSyntaxDeck(SearchSyntax):
                       .add_filter(SearchFilterAuthorJoin())
                       .add_transformer(SearchTransformerDelay()),
                       'Search the deck\'s author.', ['player', 'user', 'u'])
-        self.add_func('competition', SearchFunctionString('competition'),
+        self.add_func('competition', SearchFunctionString('a_competition.name')
+                      .add_filter(SearchFilterCompetitionJoin())
+                      .add_transformer(SearchTransformerDelay()),
                       'Search the competition the deck was played in.', ['comp', 'source', 's', 'in'])
         self.add_func('format', SearchFunctionExact('format').add_filter(SearchFilterLowercase()),
                       'Search the format the deck was played in.', ['f'])
@@ -107,4 +121,10 @@ class SearchFunctionCard(SearchFunction):
 class SearchFilterAuthorJoin(SearchFilter):
     def invoke(self, tok: SearchToken, context: dict) -> SearchToken:
         ensure_author_join(context)
+        return tok
+
+
+class SearchFilterCompetitionJoin(SearchFilter):
+    def invoke(self, tok: SearchToken, context: dict) -> SearchToken:
+        ensure_competition_join(context)
         return tok

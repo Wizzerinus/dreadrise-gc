@@ -48,7 +48,7 @@ class CardFace(PseudoType):
                     produces_set.add(v)
 
         for i, j in zip(color_symbols_single, mana_types):
-            regex_color_produce = re.compile(f'add.*{{{i}}}', re.I)
+            regex_color_produce = re.compile(fr'add\b.*{{{i}}}', re.I)
             if regex_color_produce.search(self.oracle):
                 produces_set.add(j)
 
