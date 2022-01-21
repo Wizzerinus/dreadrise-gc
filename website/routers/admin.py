@@ -7,10 +7,11 @@ from pymongo.errors import OperationFailure
 from werkzeug import Response
 
 from shared.card_enums import Archetype, archetypes
+from shared.helpers.tagging.core import run_new_rules
 from shared.helpers.util import clean_name, ireg
 from shared.types.deck import Deck
 from shared.types.deck_tag import ColorDeckRule, DeckRule, DeckTag, TextDeckRule
-from website.util import privileges_required, requires_module, split_database
+from website.util import privileges_required, requires_module, split_database, get_dist
 
 b_admin = Blueprint('admin', __name__)
 b_admin_api = Blueprint('admin_api', __name__)
@@ -292,5 +293,9 @@ def update_rule(db: Database) -> Response:
 
     new_text = rule_text.replace('\r', '')
     db.text_deck_rules.update_one({'rule_id': rule_id}, {'$set': {'priority': int(priority), 'text': new_text}})
-    # run_new_rules([rule]) # TODO: prime the archetyping for rule
+
+    rule_object = TextDeckRule().load(rule)
+    rule_object.priority = int(priority)
+    rule_object.text = new_text
+    run_new_rules(get_dist(), [rule_object])
     return redirect(url_for('admin.rule_manager'))
