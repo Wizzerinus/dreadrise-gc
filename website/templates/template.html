@@ -23,7 +23,7 @@
     <link href="/static/styles.css" rel="stylesheet" />
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <nav class="navbar navbar-expand-sm navbar-dark bg-dark">
         <div class="container">
             <a class="navbar-brand" href="/">{{ config['BRAND'] }}</a>
             <div class="nav-item dropdown">
@@ -39,20 +39,39 @@
             </button>
             <div class="collapse navbar-collapse" id="nav-content">
                 <div class="navbar-nav">
-                    <a class="nav-link" href="/">Index</a>
-                    <a class="nav-link" href="/card-search">Card search</a>
-                    <a class="nav-link" href="/deck-search">Deck search</a>
-                    <a class="nav-link" href="/deck-search/matchups">Matchups</a>
-                    <a class="nav-link" href="/competitions">Competitions</a>
-                    <a class="nav-link" href="/tags">Archetypes</a>
-                    <a class="nav-link" href="/decks/editor">Deck Editor</a>
+                    <div class="nav-item">
+                        <a class="nav-link" href="/">Index</a>
+                    </div>
+                    <div class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" data-bs-toggle="dropdown" role="button">Search</a>
+                        <div class="dropdown-menu">
+                            <a class="dropdown-item" href="/card-search">Cards</a>
+                            <a class="dropdown-item" href="/deck-search">Decks</a>
+                            <a class="dropdown-item" href="/deck-search/matchups">Matchups</a>
+                        </div>
+                    </div>
+                    <div class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" data-bs-toggle="dropdown" role="button">Decks</a>
+                        <div class="dropdown-menu">
+                            <a class="dropdown-item" href="/competitions">Competitions</a>
+                            <a class="dropdown-item" href="/tags">Archetypes</a>
+                            <a class="dropdown-item" href="/decks/editor">Deck Editor</a>
+                            {% if session['user'] %}
+                            <a class="dropdown-item" href="/users/{{ session['user']['user_id'] }}">My decks</a>
+                            {% endif %}
+                        </div>
+                    </div>
                     {% if session['user'] %}
-                        <a class="nav-link fw-bold" href="/users/{{ session['user']['user_id'] }}">User profile</a>
-                        <a class="nav-link" href="/auth/reload">Reload auth</a>
-                        <a class="nav-link" href="/auth/logout">Logout</a>
-                        {% if session['user']['privileges']['some_admin'] %}
-                            <a class="nav-link" href="/admin">Administration</a>
-                        {% endif %}
+                        <div class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" data-bs-toggle="dropdown" role="button">Account</a>
+                            <div class="dropdown-menu dropdown-menu-end">
+                                <a class="dropdown-item" href="/auth/reload">Reload privileges</a>
+                                <a class="dropdown-item" href="/auth/logout">Logout</a>
+                                {% if session['user']['privileges']['some_admin'] %}
+                                    <a class="dropdown-item" href="/admin">Administration</a>
+                                {% endif %}
+                            </div>
+                        </div>
                     {% endif %}
                 </div>
             </div>
