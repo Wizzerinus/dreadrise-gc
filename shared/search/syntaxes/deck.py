@@ -55,7 +55,7 @@ class SearchSyntaxDeck(SearchSyntax):
         self.add_func('date', SearchFunctionDate('date'),
                       'Search the date the deck was played at.', ['time'])
         self.add_func('tags', SearchFunctionString('tags'),
-                      'Search the tags/archetypes the deck has.', ['archetypes', 'tag', 'arch'])
+                      'Search the tags/archetypes the deck has.', ['archetypes', 'tag', 'arch', 'archetype'])
         self.add_func('wins', SearchFunctionInt('wins'),
                       'Search the number of wins the deck has.', ['win', 'w'])
         self.add_func('losses', SearchFunctionInt('losses'),

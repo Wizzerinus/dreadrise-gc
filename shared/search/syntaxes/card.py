@@ -17,7 +17,7 @@ from shared.types.card import Card
 
 class SearchFunctionOracle(SearchFunction):
     def process(self, tok: SearchToken, context: dict) -> Optional[dict]:
-        name = 'oracle' if '~' not in tok.value else 't_oracle'  # I really should move from singleton functions...
+        name = 'oracle' if '~' not in tok.value else 't_oracle'
         val = tok.value if tok.comparator != '=' else f'^{tok.value}$'
         return {name: {'$regex': val, '$options': 'i'}}
 
@@ -222,7 +222,7 @@ class SearchSyntaxCard(SearchSyntax):
         self.add_func('color-identity', SearchFunctionColor('color_identity'),
                       'Search the card\'s color identity.', ['ci', 'id'])
         self.add_func('set', SearchFunctionSet(),
-                      'Search the sets card appeared in.', ['e'])
+                      'Search the sets card appeared in.', ['e', 's', 'expansion', 'exp'])
         self.add_func('fprint', SearchFunctionFirstPrint(),
                       'Search the first set the card appeared in.', ['fp'])
         self.add_func('rarity', SearchFunctionExact('rarities')
