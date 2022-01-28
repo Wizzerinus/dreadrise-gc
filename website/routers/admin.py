@@ -11,7 +11,7 @@ from shared.helpers.tagging.core import run_new_rules
 from shared.helpers.util import clean_name, ireg
 from shared.types.deck import Deck
 from shared.types.deck_tag import ColorDeckRule, DeckRule, DeckTag, TextDeckRule
-from website.util import privileges_required, requires_module, split_database, get_dist
+from website.util import get_dist, privileges_required, requires_module, split_database
 
 b_admin = Blueprint('admin', __name__)
 b_admin_api = Blueprint('admin_api', __name__)

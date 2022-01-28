@@ -13,6 +13,7 @@ class DeckTag(PseudoType):
     name: str
     description: str
     archetype: Archetype
+    parents: List[str]
 
 
 class DeckRule(PseudoType):

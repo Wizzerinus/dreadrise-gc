@@ -292,6 +292,8 @@ def run_archetypes() -> None:
     archetype_output = []
 
     remaining_archetypes = arch_load['objects']
+    reverse_tree: Dict[str, List[str]] = {}
+    tree_paths: Dict[str, List[str]] = {}
     depth = 0  # OH NO!
     while remaining_archetypes:
         depth += 1
@@ -308,11 +310,22 @@ def run_archetypes() -> None:
                 new_tag.archetype = cast(Archetype, archetype_tree[new_tag.name])
                 new_tag.description = 'No description'
                 archetype_output.append(new_tag)
+
+                if i['ancestor']:
+                    cl_anc = clean_name(i['ancestor'])
+                    if cl_anc not in reverse_tree:
+                        reverse_tree[cl_anc] = []
+                    reverse_tree[cl_anc].append(new_tag.tag_id)
+                    tree_paths[new_tag.tag_id] = tree_paths[cl_anc] + [new_tag.tag_id]
+                else:
+                    tree_paths[new_tag.tag_id] = [new_tag.tag_id]
         remaining_archetypes = bad_tags
         if depth > 10:
             logger.error('These archetypes are remaining: %s', bad_tags)
             return
 
+    for i in archetype_output:
+        i.parents = tree_paths[i.tag_id]
     logger.info(f'Generated {len(archetype_output)} archetypes, inserting...')
     logger.warning('Deleting all archetypes in 5 seconds!')
     sleep(5)

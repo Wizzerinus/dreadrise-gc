@@ -5,6 +5,7 @@ import arrow
 
 from shared.helpers.exceptions import SearchDataError, SearchSyntaxError
 from shared.helpers.magic import get_color_combination
+from shared.helpers.util import ireg
 from shared.search.syntax import SearchAnswer, SearchFilter, SearchFunction, SearchTransformer
 from shared.search.tokenizer import SearchToken
 
@@ -34,7 +35,7 @@ class SearchFunctionString(SearchFunction):
 
     def process(self, tok: SearchToken, context: dict) -> Optional[dict]:
         val = tok.value if tok.comparator != '=' else f'^{tok.value}$'
-        return {self.name: {'$regex': val, '$options': 'i'}}
+        return {self.name: ireg(val)}
 
 
 class SearchFunctionInt(SearchFunction):
@@ -201,7 +202,21 @@ class SearchFunctionDate(SearchFunction):
     def process(self, tok: SearchToken, context: dict) -> SearchAnswer:
         try:
             time = arrow.get(tok.value)
-            cmps = {'=': '$eq', '>': '$gt', '<': '$lt', '>=': '$gte', '<=': '$lte', ':': '$eq'}
-            return {self.name: {cmps[tok.comparator]: time.datetime}}
         except arrow.ParserError:
-            raise SearchDataError(f'Unable to parse date: {tok.value}')
+            try:
+                time = arrow.utcnow().dehumanize(tok.value)
+            except ValueError:
+                raise SearchDataError(f'Unable to parse date: {tok.value}')
+
+        cmps = {'=': '$eq', '>': '$gt', '<': '$lt', '>=': '$gte', '<=': '$lte', ':': '$eq'}
+        return {self.name: {cmps[tok.comparator]: time.datetime}}
+
+
+class SearchFunctionStringArray(SearchFunction):
+    def __init__(self, name: str):
+        super().__init__()
+        self.name = name
+
+    def process(self, tok: SearchToken, context: dict) -> Optional[dict]:
+        val = tok.value if tok.comparator != '=' else f'^{tok.value}$'
+        return {self.name: {'$elemMatch': ireg(val)}}

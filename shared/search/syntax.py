@@ -68,6 +68,7 @@ T = TypeVar('T', bound=PseudoType)
 class SearchSyntax(Generic[T]):
     default: str = ''
     funcs: Dict[str, Tuple[SearchFunction, str, List[str], bool]]
+    aliases: Dict[str, List[str]]
     table_name: str
     model: Type[T]
     arc: AggregationRenameController
@@ -75,6 +76,7 @@ class SearchSyntax(Generic[T]):
     def __init__(self, table_name: str, default: str, model: Type[T]):
         self.default = default
         self.funcs = {}
+        self.aliases = {}
         self.default_object = {default: {'$exists': 1}}
         self.table_name = table_name
         self.model = model
@@ -107,7 +109,15 @@ class SearchSyntax(Generic[T]):
         aliases = aliases or []
         self.funcs[name] = (func, desc, aliases, True)
         if aliases:
+            self.aliases[name] = aliases
             for i in aliases:
+                self.funcs[i] = (func, desc, [], False)
+
+    def replace_func(self, name: str, func: SearchFunction) -> None:
+        _1, desc, aliases, _2 = self.funcs[name]
+        self.funcs[name] = (func, desc, aliases, True)
+        if name in self.aliases:
+            for i in self.aliases[name]:
                 self.funcs[i] = (func, desc, [], False)
 
     def process_token(self, tok: SearchToken, context: dict, operator: str, invert: bool) -> Tuple[dict, dict]:
