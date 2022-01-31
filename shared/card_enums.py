@@ -36,7 +36,7 @@ rarity_map: Dict[str, Rarity] = {
     'r': 'rare',
     'm': 'mythic', 'mythic-rare': 'mythic', 'mythic rare': 'mythic',
     's': 'special', 'bonus': 'special',
-    'l': 'basic', 'land': 'basic', 'b': 'basic'
+    'l': 'basic', 'land': 'basic', 'b': 'basic', 'basic land': 'basic'
 }
 
 Legality = Literal['legal', 'restricted', 'not_legal', 'banned']
