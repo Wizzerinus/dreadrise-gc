@@ -83,6 +83,13 @@ def generate_format() -> None:
 
 
 @pd.command()
+def prepare_rotation() -> None:
+    """Load the new season data and change the card database based on it."""
+    generate_format.callback()  # type: ignore
+    scrape_cards.callback()  # type: ignore
+
+
+@pd.command()
 def full_recalculate_popularities() -> None:
     """Create the rules for color combinations."""
     from .jobs.calculate_popularities import run_all_seasons
