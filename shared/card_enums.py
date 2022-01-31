@@ -34,7 +34,7 @@ rarity_map: Dict[str, Rarity] = {
     'c': 'common',
     'u': 'uncommon',
     'r': 'rare',
-    'm': 'mythic', 'mythic-rare': 'mythic',
+    'm': 'mythic', 'mythic-rare': 'mythic', 'mythic rare': 'mythic',
     's': 'special', 'bonus': 'special',
     'l': 'basic', 'land': 'basic', 'b': 'basic'
 }

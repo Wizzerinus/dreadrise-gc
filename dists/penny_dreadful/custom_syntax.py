@@ -1,12 +1,11 @@
 from dists.penny_dreadful import constants
-from shared.search.functions import SearchFunctionInt, SearchFunctionStringArray, SearchTransformerDelay, \
-    SearchFilterLowercase
+from shared.search.functions import (SearchFilterLowercase, SearchFunctionInt, SearchFunctionStringArray,
+                                     SearchTransformerDelay)
 from shared.search.syntax import SearchFilter
 from shared.search.syntaxes.card import SearchSyntaxCard
 from shared.search.syntaxes.deck import SearchSyntaxDeck
 from shared.search.tokenizer import SearchToken
 from shared.types.card import Card
-
 
 archetype_aliases = {
     'mba': 'mono-black-aggro',
