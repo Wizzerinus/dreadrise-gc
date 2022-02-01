@@ -1,7 +1,7 @@
 import io
 import os
 from math import ceil
-from typing import Any, Dict, List, Optional, Tuple, cast
+from typing import Any, Dict, List, Optional, Tuple, cast, Literal
 
 from flask import Blueprint, Response, abort, request, send_file
 from PIL import Image, ImageDraw, ImageFont
@@ -16,7 +16,8 @@ from website.util import get_dist, split_database
 b_imagery = Blueprint('imagery', __name__)
 
 
-def generate_colors_from_deck(cards: Dict[str, Card], deck: Deck) -> Response:
+def generate_colors_from_deck(cards: Dict[str, Card], deck: Deck, full_width: int = 150,
+                              angle: Literal[0, 90, 180, 270] = 0) -> Response:
     counts = {'white': 0, 'blue': 0, 'black': 0, 'red': 0, 'green': 0}
     colors = {'white': (255, 255, 128), 'blue': (0, 0, 200), 'black': (10, 10, 10),
               'red': (200, 0, 0), 'green': (0, 200, 0)}
@@ -27,7 +28,6 @@ def generate_colors_from_deck(cards: Dict[str, Card], deck: Deck) -> Response:
             if j in counts:
                 counts[j] += k * c
 
-    full_width = 150
     count_sum = sum(counts.values())
     full_height = 25
     image = Image.new('RGB', (full_width, full_height))
@@ -47,12 +47,14 @@ def generate_colors_from_deck(cards: Dict[str, Card], deck: Deck) -> Response:
                             (stops[h - 1][1] + 1, 1, stops[h][1] - 1, full_height - 1))
 
     crop_bytes = io.BytesIO()
+    if angle:
+        image = image.transpose(getattr(Image, f'ROTATE_{angle}'))
     image.save(crop_bytes, 'PNG')
     crop_bytes.seek(0)
     return send_file(crop_bytes, mimetype='image/png')
 
 
-def generate_curve_from_deck(cards: Dict[str, Card], deck: Deck) -> Response:
+def generate_curve_from_deck(cards: Dict[str, Card], deck: Deck, full_height: int = 175) -> Response:
     total_columns = 9  # 0, 1, 2, 3, 4, 5, 6, 7+, X
     counts = [0 for _ in range(total_columns)]
     colors = [(200 - 12 * x, 200 - 12 * x, 200 - 12 * x) for x in range(total_columns)]
@@ -67,7 +69,6 @@ def generate_curve_from_deck(cards: Dict[str, Card], deck: Deck) -> Response:
         else:
             counts[min(7, cards[i].mana_value)] += c
 
-    full_height = 175
     count_sum = max(counts)
 
     column_width = 25
@@ -87,7 +88,7 @@ def generate_curve_from_deck(cards: Dict[str, Card], deck: Deck) -> Response:
             drawer.text((h * column_width + dx, full_height), text=texts[h], fill=(0, 0, 0), font=fnt)  # type: ignore
             if counts[h]:
                 x = h * column_width + (0 if counts[h] > 9 else column_width // 4)
-                y = full_height - normalized_counts[h] if normalized_counts[h] > number_height * 1.5 \
+                y = full_height - normalized_counts[h] if normalized_counts[h] > number_height * 1.25 \
                     else full_height - number_height - normalized_counts[h]
                 drawer.text((x, y), text=str(counts[h]), fill=(0, 0, 0), font=fnt)  # type: ignore
 
@@ -104,7 +105,17 @@ def generate_colors(db: Database, deck_id: str) -> Response:
     if not deck:
         abort(404)
     cards = load_cards_from_decks(get_dist(), [Deck().load(deck)])
-    return generate_colors_from_deck(cards, Deck().load(deck))
+    return generate_colors_from_deck(cards, Deck().load(deck), 150, 0)
+
+
+@b_imagery.route('/colors-rotated/<deck_id>')
+@split_database
+def generate_colors_rotated(db: Database, deck_id: str) -> Response:
+    deck = db.decks.find_one({'deck_id': deck_id})
+    if not deck:
+        abort(404)
+    cards = load_cards_from_decks(get_dist(), [Deck().load(deck)])
+    return generate_colors_from_deck(cards, Deck().load(deck), 145, 90)
 
 
 @b_imagery.route('/colors', methods=['POST'])
@@ -117,13 +128,14 @@ def generate_colors_api() -> Response:
 
 
 @b_imagery.route('/curve/<deck_id>')
+@b_imagery.route('/curve/<deck_id>/<int:height>')
 @split_database
-def generate_curve(db: Database, deck_id: str) -> Response:
+def generate_curve(db: Database, deck_id: str, height: int = 175) -> Response:
     deck = db.decks.find_one({'deck_id': deck_id})
     if not deck:
         abort(404)
     cards = load_cards_from_decks(get_dist(), [Deck().load(deck)])
-    return generate_curve_from_deck(cards, Deck().load(deck))
+    return generate_curve_from_deck(cards, Deck().load(deck), height)
 
 
 @b_imagery.route('/curve', methods=['POST'])

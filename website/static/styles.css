@@ -118,7 +118,7 @@
 .land-grid {
     grid-auto-rows: 37px;
     grid-template-columns: repeat(3, 1fr);
-    margin-right: 30px;
+    margin-right: 10px;
 }
 
 .main-grid {
