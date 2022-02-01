@@ -61,3 +61,73 @@
     color: #fff;
     text-shadow: -2px 0 #000,0 2px #000,2px 0 #000,0 -2px #000,-1px -1px #000,-1px 1px #000,1px 1px #000,1px -1px #000;
 }
+
+
+.display-card {
+    width: 200px;
+}
+
+.display-card-0 {
+    grid-column-start: 1;
+    grid-column-end: 3;
+}
+
+.display-card-1 {
+    grid-column-start: 2;
+    grid-column-end: 4;
+}
+
+.display-card-2 {
+    grid-column-start: 3;
+    grid-column-end: 5;
+}
+
+.display-card-3 {
+    grid-column-start: 1;
+    grid-column-end: 3;
+    position: relative;
+}
+
+.display-card-4 {
+    grid-column-start: 2;
+    grid-column-end: 4;
+    position: relative;
+}
+
+.display-card-5 {
+    grid-column-start: 3;
+    grid-column-end: 5;
+    position: relative;
+}
+
+.display-card-6 {
+    grid-column-start: 4;
+    grid-column-end: 6;
+    position: relative;
+}
+
+.card-grid {
+    display: grid;
+}
+
+.side-grid {
+    grid-auto-rows: 32px;
+    grid-template-columns: 1fr 1fr 1fr;
+}
+
+.land-grid {
+    grid-auto-rows: 37px;
+    grid-template-columns: repeat(3, 1fr);
+    margin-right: 30px;
+}
+
+.main-grid {
+    grid-auto-rows: 43px;
+    grid-template-columns: repeat(5, 1fr);
+    margin-right: 10px;
+}
+
+.card-grid .display-card-any:hover {
+    z-index: 5000;
+}
+

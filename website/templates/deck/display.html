@@ -1,0 +1,37 @@
+{% extends 'template.html' %}
+{% set title = deck.deck.name + ' by ' + deck.author.nickname %}
+{% block main %}
+    <h1><a href="/decks/{{ deck.deck.deck_id }}">{{ deck.deck.name }}</a></h1>
+    <h5><i>{{ deck.tags[0].name }}</i> deck by {{ deck.author.nickname }}, {{ deck.competition.name }}
+        ({{ deck.date_str }}), {{ deck.deck.wins }}-{{ deck.deck.losses }}</h5>
+
+    <div class="row">
+        <div class="col-auto card-grid main-grid" style="height: {{ main_height * 43 + 267 }}px">
+            {% for item in data[0] %}
+                {% if item %}
+                <a href="/cards/{{ item | clean }}" class="display-card-any display-card-{{ loop.index0 % columns + 3 }}"
+                   style="grid-row: {{ 1 + loop.index0 // columns }}">
+                    <img src="/cards/image/{{ item | clean }}" alt="{{ item }}" class="display-card" />
+                </a>
+                {% endif %}
+            {% endfor %}
+        </div>
+
+        <div class="col-auto card-grid land-grid" style="height: {{ land_height * 37 + 273 }}px">
+            {% for item in data[1] %}
+            <a href="/cards/{{ item | clean }}" class="display-card-any display-card-{{ loop.index0 % 2 }}"
+                style="grid-row: {{ 1 + loop.index0 // 2 }}">
+                <img src="/cards/image/{{ item | clean }}" alt="{{ item }}" class="display-card" />
+            </a>
+            {% endfor %}
+        </div>
+
+        <div class="col-auto card-grid side-grid">
+            {% for item in data[2] %}
+            <a href="/cards/{{ item | clean }}" class="display-card-any display-card-{{ loop.index0 % 2 }}">
+                <img src="/cards/image/{{ item | clean }}" alt="{{ item }}" class="display-card" />
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+{% endblock %}

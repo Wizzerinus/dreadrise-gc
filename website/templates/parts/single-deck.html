@@ -21,7 +21,11 @@
     <a onclick="if (prompt('Enter the deck ID to delete it.') === '{{ data.deck.deck_id }}')
         document.location = '/decks/delete/{{ data.deck.deck_id }}'"
        class="text-danger" role="button">(delete)</a>
+    <br />
+    {% else %}
+        <br />
     {% endif %}
+    <a href="/decks/display/{{ data.deck.deck_id }}">Display</a>
 </div>
 <img src="/imagery/colors/{{ data.deck.deck_id }}" alt="Deck's colors" />
 <div id="deck-cards" class="row">

@@ -1,5 +1,6 @@
 import datetime
 import json
+from math import ceil
 from typing import Any, Dict, Optional, cast
 
 from flask import Blueprint, abort, flash, g, make_response, redirect, render_template, request
@@ -10,6 +11,7 @@ from werkzeug import Response
 from shared.helpers.db_loader import generate_popular_cards, load_deck_data, load_multiple_decks
 from shared.helpers.deckcheck.core import deck_check
 from shared.helpers.deckcheck.karsten import karsten_dict
+from shared.helpers.masonry import generate_masonry
 from shared.helpers.metagame import metagame_breakdown
 from shared.helpers.query import deck_privacy
 from shared.helpers.util2 import build_deck
@@ -62,6 +64,24 @@ def single_deck(db: Database, deck_id: str) -> str:
         opponent_zip = []
     return render_template('deck/single.html', data=load_deck_data(dist, loaded_deck),
                            comp=competition, opponents=opponent_zip)
+
+
+@b_deck.route('/display/<deck_id>')
+@split_database
+def deck_display(db: Database, deck_id: str) -> str:
+    query = deck_privacy({'deck_id': deck_id}, get_uid(), True, is_admin=has_priv('deck_admin'))
+    deck = db.decks.find_one(query)
+    if not deck:
+        flash(f'Deck with ID {deck_id} not found.')
+        abort(404)
+
+    loaded_deck = Deck().load(deck)
+    deck_with_data = load_deck_data(get_dist(), loaded_deck)
+    columns = 4
+    masonry = generate_masonry(loaded_deck, deck_with_data.card_defs, columns)
+
+    return render_template('deck/display.html', data=masonry, deck=deck_with_data, columns=columns,
+                           main_height=ceil(len(masonry[0]) / columns), land_height=ceil(len(masonry[1]) / 2))
 
 
 @b_deck.route('/with/<card_id>')
