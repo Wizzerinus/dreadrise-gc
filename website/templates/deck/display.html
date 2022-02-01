@@ -2,8 +2,17 @@
 {% set title = deck.deck.name + ' by ' + deck.author.nickname %}
 {% block main %}
     <h1><a href="/decks/{{ deck.deck.deck_id }}">{{ deck.deck.name }}</a></h1>
-    <h5><i>{{ deck.tags[0].name }}</i> deck by {{ deck.author.nickname }}, {{ deck.competition.name }}
-        ({{ deck.date_str }}), {{ deck.deck.wins }}-{{ deck.deck.losses }}</h5>
+    <h5>
+        {% if deck.tags %}
+        <i><a href="/tags/{{ deck.tags[0].tag_id }}">{{ deck.tags[0].name }}</a></i>
+        {% else %}
+        A
+        {% endif %}
+        deck
+        by <a href="/users/{{ deck.author.user_id }}">{{ deck.author.nickname }}</a>,
+        <a href="/competitions/{{ deck.competition.competition_id }}">{{ deck.competition.name }}</a>
+        ({{ deck.date_str }}), {{ deck.deck.wins }}-{{ deck.deck.losses }}
+    </h5>
 
     <div class="row">
         <div class="col-auto card-grid main-grid" style="height: {{ main_height * 43 + 267 }}px">

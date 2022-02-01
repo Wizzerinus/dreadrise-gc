@@ -61,7 +61,7 @@ def metagame_breakdown(db: Database, decks: List[Deck], winrate_colors: bool = T
     else:
         min_decks = sorted_tag_counts[9][0]
 
-    data: List[Tuple[str, str, int, str, str]] = []
+    data: List[Tuple[str, str, int, str, str, float]] = []
     for i in archetypes:
         with_this_archetype = [x for x in decks if loaded_tags[x.tags[0]].archetype == i]
         if not with_this_archetype:
@@ -69,7 +69,7 @@ def metagame_breakdown(db: Database, decks: List[Deck], winrate_colors: bool = T
         arch_name = i.title()
         wr = calculate_winrate(with_this_archetype)
         wr_str = str(round(wr * 100, 2)) + '% winrate'
-        data.append((arch_name, '', len(with_this_archetype), wr_str, calculate_winrate_color(wr)))
+        data.append((arch_name, '', len(with_this_archetype), wr_str, calculate_winrate_color(wr), wr))
 
         if i != 'unclassified':
             tags_with_this_archetype = [x for x in loaded_tags.values() if x.archetype == i]
@@ -80,7 +80,7 @@ def metagame_breakdown(db: Database, decks: List[Deck], winrate_colors: bool = T
                 if j.name != arch_name:
                     wr = calculate_winrate(with_this_tag)
                     wr_str = str(round(wr * 100, 2)) + '% winrate'
-                    data.append((j.name, arch_name, len(with_this_tag), wr_str, calculate_winrate_color(wr)))
+                    data.append((j.name, arch_name, len(with_this_tag), wr_str, calculate_winrate_color(wr), wr))
 
     dict_data = {
         'labels': [x[0] for x in data],
@@ -88,8 +88,8 @@ def metagame_breakdown(db: Database, decks: List[Deck], winrate_colors: bool = T
         'values': [x[2] for x in data],
     }
     if winrate_colors:
-        dict_data['hovertext'] = [x[3] for x in data]
-        dict_data['marker'] = {'colors': [x[4] for x in data]}
+        dict_data['hovertext'] = [x[3] if x[5] >= 0 else '' for x in data]
+        dict_data['marker'] = {'colors': [x[4] if x[5] >= 0 else False for x in data]}
     # fig = px.sunburst(dict_data, names='tag', parents='parent', values='value')
     fig = pgo.Figure(pgo.Sunburst(dict_data, branchvalues='total'))
     fig.update_layout(margin={'t': 0, 'b': 0, 'l': 0, 'r': 0})
