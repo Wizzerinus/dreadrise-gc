@@ -38,7 +38,7 @@ def process_sets(expansions: Dict[str, Expansion], sets: List[str]) -> List[str]
 
 def run() -> None:
     """
-    Downloads the list of all MSEM cards from the server and saves them into the database.
+    Download the list of all MSEM cards from the server and saves them into the database.
     :return: nothing
     """
     logger.info('Scraping MSEM cards')

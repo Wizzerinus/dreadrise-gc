@@ -12,7 +12,7 @@ mongo_clients: Dict[Distribution, Database] = {}
 
 def setup_indexes(d: Database) -> None:
     """
-    Sets up indexes required for optimal DB functioning.
+    Set up indexes required for optimal DB functioning.
     :param d: the Database object
     :return: nothing
     """
@@ -32,7 +32,7 @@ def setup_indexes(d: Database) -> None:
 
 def connect(dist: Distribution) -> Database:
     """
-    Returns the database client for a certain distribution
+    Return the database client for a certain distribution
     :param dist: the distribution
     :return: the Database object
     """

@@ -14,7 +14,7 @@ def msem() -> None:
 
 @msem.command()
 def hello() -> None:
-    """Prints Hello World message, MSEM style."""
+    """Print Hello World message, MSEM style."""
     logger.info('Hello from MSEM!')
 
 

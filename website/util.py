@@ -23,7 +23,7 @@ def swap_logins(dist: str) -> None:
 
 def get_dist() -> Distribution:
     """
-    Gets the currently used distribution. Updates the session record if it changed.
+    Get the currently used distribution. Updates the session record if it changed.
     :return: the distribution being used
     """
     session = g.actual_session
@@ -39,7 +39,7 @@ def get_dist() -> Distribution:
 
 def split_database(f: Callable[..., Any]) -> Callable[..., Any]:
     """
-    Decorates a function, passing the database of the current distribution as the 1st parameter.
+    Decorate a function, passing the database of the current distribution as the 1st parameter.
     :param f: the function to decorate
     :return: the decorated function
     """
@@ -53,7 +53,7 @@ def split_database(f: Callable[..., Any]) -> Callable[..., Any]:
 
 def split_import() -> DistConstants:
     """
-    Imports all constants from a specified distribution.
+    Import all constants from a specified distribution.
     :return: the loaded module
     """
     return get_dist_constants(get_dist())

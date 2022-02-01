@@ -10,7 +10,7 @@ def _is_typed(c: str) -> bool:
 
 def add_card_categories(c: Card) -> None:
     """
-    Adds card categories to a card object inplace.
+    Add card categories to a card object inplace.
     :param c: the card to modify
     :return: nothing
     """

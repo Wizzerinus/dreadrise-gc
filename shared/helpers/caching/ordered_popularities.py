@@ -20,7 +20,7 @@ logger = logging.getLogger('dreadrise.popularity')
 def run_ordered_popularities(client: Database, postprocess_playability: Callable[[CardPlayability, str, int], None],
                              format_order: List[str], formats: List[str]) -> None:
     """
-    Calculates the popularity of various cards with ordered formats.
+    Calculate the popularity of various cards with ordered formats.
     :return: nothing
     """
     try:

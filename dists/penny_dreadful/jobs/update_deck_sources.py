@@ -10,7 +10,7 @@ logger = logging.getLogger('dreadrise.dist.pd.sources')
 
 def run() -> None:
     """
-    Regenerates the sources of various PD decks, based on the competition data.
+    Regenerate the sources of various PD decks, based on the competition data.
     :return: nothing
     """
     logger.info('Connecting...')

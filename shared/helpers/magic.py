@@ -12,7 +12,7 @@ from shared.helpers.util import int_def
 
 def process_mana_cost(cost: str) -> List[ManaSymbol]:
     """
-    Processes mana cost, returning it in the List format.
+    Process mana cost, returning it in the List format.
     :param cost: the mana cost string
     :return: the mana cost list
     """
@@ -53,7 +53,7 @@ def process_mana_cost(cost: str) -> List[ManaSymbol]:
 
 def process_mana_cost_dict(cost: str) -> ManaDict:
     """
-    Converts cost in string form to dictionary.
+    Convert cost from the string form to the dictionary form.
     :param cost: the mana cost in string form
     :return: the resulting mana cost
     """

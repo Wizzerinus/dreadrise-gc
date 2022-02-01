@@ -5,7 +5,7 @@ from shared.helpers import configuration
 
 def run() -> None:
     """
-    Updates the production copy of the website.
+    Update the production copy of the website.
     :return: nothing
     """
     rl = configuration.get('repo_location')

@@ -27,7 +27,7 @@ def _postprocess_playability(cp: CardPlayability, fmt: str, full_deck_count: int
 
 def run_all_seasons() -> None:
     """
-    Calculates the popularity of various PD cards across all seasons.
+    Calculate the popularity of various PD cards across all seasons.
     :return: nothing
     """
     logger.info('Connecting...')
@@ -39,7 +39,7 @@ def run_all_seasons() -> None:
 
 def run_single_season() -> None:
     """
-    Calculates the popularity of various PD cards across one season.
+    Calculate the popularity of various PD cards across one season.
     :return: nothing
     """
     logger.info('Connecting...')

@@ -179,7 +179,7 @@ def run_json(json: dict, timeout: bool = True) -> None:
 
 def run() -> None:
     """
-    Downloads a MSEM competition from the server and saves them into the database.
+    Download a MSEM competition from the server and saves them into the database.
     :return: nothing
     """
 

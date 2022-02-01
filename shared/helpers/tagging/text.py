@@ -35,7 +35,7 @@ def compile_rule(rule: str) -> list:
 
 def text_rule_applies(d: Deck, compiled_rule: list) -> bool:
     """
-    Checks whether a text rule applies to a deck.
+    Check whether a text rule applies to a deck.
     The rule should be formatted as:
     <card_a> + <card_b> + <card_c> >= (= <= > <) (number)
     each card is either [Card name] for maindeck, side.[Card name] for sideboard, or *.[Card name] for any.

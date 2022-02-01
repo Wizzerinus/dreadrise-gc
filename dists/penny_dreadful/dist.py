@@ -14,7 +14,7 @@ def pd() -> None:
 
 @pd.command()
 def hello() -> None:
-    """Prints Hello World message, PD style."""
+    """Print Hello World message, PD style."""
     logger.info('Hello from PD!')
 
 

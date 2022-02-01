@@ -5,7 +5,7 @@ from shared.card_enums import Legality, ManaDict
 
 def clean_name(s: Optional[str]) -> str:
     """
-    Cleans the name by removing bad symbols from it, returns a name possible to use in an URL.
+    Clean the name by removing bad symbols from it, returns a name possible to use in an URL.
     :param s: the name to process
     :return: the processed name
     """
@@ -20,7 +20,7 @@ def clean_name(s: Optional[str]) -> str:
 
 def clean_card(name: str) -> str:
     """
-    Processes card names obtained from different sources (MTGO, Cockatrice, etc.)
+    Process card names obtained from different sources (MTGO, Cockatrice, etc.)
     :param name: the name to clean
     :return: the name of the card in database
     """
@@ -35,7 +35,7 @@ def clean_card(name: str) -> str:
 
 def sum_mana_costs(costs: List[ManaDict]) -> ManaDict:
     """
-    Adds all given mana costs without modifying them and returns the sum.
+    Add all given mana costs without modifying them and returns the sum.
     :param costs: the mana cost to add
     :return: the resulting mana cost
     """
@@ -48,7 +48,7 @@ def sum_mana_costs(costs: List[ManaDict]) -> ManaDict:
 
 def int_def(a: Any, default: int = 0) -> int:
     """
-    Converts an object into Int, with a default value.
+    Convert an object into Int, with a default value.
     :param a: the object to convert into int
     :param default: the default value if conversion failed
     :return: the resulting int
@@ -62,10 +62,20 @@ def int_def(a: Any, default: int = 0) -> int:
 
 
 def ireg(s: str) -> dict:
+    """
+    Create a Mongo regular expression ignoring the string case.
+    :param s: the string to base regex off
+    :return: the regex dict
+    """
     return {'$regex': s, '$options': 'i'}
 
 
 def get_legality_color(e: Legality) -> str:
+    """
+    Get the bootstrap color used for a card legality instance from the card itself.
+    :param e: the card legality
+    :return: the color
+    """
     if e == 'legal':
         return 'success'
     if e == 'restricted':
@@ -76,6 +86,12 @@ def get_legality_color(e: Legality) -> str:
 
 
 def shorten_name(s: str, max_len: int = 19) -> str:
+    """
+    Shorten a string with a given maximum number of characters.
+    :param s: the string to shorten
+    :param max_len: the maximum number of characters
+    :return: the shortened string
+    """
     if len(s) < max_len:
         return s
     return s[:max_len - 3] + '...'

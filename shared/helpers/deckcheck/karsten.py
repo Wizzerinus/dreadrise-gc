@@ -54,8 +54,15 @@ def get_ij_producers(d: Deck, all_cards: Dict[str, Card], color_combo: str, num:
     return ceil(creatures / 2 + noncreatures)
 
 
-def check_karsten(dist: Distribution, d: Deck) -> List[Tuple[str, str, int, int]]:  # first int- expected, second- found
-    """Checks single colored and double colored costs up to 3 symbols. More than 3 symbols are considered 3."""
+def check_karsten(dist: Distribution, d: Deck) -> List[Tuple[str, str, int, int]]:
+    """
+    Check the single colored and the double colored costs with up to 3 mana symbols.
+    Costs with more than 3 mana symbols (Phyrexian Obliterator) are considered to have 3 symbols.
+    :param dist: the distribution to process
+    :param d: the deck to process
+    :return: a list of checking results. Consists of tuples in the form of
+    (card_name, mana_symbol, required_sources, given_sources).
+    """
     all_cards = load_cards_from_decks(dist, [d])
     colors: List[ManaSymbol] = ['white', 'blue', 'black', 'red', 'green', 'colorless', 'snow']
     color_combos: List[ManaSymbol] = ['white/blue', 'blue/black', 'black/red', 'red/green', 'green/white',

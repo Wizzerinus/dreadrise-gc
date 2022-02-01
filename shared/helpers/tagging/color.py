@@ -11,11 +11,11 @@ logger = logging.getLogger('dreadrise.tagging.color')
 
 def color_rule_applies(d: Deck, cards: Dict[str, Card], colors: Set[Color]) -> bool:
     """
-    Returns whether a color rule applies to a deck.
+    Check whether a color rule applies to a deck.
     :param d: the deck to test
     :param cards: the card dictionary
     :param colors: the set of colors to test
-    :return: true if applies, false otherwise
+    :return: true if the rule applies, false otherwise
     """
     used_colors = set()
     i: str
