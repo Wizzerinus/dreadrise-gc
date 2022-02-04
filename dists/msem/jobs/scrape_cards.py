@@ -12,6 +12,7 @@ from shared.helpers.exceptions import DreadriseError, RisingDataError
 from shared.types.set import Expansion
 
 from ..category import add_card_categories
+from ..custom_syntax import MSEMCard, MSEMCardFace
 
 logger = logging.getLogger('dreadrise.dist.msem.card-scraper')
 _msem_card_url = 'https://mse-modern.com/msem2/notlackey/AllSets.json'
@@ -53,7 +54,8 @@ def run() -> None:
             if set_id == 'FLP' or set_id == 'LAIR':  # foreign language promos
                 logger.info(f'Skipping {set_id}')
                 continue
-            cset, exp = process_cockatrice_set(i, _get_image_url, {'MSEM2': 'msem', 'MSEDH': 'msedh'})
+            cset, exp = process_cockatrice_set(i, _get_image_url, {'MSEM2': 'msem', 'MSEDH': 'msedh'},
+                                               MSEMCard, MSEMCardFace)
             expansions.append(exp)
             set_date = arrow.get(i['releaseDate'])
 

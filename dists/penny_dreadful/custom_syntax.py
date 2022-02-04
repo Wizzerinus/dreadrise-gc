@@ -5,7 +5,7 @@ from shared.search.syntax import SearchFilter
 from shared.search.syntaxes.card import SearchSyntaxCard
 from shared.search.syntaxes.deck import SearchSyntaxDeck
 from shared.search.tokenizer import SearchToken
-from shared.types.card import Card
+from shared.types.card import Card, CardFace
 
 archetype_aliases = {
     'mba': 'mono-black-aggro',
@@ -89,6 +89,22 @@ class SearchFilterArchetypeAliases(SearchFilter):
         return tok
 
 
+produces_exclusions = {'Old-Growth Dryads'}
+
+
+class PDCardFace(CardFace):
+    def process_produces(self) -> None:
+        if self.name in produces_exclusions:
+            self.produces = []
+            self.produces_len = 0
+            return
+
+        super().process_produces()
+
+
 class PDCard(Card):
+    # faces: List[PDCardFace]
+    # fixed_faces: List[PDCardFace]
+    # This doesn't work within MyPy for reasons I don't understand
     ftime: int
     ltime: int

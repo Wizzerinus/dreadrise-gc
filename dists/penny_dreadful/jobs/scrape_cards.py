@@ -12,7 +12,7 @@ from shared.types.format_cache import FormatCache
 
 from ..category import add_card_categories
 from ..constants import formats, pd_data, update
-from ..custom_syntax import PDCard
+from ..custom_syntax import PDCard, PDCardFace
 
 logger = logging.getLogger('dreadrise.dist.pd.card-scraper')
 
@@ -69,7 +69,7 @@ def run() -> None:
         if i['name'] in cards:
             update_card(cards[i['name']], i)
         elif is_valid(i):
-            cards[i['name']] = cast(PDCard, build_card(i, formats, fcs))
+            cards[i['name']] = cast(PDCard, build_card(i, formats, fcs, PDCard, PDCardFace))
 
             min_pd = max_pd = None
             for pdv in range(1, pd_data['last_season'] + 1):

@@ -1,7 +1,7 @@
 import io
 import os
 from math import ceil
-from typing import Any, Dict, List, Optional, Tuple, cast, Literal
+from typing import Any, Dict, List, Literal, Optional, Tuple, cast
 
 from flask import Blueprint, Response, abort, request, send_file
 from PIL import Image, ImageDraw, ImageFont

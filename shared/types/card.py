@@ -9,8 +9,6 @@ from shared.helpers.magic import process_mana_cost_text, process_oracle
 from shared.helpers.util import clean_name, sum_mana_costs
 from shared.types.pseudotype import PseudoType
 
-produces_exclusions = {'Old-Growth Dryads', 'Burning Sulfur', 'Xoqal, World Eater'}
-
 
 class CardFace(PseudoType):
     name: str
@@ -36,11 +34,6 @@ class CardFace(PseudoType):
     produces_len: int
 
     def process_produces(self) -> None:
-        if self.name in produces_exclusions:
-            self.produces = []
-            self.produces_len = 0
-            return
-
         produces_set: Set[ManaType] = set()
         if 'Land' in self.types:
             for k, v in basics.items():

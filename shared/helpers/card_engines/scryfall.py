@@ -1,5 +1,5 @@
 import re
-from typing import List, cast
+from typing import List, Type, TypeVar, cast
 
 import arrow
 
@@ -24,8 +24,12 @@ def get_number(s: str) -> int:
         return int_def(s)
 
 
-def build_card_face(d1: dict, d2: dict) -> CardFace:
-    cf = CardFace()
+C = TypeVar('C', bound=Card)
+F = TypeVar('F', bound=CardFace)
+
+
+def build_card_face(fcls: Type[F], d1: dict, d2: dict) -> F:
+    cf = fcls()
     cf.name = get('name', d1, d2)
     cf.mana_cost_str = get('mana_cost', d1, d2)
     cf.mana_cost = process_mana_cost_dict(cf.mana_cost_str)
@@ -51,13 +55,13 @@ def build_card_face(d1: dict, d2: dict) -> CardFace:
     return cf
 
 
-def build_card(i: dict, formats: List[str], fcs: List[FormatCache]) -> Card:
-    c = Card()
+def build_card(i: dict, formats: List[str], fcs: List[FormatCache], ccls: Type[C], fcls: Type[F]) -> C:
+    c = ccls()
     c.layout = i['layout'].lower()
     if 'card_faces' in i:
-        c.faces = [build_card_face(j, i) for j in i['card_faces']]
+        c.faces = [build_card_face(fcls, j, i) for j in i['card_faces']]
     else:
-        c.faces = [build_card_face(i, i)]
+        c.faces = [build_card_face(fcls, i, i)]
     name = c.get_name_from_faces()
     c.color_identity = list({color_symbols_to_colors[x] for x in i['color_identity']})
     c.sets = [i['set'].upper()]

@@ -1,5 +1,5 @@
 import logging
-from typing import Callable, Dict, List, Tuple, cast
+from typing import Callable, Dict, List, Tuple, Type, TypeVar, cast
 
 import arrow
 
@@ -13,11 +13,15 @@ from shared.types.set import Expansion
 logger = logging.getLogger('dreadrise.engine.cockatrice')
 
 
-def process_cockatrice_card(card: dict, image_getter: Callable[[dict], str]) -> CardFace:
+C = TypeVar('C', bound=Card)
+F = TypeVar('F', bound=CardFace)
+
+
+def process_cockatrice_card(card: dict, image_getter: Callable[[dict], str], fcls: Type[F]) -> F:
     if 'name' not in card:
         raise ScrapeError('Invalid card dictionary.')
     logger.debug('Processing card {name}'.format(name=card['name']))
-    f = CardFace()
+    f = fcls()
 
     f.name = card['faceName'] if 'faceName' in card else card['name']
     if ' // ' in f.name or ' (' in f.name:
@@ -41,8 +45,9 @@ def process_cockatrice_card(card: dict, image_getter: Callable[[dict], str]) -> 
     return f
 
 
-def process_cockatrice_set(cset: dict, image_getter: Callable[[str, dict], str], formats: Dict[str, str]) -> \
-        Tuple[List[Card], Expansion]:
+def process_cockatrice_set(cset: dict, image_getter: Callable[[str, dict], str], formats: Dict[str, str],
+                           ccls: Type[C], fcls: Type[F]) -> \
+        Tuple[List[C], Expansion]:
     if 'cards' not in cset or 'name' not in cset or 'code' not in cset:
         raise ScrapeError('Invalid cockatrice set dictionary.')
 
@@ -52,14 +57,14 @@ def process_cockatrice_set(cset: dict, image_getter: Callable[[str, dict], str],
 
     card_faces_dict = {}
     for i in cset['cards']:
-        card_faces_dict[i['id']] = process_cockatrice_card(i, lambda dct: image_getter(set_id, dct))
+        card_faces_dict[i['id']] = process_cockatrice_card(i, lambda dct: image_getter(set_id, dct), fcls)
 
-    answer: List[Card] = []
+    answer: List[C] = []
     for i in cset['cards']:
         if 'side' in i and i['side'] == 'b':
             continue
 
-        c = Card()
+        c = ccls()
         c.layout = i['layout'].lower()
         c.faces = [card_faces_dict[i['id']]]
         if 'otherFaceIds' in i:
