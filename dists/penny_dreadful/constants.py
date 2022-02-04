@@ -9,6 +9,7 @@ from shared.types.deck import Deck
 from .checking import (check_gyruda, check_jegantha, check_kaheera, check_keruga, check_lurrus, check_lutri,
                        check_obosh, check_umori, check_yorion, check_zirda)
 from .custom_syntax import SearchSyntaxCardPD, SearchSyntaxDeckPD
+from .gateway import parse
 
 logger = logging.getLogger('dreadrise.dist.pd')
 
@@ -125,14 +126,4 @@ def get_deck_weight(deck: Deck) -> float:
     return base + deck.wins - deck.losses * 0.55
 
 
-def parse_gateway(data: dict) -> dict:
-    """Right now this is only used for git pulling."""
-    from .jobs.update_prod import run
-    logger.warning('Pulling the prod changes...')
-    try:
-        run()
-        logger.info('Update complete.')
-        return {'success': True}
-    except FileNotFoundError as e:
-        logger.error('Update failed!')
-        return {'success': False, 'reason': str(e)}
+parse_gateway = parse

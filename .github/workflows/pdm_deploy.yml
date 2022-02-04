@@ -14,5 +14,5 @@ jobs:
         with:
           url: 'https://dreadrise.wizzerinus.tk/api/gateway/penny_dreadful'
           method: 'POST'
-          data: '{"gateway_key": "${{ secrets.DREADRISE_DEPLOYMENT_KEY }}"}'
+          data: '{"gateway_key": "${{ secrets.DREADRISE_DEPLOYMENT_KEY }}", "action": "git_pull"}'
           timeout: 30000
