@@ -102,7 +102,7 @@ def add_card_categories(c: Card) -> None:
     if 'Enchantment' in first_half_type or 'Legendary' in first_half_type:
         categories.append('storied')
 
-    if 'First mate—' in c.oracle:
+    if 'First mate—' in c.oracle or 'First mate —' in c.oracle:
         categories.append('first-mate')
 
     if 'Instant' in first_half_type and c.mana_value == 2 and 'blue' in c.colors:
