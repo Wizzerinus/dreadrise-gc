@@ -6,7 +6,8 @@ from shared.types.card import Card
 from shared.types.deck import Deck
 
 from .checking import (check_adam, check_alvarez, check_garth, check_harriet, check_holcomb, check_hugo, check_mable,
-                       check_marisa, check_searle, check_tabia, check_valencia)
+                       check_marisa, check_searle, check_tabia, check_valencia, check_asabeth, check_ashe, check_telsi,
+                       check_lilia, check_tinbeard, check_vir)
 from .gateway import parse
 
 formats = ['freeform', 'msem', 'msedh']
@@ -67,7 +68,8 @@ default_card = 'into-the-unknown'
 
 deck_checkers = [check_adam, check_tabia, check_mable, check_marisa, check_hugo, check_garth, check_harriet,
                  check_holcomb, check_searle, check_alvarez, check_valencia,
-                 check_general_legality, check_sideboard_size, check_maindeck_size, check_max_count]
+                 check_general_legality, check_sideboard_size, check_maindeck_size, check_max_count,
+                 check_asabeth, check_ashe, check_telsi, check_lilia, check_tinbeard, check_vir]
 
 index_types = ['gp']
 

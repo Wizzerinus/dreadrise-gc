@@ -8,34 +8,18 @@ def _is_typed(c: str) -> bool:
     return 'Island' in c or 'Plains' in c or 'Forest' in c or 'Swamp' in c or 'Mountain' in c
 
 
-def add_card_categories(c: Card) -> None:
-    """
-    Add card categories to a card object inplace.
-    :param c: the card to modify
-    :return: nothing
-    """
-    # Since MSEM does not have MDFCs yet, all CMC checks and oracle checks are done to the joined oracle/CMC.
+generated_regexes = {}
 
-    lower_oracle = c.oracle.lower()
-    first_half_type = c.types.split(' // ')[0]
-    # reminder_regex = re.compile(r'\((.+?)\)')
-    # no_reminder_oracle = re.sub(reminder_regex, '', lower_oracle)
-    categories: List[str] = []
-    if c.mana_value in [0, 1, 3]:
-        categories.append('hugo')
 
-    flash_regex = re.compile(r'\bFlash\b')
-    if 'Instant' in c.types or flash_regex.search(c.oracle) or 'Land' in first_half_type:
-        categories.append('mable')
-    if 'Creature' not in first_half_type:
-        categories.append('garth')
+def generate_regexes() -> None:
+    if 'mable' in generated_regexes:
+        return
 
+    generated_regexes['mable'] = re.compile(r'\bFlash\b')
     marisa_words = ['die', 'dies', 'died', 'dying', 'destroy', 'destroys', 'destroyed', 'graveyard',
                     'graveyards', 'mill', 'mills', 'milled']
     marisa_regex_str = r'\b({x})\b'.format(x='|'.join(marisa_words))
-    marisa_regex = re.compile(marisa_regex_str, re.I)
-    if 'Land' in first_half_type or marisa_regex.search(lower_oracle):
-        categories.append('marisa')
+    generated_regexes['marisa'] = re.compile(marisa_regex_str, re.I)
 
     # we try to find "target", but "becomes a target", Searle himself and Dack's ult are false positives.
     # the way regex works is that it tries to fulfill earlier conditions first.
@@ -46,10 +30,67 @@ def add_card_categories(c: Card) -> None:
                     'was', 'with one or more', 'with a single', 'would']  # by Cajun
     searle_words_join = '|'.join([f'{x} target' for x in searle_words])
     searle_regex_str = rf'["“][^”"]*[”"]|targeted|protection|{searle_words_join}|target'
-    searle_regex = re.compile(searle_regex_str, re.I)
+    generated_regexes['searle'] = re.compile(searle_regex_str, re.I)
+
+    ashe_regex_str = '\bdragon\b|^changeling\b|^changeling$'
+    generated_regexes['ashe'] = re.compile(ashe_regex_str, re.I)
+
+    telsi_words = ['gain control', 'gains control', 'gained control', 'exchange control']
+    telsi_regex_str = r'\b({x})\b'.format(x='|'.join(telsi_words))
+    generated_regexes['telsi'] = re.compile(telsi_regex_str, re.I)
+
+    tinbeard_words = ['artifact', 'artifacts', 'treasure', 'treasures', 'pirate', 'pirates']
+    tinbeard_regex_str = r'\b({x})\b'.format(x='|'.join(tinbeard_words))
+    generated_regexes['tinbeard_oracle'] = re.compile(tinbeard_regex_str, re.I)
+
+    tinbeard_words_type = ['Land', 'Artifact', 'Pirate']
+    tinbeard_regex_str_type = r'\b({x})\b'.format(x='|'.join(tinbeard_words_type))
+    generated_regexes['tinbeard_type'] = re.compile(tinbeard_regex_str_type, re.I)
+
+    lilia_words = [r'\+1/\+1 counter', 'harmonize']
+    lilia_regex_str = r'\b({x})\b'.format(x='|'.join(lilia_words))
+    generated_regexes['lilia'] = re.compile(lilia_regex_str, re.I)
+
+
+def add_card_categories(c: Card) -> None:
+    """
+    Add card categories to a card object inplace.
+    :param c: the card to modify
+    :return: nothing
+    """
+    generate_regexes()
+    # Since MSEM does not have MDFCs yet, all CMC checks and oracle checks are done to the joined oracle/CMC.
+
+    lower_oracle = c.oracle.lower()
+    first_half_type = c.types.split(' // ')[0]
+    # reminder_regex = re.compile(r'\((.+?)\)')
+    # no_reminder_oracle = re.sub(reminder_regex, '', lower_oracle)
+    categories: List[str] = []
+    if c.mana_value in [0, 1, 3]:
+        categories.append('hugo')
+
+    if 'Instant' in c.types or generated_regexes['mable'].search(c.oracle) or 'Land' in first_half_type:
+        categories.append('mable')
+    if 'Creature' not in first_half_type:
+        categories.append('garth')
+
+    if 'Land' in first_half_type or generated_regexes['marisa'].search(lower_oracle):
+        categories.append('marisa')
     if 'Land' in first_half_type or 'Aura' in c.types or 'Equipment' in c.types or \
-            'target' in searle_regex.findall(lower_oracle):
+            'target' in generated_regexes['searle'].findall(lower_oracle):
         categories.append('searle')
+
+    if 'Dragon' in c.types or generated_regexes['ashe'].search(c.oracle):
+        categories.append('ashe')
+
+    if generated_regexes['telsi'].search(c.oracle):
+        categories.append('telsi')
+
+    if 'Land' in first_half_type or generated_regexes['lilia'].search(c.oracle):
+        categories.append('lilia')
+
+    if generated_regexes['tinbeard_oracle'].search(c.oracle) or generated_regexes['tinbeard_type'].search(c.types):
+        categories.append('tinbeard')
 
     if 'Land' in first_half_type:
         if '~ enters the battlefield tapped if you control another nonbasic land.' in c.t_oracle:

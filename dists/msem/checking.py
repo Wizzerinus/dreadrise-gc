@@ -52,7 +52,7 @@ def check_harriet(d: Deck, c: Dict[str, Card]) -> Tuple[DeckCheckStatus, str]:
     vehicle_count = sum([d.mainboard[x] for x in vehicles])
     if vehicle_count < 12:
         return deck_check_statuses[1],\
-            f'Too few lands for Harriet of the Pioneer: expected 12, got {vehicle_count}'
+            f'Too few vehicles for Harriet of the Pioneer: expected 12, got {vehicle_count}'
     return deck_check_statuses[0], 'The deck qualifies for Harriet of the Pioneer!'
 
 
@@ -132,3 +132,81 @@ def check_valencia(d: Deck, c: Dict[str, Card]) -> Tuple[DeckCheckStatus, str]:
         return deck_check_statuses[1],\
             f'Too many mana costs for Valencia of the Concordant: expected 4, got {len(mana_costs)}'
     return deck_check_statuses[0], 'The deck qualifies for Valencia of the Concordant!'
+
+
+def check_asabeth(d: Deck, c: Dict[str, Card]) -> Tuple[DeckCheckStatus, str]:
+    if 'Asabeth of the Intrepid' not in d.sideboard:
+        return deck_check_statuses[0], ''
+    bad_cards = [x for x, y in d.mainboard.items() if x in c and 'Land' in c[x].faces[0].types and y > 1]
+    if bad_cards:
+        return deck_check_statuses[1],\
+            'The following cards don\'t qualify for Asabeth of the Intrepid: ' + ', '.join(bad_cards)
+    return deck_check_statuses[0], 'The deck qualifies for Asabeth of the Intrepid!'
+
+
+def check_ashe(d: Deck, c: Dict[str, Card]) -> Tuple[DeckCheckStatus, str]:
+    if 'Ashe of the Winged Steed' not in d.sideboard:
+        return deck_check_statuses[0], ''
+    good = sum(y for x, y in d.mainboard.items() if x in c and 'ashe' in c[x].categories)
+    if good < 12:
+        return deck_check_statuses[1],\
+            f'Too few Dragons for Ashe of the Winged Steed: expected 12, got {good}'
+    return deck_check_statuses[0], 'The deck qualifies for Ashe of the Winged Steed!'
+
+
+def check_telsi(d: Deck, c: Dict[str, Card]) -> Tuple[DeckCheckStatus, str]:
+    if 'Dr. Telsi of the Ark' not in d.sideboard:
+        return deck_check_statuses[0], ''
+    good = sum(y for x, y in d.mainboard.items() if x in c and 'telsi' in c[x].categories)
+    if good < 12:
+        return deck_check_statuses[1],\
+            f'Too few Control cards for Dr. Telsi of the Ark: expected 12, got {good}'
+    return deck_check_statuses[0], 'The deck qualifies for Dr. Telsi of the Ark!'
+
+
+def check_lilia(d: Deck, c: Dict[str, Card]) -> Tuple[DeckCheckStatus, str]:
+    if 'Lilia of the Soul' not in d.sideboard:
+        return deck_check_statuses[0], ''
+    bad_cards = [x for x in d.mainboard if x not in c or 'lilia' not in c[x].categories]
+    if bad_cards:
+        return deck_check_statuses[1],\
+            'The following cards don\'t qualify for Lilia of the Soul: ' + ', '.join(bad_cards)
+    return deck_check_statuses[0], 'The deck qualifies for Lilia of the Soul!'
+
+
+def check_tinbeard(d: Deck, c: Dict[str, Card]) -> Tuple[DeckCheckStatus, str]:
+    if 'Tinbeard of the Brine' not in d.sideboard:
+        return deck_check_statuses[0], ''
+    bad_cards = [x for x in d.mainboard if x not in c or 'tinbeard' not in c[x].categories]
+    if bad_cards:
+        return deck_check_statuses[1],\
+            'The following cards don\'t qualify for Tinbeard of the Brine: ' + ', '.join(bad_cards)
+    return deck_check_statuses[0], 'The deck qualifies for Tinbeard of the Brine!'
+
+
+def check_vir(d: Deck, c: Dict[str, Card]) -> Tuple[DeckCheckStatus, str]:
+    if 'Vir of the Starskipper' not in d.sideboard:
+        return deck_check_statuses[0], ''
+
+    combos = [
+        'white', 'blue', 'black', 'red', 'green',
+        'white/blue', 'blue/black', 'black/red', 'red/green', 'green/white',
+        'white/black', 'blue/red', 'black/green', 'red/white', 'green/blue'
+    ]
+    bad_combos = []
+    for i in combos:
+        color_set = set(i.split('/'))
+        good = False
+        for j in d.mainboard:
+            if j in c:
+                colors = set(c[j].colors)
+                if not (colors ^ color_set):
+                    good = True
+                    break
+        if not good:
+            bad_combos.append(i)
+
+    if bad_combos:
+        return deck_check_statuses[1],\
+            'The following color combos don\'t qualify for Vir of the Starskipper: ' + ', '.join(bad_combos)
+    return deck_check_statuses[0], 'The deck qualifies for Vir of the Starskipper!'
