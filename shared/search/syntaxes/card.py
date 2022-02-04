@@ -45,7 +45,7 @@ class SearchFunctionManaCost(SearchFunctionArrayValidator):
 
     @staticmethod
     def parse(target: str, tok: SearchToken) -> int:
-        if target == 'generic':
+        if target == 'any':
             ints = [x for x in tok.value if isinstance(x, int)]
             return sum(ints)
         return len([x for x in tok.value if x == target])
