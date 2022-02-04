@@ -1,5 +1,6 @@
 import subprocess
 import sys
+from pprint import pprint
 
 import click
 
@@ -79,6 +80,27 @@ def tarball():
     print('Creating secrets tarball...')
     subprocess.run(['tar', '-czf', 'secrets.tar.gz', 'launcher.wsgi', 'config/secrets.yml',
                     'config/dist/msem/secrets.yml', 'config/dist/penny_dreadful/secrets.yml'])
+
+
+@cli.command()
+def test():
+    """Perform unit tests."""
+    print('Performing unit tests...')
+    from tests.test import run_tests
+    result = run_tests()
+
+    if result.errors:
+        print('Exceptions while unit-testing!')
+        for x in result.errors:
+            print(x[1].split('\n')[-2])
+        return 2
+    elif result.failures:
+        print('Failures while unit-testing!')
+        for x in result.failures:
+            print(x[1])
+        return 1
+    else:
+        print('Unit tests successful!')
 
 
 if __name__ == '__main__':

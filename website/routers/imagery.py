@@ -64,7 +64,7 @@ def generate_curve_from_deck(cards: Dict[str, Card], deck: Deck, full_height: in
             continue
         if cards[i].main_type == 'land':
             continue
-        if 'X' in cards[i].mana_cost:
+        if 'x' in cards[i].mana_cost:
             counts[8] += c
         else:
             counts[min(7, cards[i].mana_value)] += c

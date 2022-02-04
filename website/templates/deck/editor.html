@@ -288,7 +288,8 @@ const app = {
         },
         cleanName: cleanName,
         addCard(obj, sb) {
-            this.addOne(obj.name, obj.mana_value, sb)
+            const mv = obj.mana_cost.x ? 6 : obj.mana_value
+            this.addOne(obj.name, mv, sb)
         },
         moveCard(name, mana_value, keep, sb) {
             this.removeOne(name, mana_value, sb)

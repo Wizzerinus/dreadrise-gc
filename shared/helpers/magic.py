@@ -24,6 +24,8 @@ def process_mana_cost(cost: str) -> List[ManaSymbol]:
             if b == 'P' and a in colors_single:
                 ans.append(cast(ManaSymbol, 'p' + color_symbols_to_colors[a]))
             elif (a == '2' or a in colors_single) and b in colors_single:
+                a = color_symbols_to_colors[a] if a != '2' else a
+                b = color_symbols_to_colors[b]
                 if f'{a}/{b}' in mana_symbols:
                     ans.append(cast(ManaSymbol, f'{a}/{b}'))
                 else:
