@@ -79,9 +79,9 @@ def _build_deck_record(deck: Deck, matches: list, uid: str, legacy: Dict[str, st
 
 
 def smart_clean(name: str, cards: Dict[str, Card]) -> str:
-    name = clean_card(name).split(' // ')[0]
+    name = clean_card(name).split(' // ')[0].split(' (')[0]
     if name not in cards:
-        logger.error(f'Card {name} not found')
+        # logger.error(f'Card {name} not found')
         return name
     return cards[name].name
 
@@ -90,7 +90,7 @@ def run_json(json: dict, timeout: bool = True) -> None:
     logger.info('Connecting to the database')
     client = connect('msem')
     logger.info('Loading cards')
-    init_cards = {x['name']: Card().load(x) for x in client.cards.find({})}
+    init_cards = {x['name']: Card().load(x) for x in client.cards.find({'layout': 'split'})}
     all_cards = {}
     for k, v in init_cards.items():
         all_cards[k] = v
@@ -132,12 +132,20 @@ def run_json(json: dict, timeout: bool = True) -> None:
     decks_by_name = {}
     legacy_deck_ids = {}
     for item in decks:
-        deckname, cards, deck_id = item['name'] if 'name' in item else 'No name', item['cards'], item.get('deck_id', '')
+        cards, deck_id = item['cards'], item.get('deck_id', '')
+        if 'name' in item:
+            deckname = item['name']
+        elif 'deck_name' in item:
+            deckname = item['deck_name']
+        else:
+            deckname = 'No name'
         discord = item['user_discord'] if 'user_discord' in item else None
         # this default username is tough but we'd have to work w/ it
         if not deck_id and 'user' not in item:
             raise RisingDataError('Some deck is missing both User and Deck ID keys!')
         username = item['user'] if 'user' in item else deck_id.split('/')[-1].replace('.txt', '')[:-1]
+        removal = f"{username}'s "
+        deckname = deckname.replace(removal, '')
         user_id = _create_user(client, shorten_name(username), discord)
 
         d = Deck()
@@ -154,7 +162,7 @@ def run_json(json: dict, timeout: bool = True) -> None:
             legacy_deck_ids[username] = d.deck_id
         d.format = 'msem'
         d.name = deckname
-        if 'name' not in item:
+        if 'name' not in item and 'deck_name' not in item:
             d.is_name_placeholder = True
         d.author = user_id
         d.competition = comp.competition_id
