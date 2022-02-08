@@ -11,9 +11,13 @@
                 A
                 {% endif %}
                 deck
-                by <a href="/users/{{ deck.author.user_id }}">{{ deck.author.nickname }}</a>,
-                <a href="/competitions/{{ deck.competition.competition_id }}">{{ deck.competition.name }}</a>
+                by <a href="/users/{{ deck.author.user_id }}">{{ deck.author.nickname }}</a>
+                {% if deck.competition %}
+                , <a href="/competitions/{{ deck.competition.competition_id }}">{{ deck.competition.name }}</a>
                 ({{ deck.date_str }}), {{ deck.deck.wins }}-{{ deck.deck.losses }}
+                {% else %}
+                ({{ deck.date_str }})
+                {% endif %}
             </h5>
         </div>
 
