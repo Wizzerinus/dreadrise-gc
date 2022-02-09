@@ -3,6 +3,7 @@ import logging
 from shared import fetch_tools
 from shared.helpers.deckcheck.default import (check_general_legality, check_maindeck_size, check_max_count,
                                               check_restricted_list, check_sideboard_size)
+from shared.helpers.exceptions import FetchError
 from shared.types.card import Card
 from shared.types.deck import Deck
 
@@ -37,8 +38,12 @@ def update() -> None:
         return
 
     season_code_url = 'https://pennydreadfulmagic.com/api/seasoncodes'
-    x = pd_data['last_season'] = len(fetch_tools.fetch_json(season_code_url))
-    logger.info(f'Last PD season: {x}')
+    try:
+        x = pd_data['last_season'] = len(fetch_tools.fetch_json(season_code_url))
+        logger.info(f'Last PD season: {x}')
+    except FetchError:
+        x = 23
+        logger.warning('Using a placeholder PD season')
 
     for i in range(1, pd_data['last_season'] + 1):
         formats.append(f'pds{i}')
