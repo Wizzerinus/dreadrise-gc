@@ -49,7 +49,7 @@ def rotate() -> None:
     from .jobs.scrape_cards import run as run_sc
     logger.info('Rotating...')
 
-    def rotate_call():
+    def rotate_call() -> None:
         run_gf()
         run_sc()
 

@@ -5,9 +5,9 @@ from shared.search.syntaxes.deck import SearchSyntaxDeck
 from shared.types.card import Card
 from shared.types.deck import Deck
 
-from .checking import (check_adam, check_alvarez, check_garth, check_harriet, check_holcomb, check_hugo, check_mable,
-                       check_marisa, check_searle, check_tabia, check_valencia, check_asabeth, check_ashe, check_telsi,
-                       check_lilia, check_tinbeard, check_vir)
+from .checking import (check_adam, check_alvarez, check_asabeth, check_ashe, check_garth, check_harriet, check_holcomb,
+                       check_hugo, check_lilia, check_mable, check_marisa, check_searle, check_tabia, check_telsi,
+                       check_tinbeard, check_valencia, check_vir)
 from .gateway import parse
 
 formats = ['freeform', 'msem', 'msedh']

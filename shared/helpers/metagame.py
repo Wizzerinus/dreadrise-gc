@@ -31,6 +31,10 @@ def interpolate(num: float, breakpoints: List[Tuple[int, int, int]]) -> Tuple[in
     )
 
 
+def tuple_to_color(color: Tuple[int, int, int]) -> str:
+    return '#' + ''.join([f'{x:X}' for x in color])
+
+
 def calculate_winrate_color(wr: float) -> str:
     if wr < 0:
         return '#999999'
@@ -42,7 +46,7 @@ def calculate_winrate_color(wr: float) -> str:
         (16, 16, 204)
     ]
     color = interpolate(wr, breakpoints)
-    return '#' + ''.join([f'{x:X}' for x in color])
+    return tuple_to_color(color)
 
 
 def metagame_breakdown(db: Database, decks: List[Deck], winrate_colors: bool = True) -> pgo.Figure:
@@ -69,7 +73,8 @@ def metagame_breakdown(db: Database, decks: List[Deck], winrate_colors: bool = T
         arch_name = i.title()
         wr = calculate_winrate(with_this_archetype)
         wr_str = str(round(wr * 100, 2)) + '% winrate'
-        data.append((arch_name, '', len(with_this_archetype), wr_str, calculate_winrate_color(wr), wr))
+        color = calculate_winrate_color(wr) if i != 'unclassified' else tuple_to_color((128, 128, 128))
+        data.append((arch_name, '', len(with_this_archetype), wr_str, color, wr))
 
         if i != 'unclassified':
             tags_with_this_archetype = [x for x in loaded_tags.values() if x.archetype == i]
