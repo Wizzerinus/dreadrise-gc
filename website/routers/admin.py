@@ -215,6 +215,7 @@ def create_deck_tag(db: Database) -> Response:
         return redirect(url_for('admin.tag_manager'))
 
     new_tag = DeckTag()
+    new_tag.tag_id = clean_name(tag_name)
     new_tag.name = tag_name
     new_tag.description = tag_desc
     new_tag.archetype = cast(Archetype, tag_archetype)
