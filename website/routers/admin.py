@@ -269,13 +269,15 @@ def create_rules(db: Database) -> Response:
         return redirect(url_for('admin.rule_manager'))
 
     already_existing = db.text_deck_rules.find({'tag_id': tag_id}).count()
+    new_rules = []
     for i in range(3):
         new_rule = TextDeckRule()
         new_rule.rule_id = tag['tag_id'] + '--' + str(already_existing + i)
         new_rule.tag_id = tag['tag_id']
         new_rule.priority = 0
         new_rule.text = ''
-        new_rule.save()
+        new_rules.append(new_rule.save())
+    db.text_deck_rules.insert_many(new_rules)
     return redirect(url_for('admin.rule_manager'))
 
 
