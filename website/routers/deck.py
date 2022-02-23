@@ -288,7 +288,7 @@ def create_deck(db: Database) -> dict:
         generated.author = session['user']['user_id']
         generated.format = fmt
         generated.privacy = priv
-        generated.date = datetime.datetime.now()
+        generated.date = datetime.datetime.utcnow()
         db.decks.insert_one(generated.save())
         return {'success': True, 'deck_id': deck_id}
 
