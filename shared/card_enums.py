@@ -20,7 +20,9 @@ ManaSymbol = Literal['white', 'blue', 'black', 'red', 'green', 'colorless', 'sno
                      'white/blue', 'blue/black', 'black/red', 'red/green', 'green/white',
                      'white/black', 'blue/red', 'black/green', 'red/white', 'green/blue',
                      '2/white', '2/blue', '2/black', '2/red', '2/green',
-                     'tap', 'untap', 'zero', 'x']
+                     'tap', 'untap', 'zero', 'x',
+                     'pwhite/blue', 'pblue/black', 'pblack/red', 'pred/green', 'pgreen/white',
+                     'pwhite/black', 'pblue/red', 'pblack/green', 'pred/white', 'pgreen/blue']
 mana_symbols: Tuple[ManaSymbol, ...] = get_args(ManaSymbol)
 
 basics: Dict[str, Color] = {'Plains': 'white', 'Island': 'blue', 'Swamp': 'black', 'Mountain': 'red', 'Forest': 'green'}

@@ -20,18 +20,31 @@ def process_mana_cost(cost: str) -> List[ManaSymbol]:
     ans: List[ManaSymbol] = []
     for i in re.findall(reg, cost):
         if '/' in i:
-            a, b = i.upper().split('/')
+            tup = i.upper().split('/')
+            if len(tup) == 2:
+                a, b = tup
+                force_phyrexian = False
+            elif len(tup) == 3:
+                a, b, fp = tup
+                if fp == 'P':
+                    force_phyrexian = True
+                else:
+                    raise RisingDataError(f'Invalid trisplit mana symbol: {i}.')
+            else:
+                raise RisingDataError(f'Invalid split level for mana symbol: {i}.')
+
             if b == 'P' and a in colors_single:
                 ans.append(cast(ManaSymbol, 'p' + color_symbols_to_colors[a]))
             elif (a == '2' or a in colors_single) and b in colors_single:
                 a = color_symbols_to_colors[a] if a != '2' else a
                 b = color_symbols_to_colors[b]
-                if f'{a}/{b}' in mana_symbols:
-                    ans.append(cast(ManaSymbol, f'{a}/{b}'))
+                p = '' if not force_phyrexian else 'p'
+                if f'{p}{a}/{b}' in mana_symbols:
+                    ans.append(cast(ManaSymbol, f'{p}{a}/{b}'))
                 else:
-                    ans.append(cast(ManaSymbol, f'{b}/{a}'))
+                    ans.append(cast(ManaSymbol, f'{p}{b}/{a}'))
             else:
-                raise RisingDataError(f'Unknown mana symbol: {i}.')
+                raise RisingDataError(f'Invalid split mana symbol: {i}.')
         else:
             g = int_def(i, -1)
             if g > -1:
@@ -47,7 +60,7 @@ def process_mana_cost(cost: str) -> List[ManaSymbol]:
                 if i == 'X':
                     ans.append('x')
                 elif i not in color_symbols_single:
-                    raise RisingDataError(f'Unknown mana symbol: {i}.')
+                    raise RisingDataError(f'Invalid single-symbol mana symbol: {i}.')
                 else:
                     ans.append(color_symbols_to_mana_types[i])
     return ans
