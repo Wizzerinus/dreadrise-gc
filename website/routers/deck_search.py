@@ -6,7 +6,7 @@ from flask import Blueprint, render_template, request
 from pymongo.database import Database
 
 from shared.helpers.db_loader import load_multiple_decks
-from shared.helpers.exceptions import DreadriseError
+from shared.helpers.exceptions import DreadriseError, EmptySearchError
 from shared.search.syntax import format_func
 from website.util import get_dist, split_database, split_import
 
@@ -84,10 +84,8 @@ def api_matchup_search(db: Database) -> Dict[str, Any]:
                          'foreignField': 'deck_id', 'as': 'enemy'}},
             {'$unwind': '$enemy'}
         ]
-        enemy, ef_enemy, dd_enemy = dss.create_pipeline(q2, page_size, current_page * page_size)
-        enemy = dss.arc.rename_pipeline(enemy, lambda x: f'enemy.{x}')
         hero_fixed, hero_f = dss.remove_facets(hero)
-        enemy_fixed, enemy_f = dss.remove_facets(enemy)
+
         winrate_facet = [
             {'$project': {
                 '_id': 0,
@@ -104,9 +102,18 @@ def api_matchup_search(db: Database) -> Dict[str, Any]:
                 'game_wins': '$games.player_wins', 'game_losses': '$games.player_losses', 'winner': '$games.result'
             }}
         ]
+        try:
+            enemy, ef_enemy, dd_enemy = dss.create_pipeline(q2, page_size, current_page * page_size)
+            enemy = dss.arc.rename_pipeline(enemy, lambda x: f'enemy.{x}')
+            enemy_fixed, enemy_f = dss.remove_facets(enemy)
+            d = (dd_hero, dd_enemy)
+        except EmptySearchError:
+            enemy_fixed = []
+            enemy_f = hero_f
+            d = (dd_hero,)
+
         enemy_f[0]['$facet']['winrate'] = winrate_facet
         enemy_f[0]['$facet']['sample'] = sample_additions + enemy_f[0]['$facet']['sample']
-        d = (dd_hero, dd_enemy)
         ef = ['winrate']
 
         matches, sample, extras = dss.search_with_pipeline(db, hero_fixed + intermediate + enemy_fixed + enemy_f, ef, d)

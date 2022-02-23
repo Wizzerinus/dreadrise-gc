@@ -26,6 +26,10 @@ class SearchDataError(DreadriseError):
     pass
 
 
+class EmptySearchError(SearchDataError):
+    pass
+
+
 class SearchSyntaxError(DreadriseError):
     pass
 

@@ -7,7 +7,7 @@ from pymongo.errors import OperationFailure
 from pyparsing import ParseResults
 
 from shared.helpers import configuration
-from shared.helpers.exceptions import SearchDataError
+from shared.helpers.exceptions import SearchDataError, EmptySearchError
 from shared.search.renamer import (AggregationRenameController, OperatorControllerDict, OperatorControllerSingular,
                                    rename_expression, rename_field_name, rename_nothing, rename_query)
 from shared.search.tokenizer import SearchGroup, SearchToken, tokenize_string
@@ -192,7 +192,7 @@ class SearchSyntax(Generic[T]):
     def create_pipeline(self, q: str, lim: int = 60, skip: int = 0) -> Tuple[List[Dict[str, Any]], List[Any], Any]:
         data = str(q).rstrip() if q else ''
         if not data:
-            raise SearchDataError('Please provide one or more search operators.')
+            raise EmptySearchError('Please provide one or more search operators.')
 
         context = {
             'pipeline': [],
