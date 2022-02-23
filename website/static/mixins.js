@@ -43,7 +43,15 @@ const deck_list = {
             </thead>
             <tbody>
                 <tr v-for="i in data.decks">
-                    <td><img :src="'/imagery/colors/' + i.deck.deck_id" alt="Deck's colors" /></td>
+                    <td v-if="!i.deck.color_data">
+                        <img :src="'/imagery/colors/' + i.deck.deck_id" alt="Deck's colors" />
+                    </td>
+                    <td v-else="">
+                        <div class="fake-color-bar">
+                            <div v-for="x, ind in i.deck.color_data" :style="'width: ' + (x * 100) + '%'"
+                                :class="['fcb-' + x, 'fcbc-' + ind]"></div>
+                        </div>
+                    </td>
                     <td><a :href="'/decks/' + i.deck.deck_id">[[ shorten(i.deck.name, 50) ]]</a></td>
                     <td v-if="!int_hide.author">
                         <a :href="'/users/' + i.author.user_id">[[ i.author.nickname ]]</a>

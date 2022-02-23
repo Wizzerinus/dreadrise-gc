@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 from shared.card_enums import DeckPrivacy
 from shared.types.pseudotype import PseudoType
@@ -55,6 +55,9 @@ class Deck(PseudoType):
 
     assigned_rules: List[str] = []
     games_disabled: bool
+
+    # percentages of (W, U, B, R, G) from 0.0-1.0
+    color_data: Optional[List[float]] = None
 
     def process(self) -> None:
         if self.wins == -1 and not hasattr(self, 'games_disabled'):

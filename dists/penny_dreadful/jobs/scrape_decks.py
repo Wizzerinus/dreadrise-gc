@@ -5,13 +5,15 @@ from math import ceil
 from time import sleep
 from typing import Dict, Iterable, List, Set, Tuple, Union, cast
 
-import arrow
+from arrow import Arrow, get
 from pymongo.database import Database
 
 from shared import fetch_tools
 from shared.card_enums import Archetype
 from shared.helpers.database import connect
 from shared.helpers.util import clean_name
+from shared.helpers.util2 import calculate_color_data
+from shared.types.card import Card
 from shared.types.competition import Competition
 from shared.types.deck import Deck, DeckGameRecord
 from shared.types.deck_tag import DeckTag
@@ -49,7 +51,7 @@ def get_competition(name: str) -> Tuple[str, str]:
     return name, ctype
 
 
-def obtain_deck(d: Dict, fd: arrow.arrow.Arrow) -> Deck:
+def obtain_deck(d: Dict, fd: Arrow, cards: Dict[str, Card]) -> Deck:
     dk = Deck()
 
     dk.deck_id = 'pdm-' + str(d['id'])
@@ -63,7 +65,7 @@ def obtain_deck(d: Dict, fd: arrow.arrow.Arrow) -> Deck:
 
     cname, ct = get_competition(d['competitionName'])
     if ct == 'tournament':
-        time_delta = arrow.get(dk.date) - fd
+        time_delta = get(dk.date) - fd
         week_num = time_delta.days // 7 + 1
         dk.competition = f'tourney-{season}-{week_num}'
     else:
@@ -79,6 +81,7 @@ def obtain_deck(d: Dict, fd: arrow.arrow.Arrow) -> Deck:
     dk.losses = d['losses']
     dk.ties = d.get('ties', 0)
     dk.privacy = 'public'
+    dk.color_data = calculate_color_data(dk, cards)
 
     return dk
 
@@ -88,19 +91,19 @@ def check_deck_filter(x: dict) -> bool:
         (x['sourceName'] == 'League' or x['sourceName'] == 'Gatherling') and x['wins'] + x['losses'] > 0
 
 
-def obtain_decks(existing_decks: Set[int], decks: List[Dict], fd: arrow.arrow.Arrow) -> Dict[int, Deck]:
+def obtain_decks(existing_decks: Set[int], decks: List[Dict], fd: Arrow, cards: Dict[str, Card]) -> Dict[int, Deck]:
     ans = {}
     for x in decks:
         if not check_deck_filter(x) or x['id'] in existing_decks:
             continue
         existing_decks.add(x['id'])
 
-        obtained = obtain_deck(x, fd)
+        obtained = obtain_deck(x, fd, cards)
         ans[x['id']] = obtained
     return ans
 
 
-def obtain_comps(existing_comps: Dict[str, Competition], decks: List[Dict], fd: arrow.arrow.Arrow) -> List[Competition]:
+def obtain_comps(existing_comps: Dict[str, Competition], decks: List[Dict], fd: Arrow) -> List[Competition]:
     ans = []
     for x in decks:
         if not check_deck_filter(x):
@@ -109,7 +112,7 @@ def obtain_comps(existing_comps: Dict[str, Competition], decks: List[Dict], fd: 
         season = x['seasonId']
         cname, ctype = get_competition(x['competitionName'] or f'PD Season {season}')
         if ctype == 'tournament':
-            time_delta = arrow.get(x['activeDate']) - fd
+            time_delta = get(x['activeDate']) - fd
             week_num = time_delta.days // 7 + 1
             comp = f'tourney-{season}-{week_num}'
             cname = f'S{season} tournaments - week {week_num}'
@@ -146,13 +149,16 @@ def obtain_users(existing_users: Dict[str, User], decks: List[Dict]) -> List[Use
     return ans
 
 
-def get_min_date(decks: List[dict]) -> arrow.arrow.Arrow:
-    return arrow.get(min((x['activeDate'] for x in decks)))
+def get_min_date(decks: List[dict]) -> Arrow:
+    return get(min((x['activeDate'] for x in decks)))
 
 
 def load_all(existing_users: Dict[str, User], existing_competitions: Dict[str, Competition], url: str) -> \
         Tuple[Dict[int, Deck], List[User], List[Competition]]:
-    logger.info(f'Loading from {url}0')
+    db = connect('penny_dreadful')
+    logger.info('Loading cards')
+    cards = {x['name']: Card().load(x) for x in db.cards.find()}
+    logger.info(f'Loading from {url}')
     initial_load = fetch_tools.fetch_json(pdm_host + url + '0')
     entries = initial_load['total']
     deck_arr = initial_load['objects']
@@ -167,7 +173,7 @@ def load_all(existing_users: Dict[str, User], existing_competitions: Dict[str, C
         deck_arr += new_page['objects']
 
     first_date = get_min_date(deck_arr)
-    decks = obtain_decks(existing_decks, deck_arr, first_date)
+    decks = obtain_decks(existing_decks, deck_arr, first_date, cards)
     comps = obtain_comps(existing_competitions, deck_arr, first_date)
     users = obtain_users(existing_users, deck_arr)
     return decks, users, comps

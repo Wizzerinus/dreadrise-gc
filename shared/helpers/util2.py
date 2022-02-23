@@ -68,3 +68,26 @@ def get_card_sorter(cards: Dict[str, Card]) -> Callable[[str], Tuple[int, str]]:
         return card.mana_value + type_index * 30, name
 
     return card_sorter
+
+
+def calculate_color_data(deck: Deck, cards: Dict[str, Card]) -> List[float]:
+    """
+    Calculate the color data for a deck.
+    :param deck: the deck in question
+    :param cards: the card dictionary including all the cards in the deck
+    :return: list of 5 numbers - % of WUBRG symbols (from 0.0-1.0)
+    """
+
+    color_index = {'white': 0, 'blue': 1, 'black': 2, 'red': 3, 'green': 4}
+    counts = [0, 0, 0, 0, 0]
+    for i, c in deck.mainboard.items():
+        if i not in cards:
+            continue
+        for j, k in cards[i].mana_cost.items():
+            if j in color_index:
+                counts[color_index[j]] += k * c
+
+    count_sum = sum(counts)
+    if not count_sum:
+        return [x / 1.0 for x in counts]
+    return [x / count_sum for x in counts]

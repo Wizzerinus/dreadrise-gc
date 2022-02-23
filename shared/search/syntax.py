@@ -7,7 +7,7 @@ from pymongo.errors import OperationFailure
 from pyparsing import ParseResults
 
 from shared.helpers import configuration
-from shared.helpers.exceptions import SearchDataError, EmptySearchError
+from shared.helpers.exceptions import EmptySearchError, SearchDataError
 from shared.search.renamer import (AggregationRenameController, OperatorControllerDict, OperatorControllerSingular,
                                    rename_expression, rename_field_name, rename_nothing, rename_query)
 from shared.search.tokenizer import SearchGroup, SearchToken, tokenize_string

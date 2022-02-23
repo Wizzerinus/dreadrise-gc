@@ -10,6 +10,7 @@ from shared import fetch_tools
 from shared.helpers.database import connect
 from shared.helpers.exceptions import DreadriseError, RisingDataError
 from shared.helpers.util import clean_card, clean_name, shorten_name
+from shared.helpers.util2 import calculate_color_data
 from shared.types.card import Card
 from shared.types.competition import Competition
 from shared.types.deck import Deck, DeckGameRecord
@@ -171,6 +172,7 @@ def run_json(json: dict, timeout: bool = True) -> None:
         d.sideboard = {smart_clean(name, all_cards): value['sideCount'] for name, value in cards.items() if
                        value['sideCount'] > 0}
         d.is_sorted = False
+        d.color_data = calculate_color_data(d, all_cards)
     logger.info('Finished building decks')
 
     if decks_by_name:

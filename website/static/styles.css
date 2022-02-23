@@ -131,3 +131,25 @@
     z-index: 5000;
 }
 
+.fake-color-bar {
+    width: 150px;
+    padding: 0;
+    height: 27px;
+}
+
+.fake-color-bar div:not(.fcb-0) {
+    height: 25px;
+    display: inline-block;
+    margin: 0;
+    border: 1px solid #808080;
+}
+
+.fcb-0 {
+    display: none;
+}
+
+.fcbc-0 { background-color: #ffff80; }
+.fcbc-1 { background-color: #0000c8; }
+.fcbc-2 { background-color: #0a0a0a; }
+.fcbc-3 { background-color: #c80000; }
+.fcbc-4 { background-color: #00c800; }

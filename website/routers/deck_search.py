@@ -110,7 +110,7 @@ def api_matchup_search(db: Database) -> Dict[str, Any]:
         except EmptySearchError:
             enemy_fixed = []
             enemy_f = hero_f
-            d = (dd_hero,)
+            d = (dd_hero, None)
 
         enemy_f[0]['$facet']['winrate'] = winrate_facet
         enemy_f[0]['$facet']['sample'] = sample_additions + enemy_f[0]['$facet']['sample']
