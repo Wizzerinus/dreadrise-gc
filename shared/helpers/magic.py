@@ -1,3 +1,4 @@
+import logging
 import re
 from typing import List, Tuple, cast
 
@@ -8,6 +9,8 @@ from shared.card_enums import (Color, ManaDict, ManaSymbol, Rarity, color_combo_
                                mana_symbols, rarities, rarity_map)
 from shared.helpers.exceptions import RisingDataError, SearchSyntaxError
 from shared.helpers.util import int_def
+
+logger = logging.getLogger('dreadrise.magic')
 
 
 def process_mana_cost(cost: str) -> List[ManaSymbol]:
@@ -125,9 +128,43 @@ def process_oracle(o: str) -> str:
 
 
 def process_mana_cost_text(o: str) -> str:
+    letters = {
+        'P': 'two life',
+        'W': 'one white mana',
+        'U': 'one blue mana',
+        'B': 'one black mana',
+        'R': 'one red mana',
+        'G': 'one green mana',
+        'S': 'one snow mana',
+        'T': 'tap this permanent',
+        'Q': 'untap this permanent',
+        'X': 'any amount of generic mana'
+    }
+
+    number_words = ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten',
+                    'eleven', 'twelve', 'thirteen', 'fourteen', 'fifteen', 'sixteen', 'seventeen', 'eighteen',
+                    'nineteen', 'twenty']
+
+    def replace(m: re.Match) -> str:
+        letter_list = m.groups()
+        mana_symbol = '{' + '/'.join(letter_list) + '}'
+        mana_string = ''.join(letter_list)
+        try:
+            description_list = [letters[x] if x in letters else
+                                (f'{x} generic mana' if int(x) > 20 else f'{number_words[int(x)]} generic mana')
+                                for x in letter_list]
+        except ValueError:
+            description_list = []
+            logger.warning('Broken mana symbol: %s', letter_list)
+        description_str = description_list[0] if len(description_list) < 2 else \
+            ', '.join(description_list[:-1]) + ' or ' + description_list[-1]
+        return f'<abbr class="card-symbol card-symbol-{mana_string}" title="{description_str}">{mana_symbol}</abbr>'
+
+    trisplit = re.compile(r'{(.)/(.)/(.)}')
+    o = re.sub(trisplit, replace, o)
     multicolor_regex = re.compile(r'{(.)/(.)}')
-    o = re.sub(multicolor_regex, r'<abbr class="card-symbol card-symbol-\1\2">{\1/\2}</abbr>', o)
-    singlecolor_regex = re.compile(r'{([^}]+)}')
-    o = re.sub(singlecolor_regex, r'<abbr class="card-symbol card-symbol-\1">{\1}</abbr>', o)
+    o = re.sub(multicolor_regex, replace, o)
+    singlecolor_regex = re.compile(r'{(.)}')
+    o = re.sub(singlecolor_regex, replace, o)
     # loyalty_regex = re.compile(r'\[(0|[+-][0-9]+)]') # don't have loyalty symbols
     return Markup(o)
