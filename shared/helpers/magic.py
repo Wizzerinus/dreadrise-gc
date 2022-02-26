@@ -156,8 +156,9 @@ def process_mana_cost_text(o: str) -> str:
         except ValueError:
             description_list = []
             logger.warning('Broken mana symbol: %s', letter_list)
-        description_str = description_list[0] if len(description_list) < 2 else \
-            ', '.join(description_list[:-1]) + ' or ' + description_list[-1]
+        description_str = '' if not description_list else (
+            description_list[0] if len(description_list) < 2 else
+            ', '.join(description_list[:-1]) + ' or ' + description_list[-1])
         return f'<abbr class="card-symbol card-symbol-{mana_string}" title="{description_str}">{mana_symbol}</abbr>'
 
     trisplit = re.compile(r'{(.)/(.)/(.)}')
