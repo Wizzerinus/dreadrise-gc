@@ -138,7 +138,9 @@ def process_mana_cost_text(o: str) -> str:
         'S': 'one snow mana',
         'T': 'tap this permanent',
         'Q': 'untap this permanent',
-        'X': 'any amount of generic mana'
+        'X': 'any amount of generic mana',
+        'C': 'one colorless mana',
+        'E': 'one energy counter'
     }
 
     number_words = ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten',
