@@ -29,11 +29,12 @@ def matchup_search() -> str:
 def api_card_search(db: Database) -> Dict[str, Any]:
     req = cast(Dict[str, Any], request.get_json())
     query = cast(str, req['query'])
-    current_page = cast(int, req['page'])
+    cpage = cast(int, req['page'])
     page_size = cast(int, req['page_size'])
+    dist = get_dist()
     try:
         constants = split_import()
-        matches, sample, extras = constants.deck_search_syntax().search(db, query, page_size, current_page * page_size)
+        matches, sample, extras = constants.deck_search_syntax().search(dist, db, query, page_size, cpage * page_size)
         sample_arr = [x.jsonify() for x in load_multiple_decks(get_dist(), sample)[0]]
         for item, item_og in zip(sample_arr, sample):
             try:
@@ -74,6 +75,7 @@ def api_matchup_search(db: Database) -> Dict[str, Any]:
     q2 = cast(str, req['q2'])
     current_page = cast(int, req['page'])
     page_size = cast(int, req['page_size'])
+    dist = get_dist()
     try:
         constants = split_import()
         dss = constants.deck_search_syntax()
@@ -116,24 +118,24 @@ def api_matchup_search(db: Database) -> Dict[str, Any]:
         enemy_f[0]['$facet']['sample'] = sample_additions + enemy_f[0]['$facet']['sample']
         ef = ['winrate']
 
-        matches, sample, extras = dss.search_with_pipeline(db, hero_fixed + intermediate + enemy_fixed + enemy_f, ef, d)
-        if extras['winrate']:
-            winrate = round(100 * extras['winrate'][0]['wins'] /
-                            max(1, extras['winrate'][0]['wins'] + extras['winrate'][0]['losses']), 2)
+        ms, sl, ex = dss.search_with_pipeline(dist, db, hero_fixed + intermediate + enemy_fixed + enemy_f, ef, d)
+        if ex['winrate']:
+            winrate = round(100 * ex['winrate'][0]['wins'] /
+                            max(1, ex['winrate'][0]['wins'] + ex['winrate'][0]['losses']), 2)
         else:
             winrate = 0
 
         user_id_list = [x.author for x in sample] + [x.enemy_author for x in sample]  # type: ignore
         users = {x['user_id']: x['nickname'] for x in db.users.find({'user_id': {'$in': user_id_list}})}
-        for x in sample:
+        for x in sl:
             x.author_name = users[x.author]  # type: ignore
             x.enemy_author_name = users[x.enemy_author]  # type: ignore
 
         return {
-            'matches': matches,
-            'sample': [x.virtual_save() for x in sample],
+            'matches': ms,
+            'sample': [x.virtual_save() for x in sl],
             'winrate': winrate,
-            'max_page': ceil(matches / page_size),
+            'max_page': ceil(ms / page_size),
             'success': True
         }
     except DreadriseError as e:

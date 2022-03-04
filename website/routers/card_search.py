@@ -6,7 +6,7 @@ from pymongo.database import Database
 
 from shared.helpers.exceptions import DreadriseError
 from shared.search.syntax import format_func
-from website.util import split_database, split_import
+from website.util import split_database, split_import, get_dist
 
 b_card_search = Blueprint('card_search', __name__)
 b_card_search_api = Blueprint('card_search_api', __name__)
@@ -24,9 +24,10 @@ def api_card_search(db: Database) -> Dict[str, Any]:
     query = cast(str, req['query'])
     current_page = cast(int, req['page'])
     page_size = cast(int, req['page_size'])
+    dist = get_dist()
     try:
         constants = split_import()
-        matches, sample, _ = constants.card_search_syntax().search(db, query, page_size, current_page * page_size)
+        matches, sample, _ = constants.card_search_syntax().search(dist, db, query, page_size, current_page * page_size)
         return {
             'matches': matches,
             'sample': [x.virtual_save() for x in sample],

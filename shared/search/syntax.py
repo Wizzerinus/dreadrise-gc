@@ -6,6 +6,7 @@ from pymongo.database import Database
 from pymongo.errors import OperationFailure
 from pyparsing import ParseResults
 
+from shared.core_enums import Distribution
 from shared.helpers import configuration
 from shared.helpers.exceptions import EmptySearchError, SearchDataError
 from shared.search.renamer import (AggregationRenameController, OperatorControllerDict, OperatorControllerSingular,
@@ -244,14 +245,15 @@ class SearchSyntax(Generic[T]):
                 pipeline2.append(i)
         return pipeline2, facets
 
-    def search(self, db: Database, q: str, lim: int = 60, s: int = 0) -> Tuple[int, List[T], Dict[str, Any]]:
+    def search(self, dist: Distribution, db: Database, q: str,
+               lim: int = 60, s: int = 0) -> Tuple[int, List[T], Dict[str, Any]]:
         aggregation, extra_facets, debug_data = self.create_pipeline(q, lim, s)
-        return self.search_with_pipeline(db, aggregation, extra_facets, debug_data)
+        return self.search_with_pipeline(dist, db, aggregation, extra_facets, debug_data)
 
-    def search_with_pipeline(self, db: Database, agg: List[Dict[str, Any]], ef: List[Any], debug: Any) -> \
-            Tuple[int, List[T], Dict[str, Any]]:
+    def search_with_pipeline(self, dist: Distribution, db: Database, agg: List[Dict[str, Any]],
+                             ef: List[Any], debug: Any) -> Tuple[int, List[T], Dict[str, Any]]:
         try:
-            allow_disk_use = bool(configuration.get('search_disk_use'))
+            allow_disk_use = bool(configuration.get('search_disk_use', dist))
             agg = list(db[self.table_name].aggregate(agg, allowDiskUse=allow_disk_use))
             matches = agg[0]['count'][0]['count'] if len(agg[0]['count']) > 0 else 0
             sample = agg[0]['sample'] if matches else []
