@@ -47,7 +47,7 @@ class CardFace(PseudoType):
 
         regex_rainbow = re.compile(r'\badd\b.*\b(of any color|any combination of colors|any one color|'
                                    r'one mana of that color|different colors|any of the)\b', re.I)
-        regex_sylvan_scrying = re.compile(r'search.*\bland card', re.I)
+        regex_sylvan_scrying = re.compile(r'search.*\bland]? card', re.I)
         regex_farseek = re.compile(r'search.*\b(forest|island|swamp|plains|mountain) card', re.I)
         regex_shifting_land = re.compile(r'choose.*basic land.*create.*land', re.I)
         regex_treasure = re.compile(r'create.*\b(gold|treasure).*\btoken', re.I)
