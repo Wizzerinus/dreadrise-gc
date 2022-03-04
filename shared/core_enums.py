@@ -10,4 +10,4 @@ distribution_localization: Dict[Distribution, str] = {
     'penny_dreadful': 'Penny Dreadful',
     'msem': 'MSE Modern'
 }
-default_distribution = 'penny_dreadful'
+default_distribution: Distribution = 'penny_dreadful'

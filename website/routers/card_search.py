@@ -6,7 +6,7 @@ from pymongo.database import Database
 
 from shared.helpers.exceptions import DreadriseError
 from shared.search.syntax import format_func
-from website.util import split_database, split_import, get_dist
+from website.util import get_dist, split_database, split_import
 
 b_card_search = Blueprint('card_search', __name__)
 b_card_search_api = Blueprint('card_search_api', __name__)

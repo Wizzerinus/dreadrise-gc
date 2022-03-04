@@ -1,7 +1,7 @@
 import logging
 import traceback
 from functools import wraps
-from typing import Any, Callable, List, Optional, cast
+from typing import Any, Callable, List, Optional
 
 from flask import abort, g, jsonify, make_response, request
 
@@ -29,7 +29,9 @@ def get_dist() -> Distribution:
     session = g.actual_session
     dist = request.args['dist'] if 'dist' in request.args else (
         session['dist'] if 'dist' in session else '')
-    dist_actual = cast(Distribution, distribution_rollback.get(dist, default_distribution))
+    if dist not in distribution_rollback and 'msem' in request.url_root:  # hacky
+        dist = 'msem'
+    dist_actual = distribution_rollback.get(dist, default_distribution)
 
     if 'dist' not in session or session['dist'] != dist_actual:
         logger.debug('Changing current distribution to', dist_actual)

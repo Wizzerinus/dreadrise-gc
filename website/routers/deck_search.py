@@ -125,7 +125,7 @@ def api_matchup_search(db: Database) -> Dict[str, Any]:
         else:
             winrate = 0
 
-        user_id_list = [x.author for x in sample] + [x.enemy_author for x in sample]  # type: ignore
+        user_id_list = [x.author for x in sl] + [x.enemy_author for x in sl]  # type: ignore
         users = {x['user_id']: x['nickname'] for x in db.users.find({'user_id': {'$in': user_id_list}})}
         for x in sl:
             x.author_name = users[x.author]  # type: ignore
