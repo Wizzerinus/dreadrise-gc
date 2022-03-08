@@ -252,6 +252,7 @@ def delete_deck_tag(db: Database, tag_id: str) -> Response:
         return redirect(url_for('admin.tag_manager'))
 
     db.deck_tags.delete_one({'tag_id': tag_id})
+    db.text_deck_rules.delete_many({'tag_id': tag_id})
     return redirect(url_for('admin.tag_manager'))
 
 
