@@ -56,7 +56,7 @@ def create_archetype_thread(card_cache: MaybeCC = None) -> None:
     from .jobs.calculate_popularities import run
 
     def run_with_cache() -> None:
-        run(card_cache=card_cache)
+        run(card_cache=card_cache, only_new=True)
 
     logger.info('Updating archetypes...')
     archetype_thread = Thread(target=run_with_cache)

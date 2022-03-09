@@ -1,5 +1,5 @@
 import logging
-from typing import Any, Dict, Iterable, List, Sequence, Optional
+from typing import Any, Dict, Iterable, List, Optional, Sequence
 
 from pymongo import UpdateOne
 

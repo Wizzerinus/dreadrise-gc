@@ -9,7 +9,7 @@ from pymongo.database import Database
 from shared import fetch_tools
 from shared.helpers.database import connect
 from shared.helpers.exceptions import DreadriseError, RisingDataError
-from shared.helpers.util import clean_card, clean_name, shorten_name, fix_long_words
+from shared.helpers.util import clean_card, clean_name, fix_long_words, shorten_name
 from shared.helpers.util2 import calculate_color_data
 from shared.types.card import Card
 from shared.types.competition import Competition
@@ -90,20 +90,28 @@ def smart_clean(name: str, cards: Dict[str, Card]) -> str:
 def run_json(json: dict, timeout: bool = True, card_cache: Optional[Dict[str, Card]] = None) -> Dict[str, Card]:
     logger.info('Connecting to the database')
     client = connect('msem')
-    if not card_cache:
-        logger.info('Loading cards')
-        init_cards = {x['name']: Card().load(x) for x in client.cards.find()}
-        all_cards = {}
+
+    already_loaded_cards = {} if not card_cache else set(card_cache.keys())
+    logger.info('Loading cards')
+    if card_cache:
+        all_cards = card_cache
+    else:
+        init_cards = {x['name']: Card().load(x) for x in client.cards.find({'layout': {'$ne': 'normal'}})}
+        all_cards = card_cache or {}
         for k, v in init_cards.items():
             all_cards[k] = v
             if len(v.faces) > 1:
                 for f in v.faces:
                     all_cards[f.name] = v
                 all_cards[' // '.join([x.name for x in v.faces])] = v
-    else:
-        all_cards = card_cache
-        logger.info('Using card cache')
-    logger.info('{n} decks, {m} matches loaded'.format(n=len(json['decks']), m=len(json['matches'])))
+
+    all_card_set = {clean_card(x) for y in json['decks'] for x in y['cards'] if x not in already_loaded_cards}
+    non_split_names = [x for x in all_card_set if x not in all_cards]
+    non_split_iter = ((x['name'], Card().load(x)) for x in client.cards.find({'name': {'$in': non_split_names}}))
+    for name, card in non_split_iter:
+        all_cards[name] = card
+    logger.info('{n} decks, {m} matches, {k} cards loaded'.format(n=len(json['decks']), m=len(json['matches']),
+                                                                  k=len(all_cards)))
 
     comp_name, date, decks, matches = json['competition_name'], json['date'], json['decks'], json['matches']
     date_object = arrow.get('20' + date.replace('_', '-')).datetime

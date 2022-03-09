@@ -1,6 +1,6 @@
 import logging
 import traceback
-from typing import Callable, Optional, Dict
+from typing import Callable, Dict, Optional
 
 from pymongo.database import Database
 
