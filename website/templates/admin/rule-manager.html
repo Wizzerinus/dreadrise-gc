@@ -38,7 +38,7 @@
                 <input class="form-control" name="tag_name" list="tag-list" placeholder="Type to search..." />
                 <datalist id="tag-list">
                     {% for i in tags %}
-                    <option value="{{ i.name }}"></option>
+                    <option value="{{ i.tag_name }}"></option>
                     {% endfor %}
                 </datalist>
             </div>
