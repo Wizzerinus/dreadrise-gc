@@ -1,5 +1,5 @@
 import logging
-from typing import Any, Dict, Iterable, List, Sequence
+from typing import Any, Dict, Iterable, List, Sequence, Optional
 
 from pymongo import UpdateOne
 
@@ -7,17 +7,20 @@ from shared.core_enums import Distribution
 from shared.helpers.database import connect
 from shared.helpers.db_loader import load_cards_from_decks
 from shared.helpers.util2 import get_dist_constants
+from shared.types.card import Card
 from shared.types.deck import Deck
 from shared.types.deck_tag import ColorDeckRule, DeckRule, DeckTag, TextDeckRule
 
 logger = logging.getLogger('dreadrise.tagging.core')
 
+MaybeCC = Optional[Dict[str, Card]]
 
-def run(dist: Distribution, rules: Iterable[DeckRule], q: Iterable[Deck]) -> None:
+
+def run(dist: Distribution, rules: Iterable[DeckRule], q: Iterable[Deck], card_cache: MaybeCC = None) -> MaybeCC:
     constants = get_dist_constants(dist)
     if 'archetyping' not in constants.enabled_modules:
         logger.warning(f'Distribution {dist} does not support tags')
-        return
+        return None
 
     db = connect(dist)
     logger.info('Loading tags')
@@ -27,12 +30,13 @@ def run(dist: Distribution, rules: Iterable[DeckRule], q: Iterable[Deck]) -> Non
     decks = list(q)
 
     need_to_load_cards = len([x for x in rule_list if isinstance(x, ColorDeckRule)]) > 0
-    cards = load_cards_from_decks(dist, decks) if need_to_load_cards else {}
+    cards = card_cache or (load_cards_from_decks(dist, decks) if need_to_load_cards else {})
     rule_set = {x.rule_id for x in rule_list}
     full_text_rule_dict = {x['rule_id']: TextDeckRule().load(x) for x in db.text_deck_rules.find()}
     full_rule_dict: Dict[str, DeckRule] = {x['rule_id']: ColorDeckRule().load(x) for x in db.color_deck_rules.find()}
     logger.info(f'{len(full_text_rule_dict)} text and {len(full_rule_dict)} color rules loaded')
     full_rule_dict.update(full_text_rule_dict)
+    logger.info(f'{len(full_rule_dict)} rules loaded')
 
     actions = []
     for deck in decks:
@@ -81,28 +85,29 @@ def run(dist: Distribution, rules: Iterable[DeckRule], q: Iterable[Deck]) -> Non
     if actions:
         db.decks.bulk_write(actions)
     logger.warning('Sorting complete.')
+    return cards or None
 
 
-def run_new_rules(dist: Distribution, rules: Sequence[DeckRule]) -> None:
+def run_new_rules(dist: Distribution, rules: Sequence[DeckRule], card_cache: MaybeCC = None) -> MaybeCC:
     db = connect(dist)
     logger.debug('Running the checker for new rules.')
     logger.debug(f'Found {len(rules)} rules.')
-    run(dist, rules, (Deck().load(x) for x in db.decks.find()))
+    return run(dist, rules, (Deck().load(x) for x in db.decks.find()), card_cache=card_cache)
 
 
-def run_new_decks(dist: Distribution) -> None:
+def run_new_decks(dist: Distribution, card_cache: MaybeCC = None) -> MaybeCC:
     db = connect(dist)
     logger.debug('Running the checker for new decks.')
     tdr: List[DeckRule] = [TextDeckRule().load(x) for x in db.text_deck_rules.find()]
     tdr += [ColorDeckRule().load(x) for x in db.color_deck_rules.find()]
     logger.debug(f'Found {len(tdr)} rules.')
-    run(dist, tdr, (Deck().load(x) for x in db.decks.find({'is_sorted': False})))
+    return run(dist, tdr, (Deck().load(x) for x in db.decks.find({'is_sorted': False})), card_cache=card_cache)
 
 
-def run_all_decks(dist: Distribution) -> None:
+def run_all_decks(dist: Distribution, card_cache: MaybeCC = None) -> MaybeCC:
     db = connect(dist)
     logger.debug('Running the checker for all decks.')
     tdr: List[DeckRule] = [TextDeckRule().load(x) for x in db.text_deck_rules.find()]
     tdr += [ColorDeckRule().load(x) for x in db.color_deck_rules.find()]
     logger.debug(f'Found {len(tdr)} rules.')
-    run(dist, tdr, (Deck().load(x) for x in db.decks.find()))
+    return run(dist, tdr, (Deck().load(x) for x in db.decks.find()), card_cache=card_cache)

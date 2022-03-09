@@ -4,7 +4,7 @@ import arrow
 
 from shared.helpers.caching.full_popularities import run_all_popularities
 from shared.helpers.database import connect
-from shared.helpers.tagging.core import run_all_decks
+from shared.helpers.tagging.core import run_all_decks, MaybeCC
 from shared.types.caching import CardPlayability
 from shared.types.deck import Deck
 
@@ -30,7 +30,7 @@ def _postprocess_playability(cp: CardPlayability, fmt: str, fmt_count: int) -> N
             cp.playability = 'played'
 
 
-def run() -> None:
+def run(card_cache: MaybeCC = None) -> None:
     """
     Calculates the popularity of various MSEM cards.
     :return: nothing
@@ -38,6 +38,6 @@ def run() -> None:
     logger.info('Connecting...')
     client = connect('msem')
     logger.info('Running the archetype calculator')
-    run_all_decks('msem')
+    card_cache = run_all_decks('msem', card_cache=card_cache)
     logger.info('Calculating popularities')
-    run_all_popularities(client, _postprocess_playability, _timecheck)
+    run_all_popularities(client, _postprocess_playability, _timecheck, card_cache=card_cache)

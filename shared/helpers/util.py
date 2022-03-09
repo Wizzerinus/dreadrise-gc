@@ -95,3 +95,12 @@ def shorten_name(s: str, max_len: int = 19) -> str:
     if len(s) < max_len:
         return s
     return s[:max_len - 3] + '...'
+
+
+def fix_long_words(s: str) -> str:
+    """
+    Shorten long words present inside the string.
+    :param s: the string to fix
+    :return: the fixed string
+    """
+    return ' '.join(shorten_name(x, 22) for x in s.split(' '))

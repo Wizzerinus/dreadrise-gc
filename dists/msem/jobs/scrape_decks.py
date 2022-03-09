@@ -9,7 +9,7 @@ from pymongo.database import Database
 from shared import fetch_tools
 from shared.helpers.database import connect
 from shared.helpers.exceptions import DreadriseError, RisingDataError
-from shared.helpers.util import clean_card, clean_name, shorten_name
+from shared.helpers.util import clean_card, clean_name, shorten_name, fix_long_words
 from shared.helpers.util2 import calculate_color_data
 from shared.types.card import Card
 from shared.types.competition import Competition
@@ -87,18 +87,21 @@ def smart_clean(name: str, cards: Dict[str, Card]) -> str:
     return cards[name].name
 
 
-def run_json(json: dict, timeout: bool = True) -> None:
+def run_json(json: dict, timeout: bool = True, card_cache: Optional[Dict[str, Card]] = None) -> Dict[str, Card]:
     logger.info('Connecting to the database')
     client = connect('msem')
-    logger.info('Loading cards')
-    init_cards = {x['name']: Card().load(x) for x in client.cards.find({'layout': 'split'})}
-    all_cards = {}
-    for k, v in init_cards.items():
-        all_cards[k] = v
-        if len(v.faces) > 1:
-            for f in v.faces:
-                all_cards[f.name] = v
-            all_cards[' // '.join([x.name for x in v.faces])] = v
+    if not card_cache:
+        logger.info('Loading cards')
+        init_cards = {x['name']: Card().load(x) for x in client.cards.find()}
+        all_cards = {}
+        for k, v in init_cards.items():
+            all_cards[k] = v
+            if len(v.faces) > 1:
+                for f in v.faces:
+                    all_cards[f.name] = v
+                all_cards[' // '.join([x.name for x in v.faces])] = v
+    else:
+        logger.info('Using card cache')
     logger.info('{n} decks, {m} matches loaded'.format(n=len(json['decks']), m=len(json['matches'])))
 
     comp_name, date, decks, matches = json['competition_name'], json['date'], json['decks'], json['matches']
@@ -146,7 +149,7 @@ def run_json(json: dict, timeout: bool = True) -> None:
             raise RisingDataError('Some deck is missing both User and Deck ID keys!')
         username = item['user'] if 'user' in item else deck_id.split('/')[-1].replace('.txt', '')[:-1]
         removal = f"{username}'s "
-        deckname = deckname.replace(removal, '')
+        deckname = fix_long_words(deckname.replace(removal, ''))
         user_id = _create_user(client, shorten_name(username), discord)
 
         d = Deck()
@@ -185,6 +188,7 @@ def run_json(json: dict, timeout: bool = True) -> None:
 
     client.decks.insert_many([x.save() for x in decks_by_id.values()] + [x.save() for x in decks_by_name.values()])
     logger.info('Operation complete.')
+    return all_cards
 
 
 def run() -> None:

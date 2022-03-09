@@ -1,6 +1,6 @@
 import logging
 import traceback
-from typing import Callable
+from typing import Callable, Optional, Dict
 
 from pymongo.database import Database
 
@@ -19,15 +19,20 @@ logger = logging.getLogger('dreadrise.popularity')
 
 
 def run_all_popularities(client: Database, postprocess_playability: Callable[[CardPlayability, str, int], None],
-                         time_check: Callable[[Deck], bool] = lambda a: True) -> None:
+                         time_check: Callable[[Deck], bool] = lambda a: True,
+                         card_cache: Optional[Dict[str, Card]] = None) -> None:
     """
     Calculate the popularity of various cards.
     :return: nothing
     """
     try:
         logger.info('Loading data...')
-        all_card_iter = (Card().load(x) for x in client.cards.find())
-        all_cards = {x.name: x for x in all_card_iter}
+
+        if card_cache:
+            all_cards = card_cache
+        else:
+            all_card_iter = (Card().load(x) for x in client.cards.find())
+            all_cards = {x.name: x for x in all_card_iter}
         logger.info(f'Loaded {len(all_cards)} cards.')
         all_competitions = [Competition().load(x) for x in client.competitions.find()]
         logger.info(f'Loaded {len(all_competitions)} competitions.')
