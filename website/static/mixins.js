@@ -21,6 +21,19 @@ const card_tooltip = {
     }
 }
 
+function deck_sort(key, obj) {
+    if (obj.current_sort_order[0] !== key)
+        obj.current_sort_order = [key, !obj.sort_orders[key]]
+    else
+        obj.current_sort_order[1] = !obj.current_sort_order[1]
+    obj.data.decks.sort((x, y) => {
+        const a = x.sort_data[key]
+        const b = y.sort_data[key]
+        const check = a + 0 === a ? a - b : a.localeCompare(b)
+        return obj.current_sort_order[1] ? check : -check
+    })
+}
+
 const deck_list = {
     props: ['hide', 'data', 'format'],
     template: `
@@ -87,19 +100,7 @@ const deck_list = {
         }
     },
     methods: {
-        sort(key) {
-            console.log(this.data, this.int_hide)
-            if (this.current_sort_order[0] !== key)
-                this.current_sort_order = [key, !this.sort_orders[key]]
-            else
-                this.current_sort_order[1] = !this.current_sort_order[1]
-            this.data.decks.sort((x, y) => {
-                const a = x.sort_data[key]
-                const b = y.sort_data[key]
-                const check = a + 0 === a ? a - b : a.localeCompare(b)
-                return this.current_sort_order[1] ? check : -check
-            })
-        }
+        sort: function(u) {deck_sort(u, this)}
     }
 }
 
@@ -134,17 +135,6 @@ const popular_cards = {
         }
     },
     methods: {
-        sort(key) {
-            if (this.current_sort_order[0] !== key)
-                this.current_sort_order = [key, !this.sort_orders[key]]
-            else
-                this.current_sort_order[1] = !this.current_sort_order[1]
-            this.data.popular_cards.sort((x, y) => {
-                const a = x.sort_data[key]
-                const b = y.sort_data[key]
-                const check = a + 0 === a ? a - b : a.localeCompare(b)
-                return this.current_sort_order[1] ? check : -check
-            })
-        }
+        sort: function(u) {deck_sort(u, this)}
     }
 }

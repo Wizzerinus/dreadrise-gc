@@ -12,7 +12,7 @@
                 <h3>Metagame Breakdown</h3>
                 <div id="breakdown">Loading...</div>
                 <h3>Decks</h3>
-                <decks format="{{ data.competition.format }}" hide="competitions" :data="data"></decks>
+                <decks format="{{ data.competition.format }}" hide="competitions" :data="data" ref="dck"></decks>
             </div>
             <div class="col-12 col-lg-4">
                 <h3>Popular cards</h3>
@@ -47,6 +47,7 @@
                             record: i.wins / (i.wins + i.losses + 1),
                             weight: i.weight
                         }
+                    setTimeout(() => this.$refs.dck.sort('record'), 100)
                 }
             },
             created() {
