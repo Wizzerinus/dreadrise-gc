@@ -101,6 +101,7 @@ def run_json(json: dict, timeout: bool = True, card_cache: Optional[Dict[str, Ca
                     all_cards[f.name] = v
                 all_cards[' // '.join([x.name for x in v.faces])] = v
     else:
+        all_cards = card_cache
         logger.info('Using card cache')
     logger.info('{n} decks, {m} matches loaded'.format(n=len(json['decks']), m=len(json['matches'])))
 
