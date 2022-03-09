@@ -130,6 +130,24 @@ class SearchFunctionBitmap(SearchFunctionArrayValidator):
         return target in tok.value
 
 
+class SearchFunctionZeroList(SearchFunctionArrayValidator):
+    def __init__(self, name: str, targets: List[str]):
+        super().__init__(targets)
+        self.name = name
+
+    def greater_or_equal(self, target: str, tok: SearchToken) -> dict:
+        return {f'{self.name}.{target}': {'$gt': 0}}
+
+    def greater(self, target: str, tok: SearchToken) -> dict:
+        return {'aaaaa': -1}
+
+    def exists(self, target: str, tok: SearchToken) -> dict:
+        return {f'{self.name}.{target}': {'$gt': 0}}
+
+    def contains(self, target: str, tok: SearchToken) -> bool:
+        return target in tok.value
+
+
 class SearchFilterUppercase(SearchFilter):
     def invoke(self, tok: SearchToken, context: dict) -> SearchToken:
         tok.value = tok.value.upper()
@@ -172,17 +190,18 @@ class SearchTransformerDelay(SearchTransformer):
 
 
 class SearchFunctionColor(SearchFunction):
-    def __init__(self, name: str, targets: List[str] = None):
+    def __init__(self, name: str, targets: List[str] = None, using_zerolist: bool = False):
         super().__init__()
         if not targets:
-            targets = ['white', 'blue', 'black', 'red', 'green']
+            targets = ['white', 'blue', 'black', 'red', 'green'] if not using_zerolist else ['0', '1', '2', '3', '4']
         self.name = name
         self.nums = SearchFunctionInt(f'{name}_len')
 
         # bitmap needs the token value to be an array.
         # so we make it an array.
         # 'wub' -> ['white', 'blue', 'black'] <- 'esper'
-        self.bms = SearchFunctionBitmap(name, targets)\
+        constructor = SearchFunctionBitmap if not using_zerolist else SearchFunctionZeroList
+        self.bms = constructor(name, targets)\
             .add_filter(SearchFilterLowercase())\
             .add_filter(SearchFilterFunction(get_color_combination))
 

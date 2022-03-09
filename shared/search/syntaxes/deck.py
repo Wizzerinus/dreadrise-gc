@@ -1,8 +1,10 @@
 from typing import Any, Dict, List, Tuple
 
+from shared.helpers.exceptions import SearchSyntaxError
 from shared.helpers.util import ireg
-from shared.search.functions import (SearchFilterLowercase, SearchFunctionDate, SearchFunctionExact, SearchFunctionInt,
-                                     SearchFunctionString, SearchTransformerDelay)
+from shared.search.functions import (SearchFilterLowercase, SearchFunctionColor, SearchFunctionDate,
+                                     SearchFunctionExact, SearchFunctionInt, SearchFunctionString,
+                                     SearchTransformerDelay)
 from shared.search.syntax import SearchAnswer, SearchFilter, SearchFunction, SearchSyntax
 from shared.search.tokenizer import SearchToken
 from shared.types.deck import Deck
@@ -69,6 +71,10 @@ class SearchSyntaxDeck(SearchSyntax):
         self.add_func('esideboard', SearchFunctionCard('sideboard_list', True),
                       'Search the cards in the sideboard of the deck with exact matching.', ['eside', 'esb'])
 
+        color_func = SearchFunctionColor('color_data', using_zerolist=True)
+        color_func.bms.add_filter(SearchFilterReplaceColor())
+        self.add_func('color', color_func, 'Search the deck\'s colors.', ['col'])
+
     @staticmethod
     def get_winrate_facet() -> List[Dict[str, Any]]:
         winrate = {'$group': {'_id': None, 'wins': {'$sum': '$wins'}, 'losses': {'$sum': '$losses'}}}
@@ -128,3 +134,13 @@ class SearchFilterCompetitionJoin(SearchFilter):
     def invoke(self, tok: SearchToken, context: dict) -> SearchToken:
         ensure_competition_join(context)
         return tok
+
+
+class SearchFilterReplaceColor(SearchFilter):
+    def invoke(self, tok: SearchToken, context: dict) -> SearchToken:
+        colors = {'white': '0', 'blue': '1', 'black': '2', 'red': '3', 'green': '4'}
+        try:
+            tok.value = [colors[x] for x in tok.value]
+            return tok
+        except KeyError:
+            raise SearchSyntaxError(f'Unknown color combo: {tok.value}')
