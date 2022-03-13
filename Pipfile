@@ -15,7 +15,7 @@ Flask = "~=2.0.1"
 PyYAML = "~=5.4.1"
 Jinja2 = "~=3.0.1"
 authlib = "~=1.0.0b1"
-pillow = "~=9.0.0"
+pillow = "~=9.0.1"
 plotly = "~=5.3.1"
 uwsgi = "*"
 
