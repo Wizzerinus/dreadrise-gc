@@ -79,6 +79,7 @@ class SearchSyntax(Generic[T]):
         self.funcs = {}
         self.aliases = {}
         self.default_object = {default: {'$exists': 1}}
+        self.invalid_object = {'aaaaa': {'$exists': 1}}
         self.table_name = table_name
         self.model = model
         self.arc = AggregationRenameController()
@@ -134,7 +135,7 @@ class SearchSyntax(Generic[T]):
     def obtain_token_tuple(self, x: SearchAnswer, operator: str, invert: bool) -> Tuple[dict, dict]:
         inverted_operator = operator if not invert else \
             ('n' if operator[0] == 'n' else '') + ('and' if 'and' not in operator else 'or')
-        default_obj = self.default_object if 'and' in inverted_operator else {'aaaaa': {}}
+        default_obj = self.default_object if 'and' in inverted_operator else self.invalid_object
         if not x:
             return default_obj, default_obj
         if isinstance(x, dict):
@@ -155,7 +156,7 @@ class SearchSyntax(Generic[T]):
     def join(self, operator: str, data: List[Dict[str, Any]]) -> dict:
         min_count = 1 if operator != 'or' else 2
         while len(data) < min_count:
-            data.append(self.default_object if 'and' in operator else {'aaaaa': {}})
+            data.append(self.default_object if 'and' in operator else self.invalid_object)
         if operator != 'nand':
             return {f'${operator}': data}
         else:  # looks like mongodb doesnt support nand
@@ -190,6 +191,32 @@ class SearchSyntax(Generic[T]):
         results = tokenize_string(data)
         return self.parse_recursive(results, context)
 
+    def unwind_request_once(self, data: Any) -> Tuple[Any, bool]:
+        if not isinstance(data, dict):
+            return data, False
+
+        keys = list(data.keys())
+        operation = False
+        for i in keys:
+            if i in {'$or', '$nor', '$and'}:
+                curr_length = len(data[i])
+                operated = [self.unwind_request_once(x) for x in data[i]
+                            if x is not self.default_object and x is not self.invalid_object]
+                data[i] = [x[0] for x in operated if x[0]]
+                if [x[1] for x in operated if x[1]] or curr_length < len(data[i]):
+                    operation = True
+                if not data[i]:
+                    del data[i]
+        return data, operation
+
+    def unwind_request(self, data: dict) -> dict:
+        op = True
+        while op:
+            ans = self.unwind_request_once(data)
+            data = cast(dict, ans[0])
+            op = ans[1]
+        return data
+
     def create_pipeline(self, q: str, lim: int = 60, skip: int = 0) -> Tuple[List[Dict[str, Any]], List[Any], Any]:
         data = str(q).rstrip() if q else ''
         if not data:
@@ -204,6 +231,8 @@ class SearchSyntax(Generic[T]):
             }
         }
         query_left, query_right = self.parse(data, context)
+        query_left = self.unwind_request(query_left)
+        query_right = self.unwind_request(query_right)
 
         pipeline_ids = set()
         aggregation = [{'$match': query_left}]
