@@ -78,7 +78,8 @@ def privileges_required(privileges: List[str]) -> Callable[[Callable[..., Any]],
     def decorator(f: Callable[..., Any]) -> Callable[..., Any]:
         @wraps(f)
         def decorated(*args: Any, **kwargs: Any) -> Any:
-            good = 'user' in g.actual_session
+            good = 'user' in g.actual_session and g.actual_session['user'] and \
+                'privileges' in g.actual_session['user'] and g.actual_session['user']['privileges']
             if good:
                 good = len([x for x in privileges if x not in g.actual_session['user']['privileges']]) == 0
             if good:
