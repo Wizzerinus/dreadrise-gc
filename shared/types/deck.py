@@ -41,6 +41,7 @@ class Deck(PseudoType):
     format: str = 'Freeform'  # impossible to make this an enum due to database differences
     source: str = 'league'  # impossible to make this an enum due to database differences
     date: datetime
+    main_card: str = ''
 
     tags: List[str] = []
     is_sorted: bool = False

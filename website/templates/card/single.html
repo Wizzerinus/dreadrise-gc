@@ -48,5 +48,9 @@
         {% endfor %}
     </div>
 </div>
-<a class="btn btn-primary mt-2" href="/decks/with/{{ data.card_id }}">Decks with this card</a>
+
+<p class="mt-2">
+    <a class="btn btn-primary" href="/decks/with/{{ data.card_id }}">Decks with this card</a>
+    <a class="btn btn-outline-primary" href='/deck-search?q=ecard:"{{ data.name }}"'>(search)</a>
+</p>
 {% endblock %}

@@ -28,6 +28,15 @@ class SearchFunctionArray(SearchFunction):
         return {self.name: {'$in': tok.value}}
 
 
+class SearchFunctionDict(SearchFunction):
+    def __init__(self, name: str):
+        super().__init__()
+        self.name = name
+
+    def process(self, tok: SearchToken, context: dict) -> Optional[dict]:
+        return {f'{self.name}.{tok.value}': {'$exists': 1}}
+
+
 class SearchFunctionString(SearchFunction):
     def __init__(self, name: str):
         super().__init__()

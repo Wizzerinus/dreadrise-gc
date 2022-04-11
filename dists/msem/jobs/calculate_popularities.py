@@ -41,4 +41,5 @@ def run(card_cache: MaybeCC = None, only_new: bool = False) -> None:
     func = run_new_decks if only_new else run_all_decks
     card_cache = func('msem', card_cache=card_cache)
     logger.info('Calculating popularities')
-    run_all_popularities(client, _postprocess_playability, _timecheck, card_cache=card_cache)
+    # run_all_popularities(client, _postprocess_playability, _timecheck, card_cache=card_cache)
+    run_all_popularities(client, _postprocess_playability, card_cache=card_cache)

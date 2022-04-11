@@ -1,5 +1,6 @@
+import logging
 from collections import Counter
-from typing import Dict, List, Tuple
+from typing import Dict, Iterable, List, Tuple
 
 from shared.card_enums import format_popularity, popularity_multiplier
 from shared.types.caching import CompetitionPopularity, DeckTagPopularity, FormatPopularity, Popularity
@@ -7,6 +8,8 @@ from shared.types.card import Card
 from shared.types.competition import Competition
 from shared.types.deck import Deck
 from shared.types.deck_tag import DeckTag
+
+logger = logging.getLogger('dreadrise.popularity')
 
 
 def count(decks: List[Deck], cards: Dict[str, Card]) -> Dict[str, float]:
@@ -22,10 +25,13 @@ def count(decks: List[Deck], cards: Dict[str, Card]) -> Dict[str, float]:
 
 def run_popularity(fmt: str, all_cards: Dict[str, Card], all_decks: List[Deck], all_competitions: List[Competition],
                    all_tags: List[DeckTag]) -> \
-        Tuple[List[CompetitionPopularity], List[DeckTagPopularity], Popularity]:
+        Tuple[List[CompetitionPopularity], List[DeckTagPopularity], Popularity, Dict[str, str]]:
     decks_from_format = [x for x in all_decks if x.format == fmt] if fmt != '_all' else all_decks
     all_format_popularities = count(all_decks, all_cards)
     card_popularities = count(decks_from_format, all_cards)
+
+    nonland_cards = {x for x, y in all_cards.items() if y.main_type != 'land'}
+    basics = {x for x, y in all_cards.items() if 'Basic' not in y.types}
 
     comp_pop: List[CompetitionPopularity] = []
     dt_pop: List[DeckTagPopularity] = []
@@ -73,4 +79,18 @@ def run_popularity(fmt: str, all_cards: Dict[str, Card], all_decks: List[Deck], 
         fp.true_popularity = fp.self_popularity - fp.total_popularity
         fp.deck_count = len(decks_from_format)
 
-    return comp_pop, dt_pop, fp
+    top_cards_per_id = {}
+    if fmt != '_all':
+        for k in decks_from_format:
+            nonland_cards_lst: Iterable[Tuple[str, int]] = [x for x in k.mainboard.items() if x[0] in nonland_cards]
+            if nonland_cards_lst:
+                top_cards_per_id[k.deck_id] = max(
+                    nonland_cards_lst, key=lambda u: u[1] / 2 - card_popularities[u[0]])[0]
+            elif k.mainboard:
+                logger.warning(f'Deck with only lands: {k.deck_id} ({k.name})')
+                top_cards_per_id[k.deck_id] = max(
+                    k.mainboard.items(), key=lambda u: (100 if u[0] not in basics else 0) + u[1])[0]
+            else:
+                logger.warning(f'Deck with empty mainboard: {k.deck_id} ({k.name})')
+
+    return comp_pop, dt_pop, fp, top_cards_per_id

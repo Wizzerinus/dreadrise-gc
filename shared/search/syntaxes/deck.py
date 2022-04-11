@@ -2,7 +2,7 @@ from typing import Any, Dict, List, Tuple
 
 from shared.helpers.exceptions import SearchSyntaxError
 from shared.helpers.util import ireg
-from shared.search.functions import (SearchFilterLowercase, SearchFunctionColor, SearchFunctionDate,
+from shared.search.functions import (SearchFilterLowercase, SearchFunctionColor, SearchFunctionDate, SearchFunctionDict,
                                      SearchFunctionExact, SearchFunctionInt, SearchFunctionString,
                                      SearchTransformerDelay)
 from shared.search.syntax import SearchAnswer, SearchFilter, SearchFunction, SearchSyntax
@@ -66,9 +66,9 @@ class SearchSyntaxDeck(SearchSyntax):
                       'Search the cards in the mainboard of the deck.', ['main', 'card', 'maindeck', 'md'])
         self.add_func('sideboard', SearchFunctionCard('sideboard_list'),
                       'Search the cards in the sideboard of the deck.', ['side', 'sb'])
-        self.add_func('emainboard', SearchFunctionCard('mainboard_list', True),
+        self.add_func('emainboard', SearchFunctionDict('mainboard'),
                       'Search the cards in the mainboard of the deck with exact matching.', ['ecard', 'emd'])
-        self.add_func('esideboard', SearchFunctionCard('sideboard_list', True),
+        self.add_func('esideboard', SearchFunctionDict('sideboard'),
                       'Search the cards in the sideboard of the deck with exact matching.', ['eside', 'esb'])
 
         color_func = SearchFunctionColor('color_data', using_zerolist=True)

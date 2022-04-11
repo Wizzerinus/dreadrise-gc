@@ -61,7 +61,7 @@ const deck_list = {
                     </td>
                     <td v-else="">
                         <div class="fake-color-bar">
-                            <div v-for="x, ind in i.deck.color_data" :style="'width: ' + (x * 100) + '%'"
+                            <div v-for="x, ind in i.deck.color_data" :style="'width: ' + (x * 97) + '%'"
                                 :class="['fcb-' + x, 'fcbc-' + ind]"></div>
                         </div>
                     </td>

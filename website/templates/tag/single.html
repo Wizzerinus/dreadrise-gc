@@ -47,6 +47,11 @@
         </div>
     </div>
     {% endif %}
+
+    <p>
+        <a href="/deck-search?q=tag:{{ tag.tag_id }}" class="btn btn-outline-primary">Search decks with this archetype</a>
+    </p>
+
     <h3>Popular cards</h3>
     {% for sta in analysis.card_type_analysis %}
     <h5>{{ sta.type }} ({{ sta.average_count }})</h5>

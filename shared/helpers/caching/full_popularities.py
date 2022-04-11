@@ -2,6 +2,7 @@ import logging
 import traceback
 from typing import Callable, Dict, Optional
 
+from pymongo import UpdateOne
 from pymongo.database import Database
 
 from shared.helpers.exceptions import DreadriseError
@@ -38,7 +39,7 @@ def run_all_popularities(client: Database, postprocess_playability: Callable[[Ca
         logger.info(f'Loaded {len(all_competitions)} competitions.')
         all_tags = [DeckTag().load(x) for x in client.deck_tags.find()]
         logger.info(f'Loaded {len(all_tags)} deck tags.')
-        all_decks = [Deck().load(x) for x in client.decks.find()]
+        all_decks = [Deck().load(x) for x in client.decks.find({'competition': {'$exists': 1}})]
         logger.info(f'Loaded {len(all_decks)} decks.')
         logger.info('Loaded data!')
 
@@ -57,7 +58,8 @@ def run_all_popularities(client: Database, postprocess_playability: Callable[[Ca
                 logger.warning(f'Processing format {x}')
 
                 logger.info('Calculating popularities...')
-                comp_pop, dt_pop, f_pop = run_popularity(x, all_cards, all_decks, all_competitions, all_tags)
+                comp_pop, dt_pop, f_pop, deck_tops = run_popularity(
+                    x, all_cards, all_decks, all_competitions, all_tags)
                 logger.info(f'Calculated {len(comp_pop)} popularity entries for competitions, {len(dt_pop)} for tags')
 
                 logger.info('Inserting popularities...')
@@ -87,6 +89,12 @@ def run_all_popularities(client: Database, postprocess_playability: Callable[[Ca
                     logger.info('Insert complete.')
                 else:
                     logger.info('Staples not detected.')
+
+                if deck_tops:
+                    logger.info('Updating top cards...')
+                    actions = [UpdateOne({'deck_id': x}, {'$set': {'main_card': y}}) for x, y in deck_tops.items()]
+                    client.decks.bulk_write(actions)
+                    logger.info('Top cards updated.')
             else:
                 logger.info(f'Skipping format {x}')
 

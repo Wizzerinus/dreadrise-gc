@@ -20,7 +20,7 @@ def run_tag_covers(fmt: str, dck: List[Deck], tags: List[DeckTag], pops: List[De
             dtc = DeckTagCache()
             dtc.format = fmt
             dtc.tag = tag_id
-            dtc.tag_name = tag_dict[tag_id].name
+            dtc.tag_name = tag_dict[tag_id].name if tag_id in tag_dict else '???'
             dtc.cards = [x.card_name for x in pops if x.deck_tag == tag_id]
             dtc.deck_count = 0
             counter[tag_id] = dtc

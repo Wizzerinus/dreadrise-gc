@@ -2,6 +2,7 @@ import logging
 import traceback
 from typing import Callable, List
 
+from pymongo import UpdateOne
 from pymongo.database import Database
 
 from shared.helpers.caching.playability import run_playability
@@ -59,7 +60,8 @@ def run_ordered_popularities(client: Database, postprocess_playability: Callable
                 logger.info(f'Found {len(local_decks)} decks')
 
                 logger.info('Calculating popularities...')
-                comp_pop, dt_pop, f_pop = run_popularity(x, all_cards, local_decks, all_competitions, all_tags)
+                comp_pop, dt_pop, f_pop, deck_tops = run_popularity(
+                    x, all_cards, local_decks, all_competitions, all_tags)
                 logger.info(f'Calculated {len(comp_pop)} popularity entries for competitions, {len(dt_pop)} for tags')
 
                 logger.info('Inserting popularities...')
@@ -89,6 +91,12 @@ def run_ordered_popularities(client: Database, postprocess_playability: Callable
                     logger.info('Insert complete.')
                 else:
                     logger.info('Staples not detected.')
+
+                if deck_tops:
+                    logger.info('Updating top cards...')
+                    actions = [UpdateOne({'deck_id': x}, {'$set': {'main_card': y}}) for x, y in deck_tops.items()]
+                    client.decks.bulk_write(actions)
+                    logger.info('Top cards updated.')
             else:
                 logger.info(f'Skipping format {x}')
 

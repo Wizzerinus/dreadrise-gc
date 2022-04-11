@@ -170,7 +170,7 @@ def load_multiple_decks(dist: Distribution, decks: List[Deck]) -> Tuple[List[Loa
         ld.main_card = get_main_card(dist, deck, ld.card_defs)
         ld.tags = [all_tags.get(x, default_tag) for x in deck.tags]
         ld.sorted_cards = sort_deck_cards(ld)
-        if deck.mainboard:
+        if deck.mainboard and not deck.main_card:
             ld.main_card = max([(y, x) for x, y in deck.mainboard.items()
                                 if x in card_defs and card_defs[x].main_type != 'land'])[1]
         ld.format = constants.format_localization.get(deck.format, 'Unknown')
@@ -204,6 +204,9 @@ def import_deck_data(dist: Distribution, lc: LoadedCompetition, decks: List[Deck
 
 
 def get_main_card(dist: Distribution, deck: Deck, card_defs: Dict[str, Card]) -> str:
+    if deck.main_card:
+        return deck.main_card
+
     consts = get_dist_constants(dist)
     imps = [(y, x) for x, y in deck.mainboard.items() if x in card_defs and card_defs[x].main_type != 'land']
     imps += [(consts.get_sideboard_importance(card_defs[x], y), x) for x, y in deck.sideboard.items() if x in card_defs]
