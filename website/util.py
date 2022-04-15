@@ -66,7 +66,7 @@ def requires_module(k: str) -> Callable[[Callable[..., Any]], Callable[..., Any]
         @wraps(f)
         def decorated(*args: Any, **kwargs: Any) -> Any:
             constants = split_import()
-            if k not in constants.enabled_modules:
+            if k not in constants.EnabledModules:
                 abort(404)
             return f(*args, **kwargs)
         return decorated

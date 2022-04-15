@@ -4,7 +4,7 @@ from shared.helpers.caching.ordered_popularities import run_ordered_popularities
 from shared.helpers.database import connect
 from shared.types.caching import CardPlayability
 
-from ..constants import pd_data, scraped_formats, update
+from ..constants import ScrapedFormats, Update, pd_data
 
 logger = logging.getLogger('dreadrise.dist.pd.popularity')
 
@@ -33,8 +33,8 @@ def run_all_seasons() -> None:
     logger.info('Connecting...')
     client = connect('penny_dreadful')
     logger.info('Getting PD season data...')
-    update()
-    run_ordered_popularities(client, _postprocess_playability, scraped_formats, scraped_formats + ['_all'])
+    Update()
+    run_ordered_popularities(client, _postprocess_playability, ScrapedFormats, ScrapedFormats + ['_all'])
 
 
 def run_single_season() -> None:
@@ -45,6 +45,6 @@ def run_single_season() -> None:
     logger.info('Connecting...')
     client = connect('penny_dreadful')
     logger.info('Getting PD season data...')
-    update()
+    Update()
     season_num = pd_data['last_season']
-    run_ordered_popularities(client, _postprocess_playability, scraped_formats, [f'pds{season_num}', '_all'])
+    run_ordered_popularities(client, _postprocess_playability, ScrapedFormats, [f'pds{season_num}', '_all'])

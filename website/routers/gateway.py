@@ -19,7 +19,7 @@ def operate(dist_choice: str = '') -> Response:
         dist = default_distribution
     dist_cast = cast(Distribution, dist)
     conf = get_dist_constants(dist_cast)
-    if 'gateway' not in conf.enabled_modules:
+    if 'gateway' not in conf.EnabledModules:
         json = {'success': False, 'reason': f'Gateway is disabled for the chosen distribution ({dist}).'}
         return make_response(json, 400)
 
@@ -30,6 +30,6 @@ def operate(dist_choice: str = '') -> Response:
                                             'The request JSON must include the `gateway_key` field.'}
         return make_response(json, 401)
 
-    resp = conf.parse_gateway(json)
+    resp = conf.ParseGateway(json)
     status = 400 if not resp['success'] else 200
     return make_response(resp, status)

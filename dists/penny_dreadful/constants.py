@@ -14,10 +14,10 @@ from .gateway import parse
 
 logger = logging.getLogger('dreadrise.dist.pd')
 
-formats = ['vintage', 'legacy', 'modern', 'pioneer', 'pdsx']
-new_deck_formats = ['vintage', 'legacy', 'modern', 'pioneer', 'pdsx']
-scraped_formats = []
-format_localization = {
+Formats = ['vintage', 'legacy', 'modern', 'pioneer', 'pdsx']
+NewDeckFormats = ['vintage', 'legacy', 'modern', 'pioneer', 'pdsx']
+ScrapedFormats = []
+FormatLocalization = {
     'vintage': 'Vintage',
     'legacy': 'Legacy',
     'modern': 'Modern',
@@ -26,13 +26,13 @@ format_localization = {
 }
 
 pd_data = {'last_season': 0}
-default_format = 'pdsx'
+DefaultFormat = 'pdsx'
 
-enabled_modules = {'gateway'}
+EnabledModules = {'gateway'}
 
 
-def update() -> None:
-    global default_format
+def Update() -> None:
+    global DefaultFormat
     if pd_data['last_season'] > 0:
         logger.warning('Skipping update')
         return
@@ -46,11 +46,11 @@ def update() -> None:
         logger.warning('Using a placeholder PD season')
 
     for i in range(1, pd_data['last_season'] + 1):
-        formats.append(f'pds{i}')
-        scraped_formats.append(f'pds{i}')
-        format_localization[f'pds{i}'] = f'PD Season {i}'
-    default_format = f'pds{x}'
-    new_deck_formats.append(default_format)
+        Formats.append(f'pds{i}')
+        ScrapedFormats.append(f'pds{i}')
+        FormatLocalization[f'pds{i}'] = f'PD Season {i}'
+    DefaultFormat = f'pds{x}'
+    NewDeckFormats.append(DefaultFormat)
     logger.info('Update complete.')
 
 
@@ -62,7 +62,7 @@ competition_localization = {
     'pd500': 'PD 500'
 }
 
-category_descriptions = [
+CategoryDescriptions = [
     ('bicycle', 'Dual lands that can be cycled'),
     ('tricycle', '3-color lands that can be cycled'),
     ('bounceland', 'Lands that bounce other lands when they enter'),
@@ -102,33 +102,33 @@ category_descriptions = [
     ('keruga', 'Cards legal with Keruga, the Macrosage companion')
 ]
 
-card_search_syntax = SearchSyntaxCardPD
-deck_search_syntax = SearchSyntaxDeckPD
-default_card = 'enter-the-infinite'
+CardSearchSyntax = SearchSyntaxCardPD
+DeckSearchSyntax = SearchSyntaxDeckPD
+DefaultCard = 'enter-the-infinite'
 
 
-def get_crop_location(card: Card) -> str:
+def GetCropLocation(card: Card) -> str:
     return card.image.replace('/normal/', '/art_crop/')
 
 
-deck_checkers = [check_sideboard_size, check_maindeck_size, check_max_count, check_general_legality,
-                 check_gyruda, check_jegantha, check_kaheera, check_keruga, check_lurrus,
-                 check_lutri, check_obosh, check_umori, check_yorion, check_zirda, check_restricted_list]
+DeckCheckers = [check_sideboard_size, check_maindeck_size, check_max_count, check_general_legality,
+                check_gyruda, check_jegantha, check_kaheera, check_keruga, check_lurrus,
+                check_lutri, check_obosh, check_umori, check_yorion, check_zirda, check_restricted_list]
 
-index_types = ['kickoff', 'pd500']
+IndexTypes = ['kickoff', 'pd500']
 
 
-def get_rotation_angle(c: Card) -> int:
+def GetRotationAngle(c: Card) -> int:
     return 270 if c.layout == 'split' and 'Aftermath' not in c.faces[1].oracle else 0
 
 
-def get_sideboard_importance(c: Card, w: int) -> int:
+def GetSideboardImportance(c: Card, w: int) -> int:
     return 3 if 'companion' in c.categories else 0
 
 
-def get_deck_weight(deck: Deck) -> float:
+def GetDeckWeight(deck: Deck) -> float:
     base = {'league': -1, 'tournament': 0, 'kickoff': 0.5, 'pd500': 1}[deck.source]
     return base + deck.wins - deck.losses * 0.55
 
 
-parse_gateway = parse
+ParseGateway = parse

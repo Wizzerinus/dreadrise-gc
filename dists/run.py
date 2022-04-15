@@ -6,6 +6,7 @@ from shared.core_enums import distribution_rollback
 from shared.helpers.logging import initlogger
 from shared.helpers.migration import run_migration
 
+from .fusion.dist import fusion
 from .msem.dist import msem
 from .penny_dreadful.dist import pd
 
@@ -31,6 +32,7 @@ def migrate(distrib: str) -> None:
 
 dist.add_command(msem)
 dist.add_command(pd)
+dist.add_command(fusion)
 
 
 if __name__ == '__main__':

@@ -19,7 +19,7 @@ from shared.types.deck import Deck, DeckGameRecord
 from shared.types.deck_tag import DeckTag
 from shared.types.user import User, UserPrivileges
 
-from ..constants import pd_data, update
+from ..constants import Update, pd_data
 
 logger = logging.getLogger('dreadrise.dist.pd.deck-scraper')
 pdm_host = 'https://pennydreadfulmagic.com'
@@ -265,7 +265,7 @@ def run_all_decks(season_num: Union[int, str]) -> None:
 
 def run_all_seasons(min_season: int = 1) -> None:
     logger.info('Loading seasons')
-    update()
+    Update()
     last_season = pd_data['last_season']
     if not last_season:
         logger.error('PDM is down, aborting')
@@ -278,7 +278,7 @@ def run_all_seasons(min_season: int = 1) -> None:
 
 def run_last_season() -> None:
     logger.info('Loading seasons')
-    update()
+    Update()
     last_season = pd_data['last_season']
     if not last_season:
         logger.error('PDM is down, aborting')

@@ -18,7 +18,7 @@ logger = logging.getLogger('dreadrise.website.index')
 def index() -> str:
     logger.debug('Start /index')
     constants = split_import()
-    loaded = load_competitions(get_dist(), {'type': {'$in': constants.index_types}})
+    loaded = load_competitions(get_dist(), {'type': {'$in': constants.IndexTypes}})
     logger.debug('Loaded competitions')
     loaded.sort(key=lambda x: x.competition.date, reverse=True)
 
@@ -34,9 +34,9 @@ def formats(db: Database) -> str:
 
     constants = split_import()
     fmts_ordered = []
-    for i in reversed(constants.formats):
+    for i in reversed(constants.Formats):
         if i in fmts:
-            fmts_ordered.append((i, constants.format_localization[i], fmts[i]))
+            fmts_ordered.append((i, constants.FormatLocalization[i], fmts[i]))
     logger.debug('Sorted formats')
 
     redirect_to = request.args.get('redirect_to', 'competitions').replace('.', '/')
@@ -49,7 +49,7 @@ def formats(db: Database) -> str:
     if len(fmts_ordered) > 1:
         dfp = FormatPopularity()
         dfp.format = '_all'
-        dfp.card_name = constants.default_card
+        dfp.card_name = constants.DefaultCard
         dfp.deck_count = sum([x[2].deck_count for x in fmts_ordered])
         fmts_ordered.insert(1, ('_all', 'All formats', dfp))
     return render_template('index/formats.html', formats=fmts_ordered, redirect_to=redirect_to)

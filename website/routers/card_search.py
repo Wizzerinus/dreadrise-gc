@@ -27,7 +27,7 @@ def api_card_search(db: Database) -> Dict[str, Any]:
     dist = get_dist()
     try:
         constants = split_import()
-        matches, sample, _ = constants.card_search_syntax().search(dist, db, query, page_size, current_page * page_size)
+        matches, sample, _ = constants.CardSearchSyntax().search(dist, db, query, page_size, current_page * page_size)
         return {
             'matches': matches,
             'sample': [x.virtual_save() for x in sample],
@@ -55,7 +55,7 @@ def api_card_defs(db: Database) -> Dict[str, Any]:
 @b_card_search_api.route('/syntax')
 def api_card_search_syntax() -> Dict[str, List[str]]:
     constants = split_import()
-    funcs_dict = constants.card_search_syntax().funcs
+    funcs_dict = constants.CardSearchSyntax().funcs
     funcs = [format_func(x, y) for x, y in funcs_dict.items()]
     funcs_str = sorted([x for x in funcs if x])
     at_sign = ['<code>@</code> sign can be prepended before the query to search card faces instead of the whole card. '
@@ -73,6 +73,6 @@ def api_card_search_syntax() -> Dict[str, List[str]]:
                   'and with operators <code>or</code> and <code>and</code> (default).'
     categories = ['Some cards have categories that can be queried with the <code>is</code> or <code>not</code> '
                   'operators. All of them are listed below.'] + \
-        [f'<code>{x}</code>: {y}' for x, y in constants.category_descriptions]
+        [f'<code>{x}</code>: {y}' for x, y in constants.CategoryDescriptions]
 
     return {'keywords': funcs_str, 'start': [scryfall, explanation], 'extras': at_sign, 'categories': categories}

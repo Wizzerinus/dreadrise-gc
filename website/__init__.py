@@ -101,8 +101,8 @@ def page_error(*args: Any):  # type: ignore
 def inject_configuration() -> Dict[str, Any]:
     cdist = get_dist()
     stuff = split_import()
-    formats = stuff.formats
-    localization = stuff.format_localization
+    formats = stuff.Formats
+    localization = stuff.FormatLocalization
 
     def split_legality(ld: Dict) -> List[Tuple[str, str, str]]:
         return [(localization[x], ld[x].replace('_', ' '), get_legality_color(ld[x])) for x in formats if x in ld]
@@ -113,8 +113,8 @@ def inject_configuration() -> Dict[str, Any]:
         'formats': dict(localization, _all='All formats'),
         'cdist': cdist,
         'split_legality': split_legality,
-        'scraped_formats': stuff.scraped_formats,
-        'default_format': stuff.default_format
+        'scraped_formats': stuff.ScrapedFormats,
+        'default_format': stuff.DefaultFormat
     }
 
 

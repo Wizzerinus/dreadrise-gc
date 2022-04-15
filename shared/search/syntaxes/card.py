@@ -241,7 +241,7 @@ class SearchSyntaxCard(SearchSyntax):
                       'Search the formats the card is restricted in.')
         self.add_func('banned', SearchFunctionLegality(['banned']),
                       'Search the formats the card is banned in.', ['ban'])
-        self.add_func('not-legal', SearchFunctionLegality(['not legal']),
+        self.add_func('not-legal', SearchFunctionLegality(['not_legal']),
                       'Search the formats the card is not legal in.', ['nl'])
         self.add_func('max-count', SearchFunctionInt('max_count'),
                       'Search the card\'s maximum count.', ['mc'])

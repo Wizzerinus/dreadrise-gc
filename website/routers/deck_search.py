@@ -34,7 +34,7 @@ def api_card_search(db: Database) -> Dict[str, Any]:
     dist = get_dist()
     try:
         constants = split_import()
-        matches, sample, extras = constants.deck_search_syntax().search(dist, db, query, page_size, cpage * page_size)
+        matches, sample, extras = constants.DeckSearchSyntax().search(dist, db, query, page_size, cpage * page_size)
         sample_arr = [x.jsonify() for x in load_multiple_decks(get_dist(), sample)[0]]
         for item, item_og in zip(sample_arr, sample):
             try:
@@ -78,7 +78,7 @@ def api_matchup_search(db: Database) -> Dict[str, Any]:
     dist = get_dist()
     try:
         constants = split_import()
-        dss = constants.deck_search_syntax()
+        dss = constants.DeckSearchSyntax()
         hero, ef_hero, dd_hero = dss.create_pipeline(q1, page_size, current_page * page_size)
         intermediate: List[Dict[str, Any]] = [
             {'$unwind': '$games'},
@@ -148,7 +148,7 @@ def api_matchup_search(db: Database) -> Dict[str, Any]:
 @b_deck_search_api.route('/syntax')
 def api_deck_search_syntax() -> Dict[str, List[str]]:
     constants = split_import()
-    funcs_dict = constants.deck_search_syntax().funcs
+    funcs_dict = constants.DeckSearchSyntax().funcs
     funcs = [format_func(x, y) for x, y in funcs_dict.items()]
     funcs_str = sorted([x for x in funcs if x])
     at_sign = ['To use <code>card</code> and <code>side</code> keywords with specific card numbers, put them '

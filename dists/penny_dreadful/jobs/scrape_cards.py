@@ -11,7 +11,7 @@ from shared.types.card import Card
 from shared.types.format_cache import FormatCache
 
 from ..category import add_card_categories
-from ..constants import formats, pd_data, update
+from ..constants import Formats, Update, pd_data
 from ..custom_syntax import PDCard, PDCardFace
 
 logger = logging.getLogger('dreadrise.dist.pd.card-scraper')
@@ -41,7 +41,7 @@ expansion_url = 'https://api.scryfall.com/sets'
 
 def run() -> None:
     logger.info('Updating seasons')
-    update()
+    Update()
     logger.info('Connecting to database')
     client = connect('penny_dreadful')
     logger.info('Loading legalities')
@@ -69,7 +69,7 @@ def run() -> None:
         if i['name'] in cards:
             update_card(cards[i['name']], i)
         elif is_valid(i):
-            cards[i['name']] = cast(PDCard, build_card(i, formats, fcs, PDCard, PDCardFace))
+            cards[i['name']] = cast(PDCard, build_card(i, Formats, fcs, PDCard, PDCardFace))
 
             min_pd = max_pd = None
             for pdv in range(1, pd_data['last_season'] + 1):

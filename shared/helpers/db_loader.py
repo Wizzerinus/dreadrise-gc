@@ -170,7 +170,7 @@ def load_multiple_decks(dist: Distribution, decks: List[Deck]) -> Tuple[List[Loa
         ld.main_card = get_main_card(dist, deck, ld.card_defs)
         ld.tags = [all_tags.get(x, default_tag) for x in deck.tags]
         ld.sorted_cards = sort_deck_cards(ld)
-        ld.format = constants.format_localization.get(deck.format, 'Unknown')
+        ld.format = constants.FormatLocalization.get(deck.format, 'Unknown')
         ld.date_str = arrow.get(deck.date).humanize()
         comp = all_competitions.get(deck.competition)
         if comp:
@@ -206,7 +206,7 @@ def get_main_card(dist: Distribution, deck: Deck, card_defs: Dict[str, Card]) ->
 
     consts = get_dist_constants(dist)
     imps = [(y, x) for x, y in deck.mainboard.items() if x in card_defs and card_defs[x].main_type != 'land']
-    imps += [(consts.get_sideboard_importance(card_defs[x], y), x) for x, y in deck.sideboard.items() if x in card_defs]
+    imps += [(consts.GetSideboardImportance(card_defs[x], y), x) for x, y in deck.sideboard.items() if x in card_defs]
     if not imps:
         return 'island'
     return max(imps)[1]
@@ -216,7 +216,7 @@ def generate_popular_cards(dist: Distribution, cd: Dict[str, Card], decks: List[
                            threshold: int = 0) -> List[PopularCardData]:
     constants = get_dist_constants(dist)
     stuff = [(x, y) for z in decks for x, y in z.deck.mainboard.items() if x in cd] + \
-            [(x, constants.get_sideboard_importance(cd[x], y))
+            [(x, constants.GetSideboardImportance(cd[x], y))
              for z in decks for x, y in z.deck.sideboard.items() if x in cd]
     popularity_counter: Dict[str, int] = {}
     for card_name, card_weight in stuff:
@@ -273,8 +273,8 @@ def load_competition_single(dist: Distribution, com: Competition, req_fields: Se
                                                          sort=[('true_popularity', -1)])
 
     constants = get_dist_constants(dist)
-    lc.main_card = clean_name(main_card_obj['card_name']) if main_card_obj else constants.default_card
-    lc.format = constants.format_localization.get(com.format, 'Unknown')
+    lc.main_card = clean_name(main_card_obj['card_name']) if main_card_obj else constants.DefaultCard
+    lc.format = constants.FormatLocalization.get(com.format, 'Unknown')
 
     lc.popular_cards = generate_popular_cards(dist, lc.cards, lc.decks) if 'cards' in req_fields else []
     lc.date_str = arrow.get(com.date).humanize()
@@ -319,7 +319,7 @@ def load_deck_analysis(dist: Distribution, decks: List[Deck], threshold: float =
     deck_count = len(decks)
 
     constants = get_dist_constants(dist)
-    best_deck = get_best_deck(decks, constants.get_deck_weight)
+    best_deck = get_best_deck(decks, constants.GetDeckWeight)
 
     da = DeckAnalysis()
     if best_deck and best_deck.deck_id:

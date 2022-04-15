@@ -29,7 +29,7 @@ def single_competition(competition_id: str) -> str:
 @b_competition.route('/')
 def all_competitions() -> str:
     constants = split_import()
-    fmt = request.args.get('format', constants.default_format)
+    fmt = request.args.get('format', constants.DefaultFormat)
     return render_template('competition/all.html', format=fmt)
 
 
@@ -41,7 +41,7 @@ b_competition_api = Blueprint('competition_api', __name__)
 @split_database
 def api_competitions(db: Database, page: int = 0) -> dict:
     constants = split_import()
-    fmt = request.args.get('format', constants.default_format)
+    fmt = request.args.get('format', constants.DefaultFormat)
     query = {} if 'all' in fmt else {'format': fmt}
     ccount = db.competitions.find(query).count()
     competition_cursor = db.competitions.find(query, sort=[('date', -1)])[page * 12 - 12:page * 12]  # type: ignore

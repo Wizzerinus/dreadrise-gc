@@ -18,7 +18,7 @@ MaybeCC = Optional[Dict[str, Card]]
 
 def run(dist: Distribution, rules: Iterable[DeckRule], q: Iterable[Deck], card_cache: MaybeCC = None) -> MaybeCC:
     constants = get_dist_constants(dist)
-    if 'archetyping' not in constants.enabled_modules:
+    if 'archetyping' not in constants.EnabledModules:
         logger.warning(f'Distribution {dist} does not support tags')
         return None
 

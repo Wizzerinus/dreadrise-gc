@@ -96,9 +96,9 @@ def decks_with_card(db: Database, card_id: str) -> str:
     fmt = request.args.get('format')
     if not fmt:
         constants = split_import()
-        fmt = constants.default_format
+        fmt = constants.DefaultFormat
         if loaded_card.legality[fmt] not in ['legal', 'restricted']:
-            for i in reversed(constants.scraped_formats):
+            for i in reversed(constants.ScrapedFormats):
                 if loaded_card.legality[i] in ['legal', 'restricted']:
                     fmt = i
                     break
@@ -144,7 +144,7 @@ def api_decks_with_card(db: Database, card_id: str) -> dict:
                                           {f'sideboard.{card_name}': {'$gte': 1}}]}
 
     constants = split_import()
-    fmt = request.args.get('format', constants.default_format)
+    fmt = request.args.get('format', constants.DefaultFormat)
     if 'all' not in fmt:
         base_query = {'$and': [base_query, {'format': fmt}]}
     query = deck_privacy(base_query, get_uid(), True, is_admin=has_priv('deck_admin'))
@@ -180,7 +180,7 @@ def api_card_metagame_breakdown(db: Database, card_id: str) -> Response:
                                           {f'sideboard.{card_name}': {'$gte': 1}}]}
 
     constants = split_import()
-    fmt = request.args.get('format', constants.default_format)
+    fmt = request.args.get('format', constants.DefaultFormat)
     if 'all' not in fmt:
         base_query = {'$and': [base_query, {'format': fmt}]}
 
@@ -219,7 +219,7 @@ def deck_list_text(db: Database, deck_id: str) -> dict:
         'name': deck['name'] + appendix,
         'str': load_from_dict(deck['mainboard']) + '\n\nSideboard:\n' + load_from_dict(deck['sideboard']),
         'format': deck['format'],
-        'format_str': split_import().format_localization.get(deck['format'], deck['format'])
+        'format_str': split_import().FormatLocalization.get(deck['format'], deck['format'])
     }
 
 
@@ -230,7 +230,7 @@ def check_deck() -> dict:
     deck_list = req['deck_list']
     deck = build_deck(deck_list)
     deck.format = str(req['format'])
-    status, errors, warnings, messages = deck_check(get_dist(), deck, constants.deck_checkers)
+    status, errors, warnings, messages = deck_check(get_dist(), deck, constants.DeckCheckers)
     return {
         'status': status,
         'errors': errors,
@@ -256,8 +256,8 @@ def karsten() -> dict:
 @b_deck_api.route('/formats')
 def formats() -> dict:
     stuff = split_import()
-    localization = stuff.format_localization
-    fmts = [(x, localization.get(x, x)) for x in stuff.new_deck_formats]
+    localization = stuff.FormatLocalization
+    fmts = [(x, localization.get(x, x)) for x in stuff.NewDeckFormats]
     return {'objects': fmts}
 
 

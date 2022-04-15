@@ -24,7 +24,7 @@ def user_page(db: Database, user_id: str) -> str:
         abort(404)
 
     constants = split_import()
-    fmt = request.args.get('format', constants.default_format)
+    fmt = request.args.get('format', constants.DefaultFormat)
     return render_template('user/single.html', user=User().load(user), format=fmt)
 
 
@@ -37,7 +37,7 @@ def api_decks_by_user(db: Database, user_id: str) -> dict:
 
     query = {'author': user_id}
     constants = split_import()
-    fmt = request.args.get('format', constants.default_format)
+    fmt = request.args.get('format', constants.DefaultFormat)
     if 'all' not in fmt:
         query['format'] = fmt
     query = deck_privacy(query, get_uid(), True, is_admin=has_priv('deck_admin'))
@@ -60,7 +60,7 @@ def api_user_metagame_breakdown(db: Database, user_id: str) -> Response:
 
     query = {'author': user_id, 'competition': {'$exists': 1}}
     constants = split_import()
-    fmt = request.args.get('format', constants.default_format)
+    fmt = request.args.get('format', constants.DefaultFormat)
     if 'all' not in fmt:
         query['format'] = fmt
 

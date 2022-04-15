@@ -10,10 +10,10 @@ from .checking import (check_adam, check_alvarez, check_asabeth, check_ashe, che
                        check_tinbeard, check_valencia, check_vir)
 from .gateway import parse
 
-formats = ['freeform', 'msem', 'msedh']
-new_deck_formats = ['freeform', 'msem', 'msedh']
-default_format = 'msem'
-format_localization = {
+Formats = ['freeform', 'msem', 'msedh']
+NewDeckFormats = ['freeform', 'msem', 'msedh']
+DefaultFormat = 'msem'
+FormatLocalization = {
     'freeform': 'Freeform',
     'msem': 'MSEM',
     'msedh': 'MSEDH'
@@ -25,10 +25,10 @@ competition_localization = {
     'league': 'League'
 }
 
-scraped_formats = ['msem']
-enabled_modules = {'admin', 'archetyping', 'cropping', 'gateway'}
+ScrapedFormats = ['msem']
+EnabledModules = {'admin', 'archetyping', 'cropping', 'gateway'}
 
-category_descriptions = [
+CategoryDescriptions = [
     ('hugo', 'Can be put into decks with Hugo of the Shadowstaff First Mate'),
     ('mable', 'Can be put into decks with Mable of the Sea\'s Whimsy First Mate'),
     ('marisa', 'Can be put into decks with Marisa of the Gravehowl First Mate'),
@@ -62,29 +62,29 @@ category_descriptions = [
     ('typed-triland', 'Trilands with card types')
 ]
 
-card_search_syntax = SearchSyntaxCard
-deck_search_syntax = SearchSyntaxDeck
-default_card = 'into-the-unknown'
+CardSearchSyntax = SearchSyntaxCard
+DeckSearchSyntax = SearchSyntaxDeck
+DefaultCard = 'into-the-unknown'
 
-deck_checkers = [check_adam, check_tabia, check_mable, check_marisa, check_hugo, check_garth, check_harriet,
-                 check_holcomb, check_searle, check_alvarez, check_valencia,
-                 check_general_legality, check_sideboard_size, check_maindeck_size, check_max_count,
-                 check_asabeth, check_ashe, check_telsi, check_lilia, check_tinbeard, check_vir]
+DeckCheckers = [check_adam, check_tabia, check_mable, check_marisa, check_hugo, check_garth, check_harriet,
+                check_holcomb, check_searle, check_alvarez, check_valencia,
+                check_general_legality, check_sideboard_size, check_maindeck_size, check_max_count,
+                check_asabeth, check_ashe, check_telsi, check_lilia, check_tinbeard, check_vir]
 
-index_types = ['gp']
+IndexTypes = ['gp']
 
 
-def get_rotation_angle(c: Card) -> int:
+def GetRotationAngle(c: Card) -> int:
     return 0
 
 
-def get_sideboard_importance(c: Card, w: int) -> int:
+def GetSideboardImportance(c: Card, w: int) -> int:
     return 5 if 'first-mate' in c.categories else 0
 
 
-def get_deck_weight(deck: Deck) -> float:
+def GetDeckWeight(deck: Deck) -> float:
     base = {'league': -1, 'gp': 0}[deck.source]
     return base + deck.wins - deck.losses * 0.55
 
 
-parse_gateway = parse
+ParseGateway = parse

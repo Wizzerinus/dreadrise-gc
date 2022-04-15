@@ -27,7 +27,7 @@ def single(db: Database, tag_id: str) -> str:
     dist = get_dist()
     constants = get_dist_constants(dist)
     init_query = {'tags': tag_id}
-    fmt = request.args.get('format', constants.default_format)
+    fmt = request.args.get('format', constants.DefaultFormat)
     if 'all' not in fmt:
         init_query['format'] = fmt
 
@@ -36,7 +36,7 @@ def single(db: Database, tag_id: str) -> str:
     deck_analysis = load_deck_analysis(get_dist(), decks, threshold=0.05 if 'all' in fmt else 0.2)
 
     tag_cover = db.archetype_cache.find_one({'tag': tag_id, 'format': fmt})
-    main_card = clean_name(tag_cover['cards'][0]) if tag_cover else constants.default_card
+    main_card = clean_name(tag_cover['cards'][0]) if tag_cover else constants.DefaultCard
     return render_template('tag/single.html', tag=DeckTag().load(tag), analysis=deck_analysis,
                            bg_card=main_card, format=fmt)
 
@@ -44,7 +44,7 @@ def single(db: Database, tag_id: str) -> str:
 @b_tags.route('/')
 def all_tags() -> str:
     constants = split_import()
-    fmt = request.args.get('format', constants.default_format)
+    fmt = request.args.get('format', constants.DefaultFormat)
     return render_template('tag/all.html', format=fmt)
 
 
@@ -56,7 +56,7 @@ b_tags_api = Blueprint('tags_api', __name__)
 @split_database
 def api_archetypes(db: Database, page: int = 1) -> dict:
     constants = split_import()
-    fmt = request.args.get('format', constants.default_format)
+    fmt = request.args.get('format', constants.DefaultFormat)
     q: Dict[str, Any] = {'cards.0': {'$exists': True}}
     if 'all' not in fmt:
         q['format'] = fmt

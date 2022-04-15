@@ -42,7 +42,7 @@ def update_distributions() -> None:
         if i != 'default':
             mod = get_dist_constants(i)
             try:
-                mod.update()
+                mod.Update()
                 logger.info(f'Updated {i}')
             except AttributeError:
                 logger.info(f'Update function for {i} does not exist')

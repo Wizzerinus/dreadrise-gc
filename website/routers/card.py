@@ -49,7 +49,7 @@ def card_image(db: Database, name: str) -> Response:
     if not card:
         abort(404)
 
-    return rotated_image(card['image'], split_import().get_rotation_angle(Card().load(card)))
+    return rotated_image(card['image'], split_import().GetRotationAngle(Card().load(card)))
 
 
 @b_card.route('/face-image/<name>/<int:n>')
@@ -59,7 +59,7 @@ def face_image(db: Database, name: str, n: int) -> Response:
     if not card:
         abort(404)
 
-    return rotated_image(card['faces'][n]['image'], split_import().get_rotation_angle(Card().load(card)))
+    return rotated_image(card['faces'][n]['image'], split_import().GetRotationAngle(Card().load(card)))
 
 
 def art_crop_local(card: Card) -> Image.Image:
@@ -93,8 +93,8 @@ def art_crop(db: Database, name: str) -> Response:
     card = Card().load(card_obj)
 
     constants = split_import()
-    if 'cropping' not in constants.enabled_modules:
-        return redirect(constants.get_crop_location(card))
+    if 'cropping' not in constants.EnabledModules:
+        return redirect(constants.GetCropLocation(card))
     image = art_crop_local(card)
     crop_bytes = io.BytesIO()
     image.save(crop_bytes, 'JPEG', quality=70)
