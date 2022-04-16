@@ -1,5 +1,6 @@
 from typing import List
 
+from dists.fusion.checking import check_fusion_legality
 from dists.fusion.custom_syntax import FusionCard, SearchSyntaxCardFusion
 from dists.msem.checking import (check_adam, check_alvarez, check_asabeth, check_ashe, check_garth, check_harriet,
                                  check_holcomb, check_hugo, check_lilia, check_mable, check_marisa, check_searle,
@@ -17,19 +18,20 @@ from shared.helpers.deckcheck.default import (check_general_legality, check_main
 from shared.search.syntaxes.deck import SearchSyntaxDeck
 from shared.types.deck import Deck
 
-Formats = ['vintage', 'legacy', 'modern', 'pioneer', 'msem', 'hybrid']
-NewDeckFormats = ['hybrid']
-ScrapedFormats = ['hybrid']
+Formats = ['vintage', 'legacy', 'modern', 'pioneer', 'msem', 'fusion']
+NewDeckFormats = ['fusion', 'freeform']
+ScrapedFormats = ['fusion']
 FormatLocalization = {
     'vintage': 'Vintage',
     'legacy': 'Legacy',
     'modern': 'Modern',
     'pioneer': 'Pioneer',
     'msem': 'MSEM',
-    'hybrid': 'Hybrid'
+    'freeform': 'Freeform',
+    'fusion': 'Fusion',
 }
 
-DefaultFormat = 'hybrid'
+DefaultFormat = 'fusion'
 EnabledModules = {'cropping'}
 
 CategoryDescriptions = PDCat + MSEMCat
@@ -43,7 +45,8 @@ DeckCheckers = [
     check_general_legality, check_sideboard_size, check_maindeck_size, check_max_count,
     check_asabeth, check_ashe, check_telsi, check_lilia, check_tinbeard, check_vir,
     check_gyruda, check_jegantha, check_kaheera, check_keruga, check_lurrus,
-    check_lutri, check_obosh, check_umori, check_yorion, check_zirda, check_restricted_list
+    check_lutri, check_obosh, check_umori, check_yorion, check_zirda, check_restricted_list,
+    check_fusion_legality
 ]
 
 IndexTypes: List[str] = []

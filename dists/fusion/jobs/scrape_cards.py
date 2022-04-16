@@ -2,6 +2,8 @@ import logging
 import re
 from typing import Dict, List
 
+from dists.msem.category import add_card_categories as msem_card_categories
+from dists.penny_dreadful.category import add_card_categories as pd_card_categories
 from shared.helpers.database import connect
 from shared.types.card import Card
 from shared.types.set import Expansion
@@ -19,7 +21,8 @@ def remove_pd(card: Card) -> dict:
     for i in Formats:
         if i not in card.legality:
             card.legality[i] = 'not_legal'
-    card.legality['hybrid'] = 'legal'
+    card.legality['fusion'] = card.legality['modern']
+    card.categories += msem_card_categories(card)
 
     ans = card.save()
     ans['database'] = 'canon'
@@ -34,7 +37,8 @@ def remove_msem(card: Card) -> dict:
     for i in Formats:
         if i not in card.legality:
             card.legality[i] = 'not_legal'
-    card.legality['hybrid'] = 'legal'
+    card.legality['fusion'] = card.legality['msem']
+    card.categories += pd_card_categories(card)
 
     ans = card.save()
     ans['database'] = 'custom'

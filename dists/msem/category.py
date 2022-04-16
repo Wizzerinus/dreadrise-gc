@@ -52,11 +52,11 @@ def generate_regexes() -> None:
     generated_regexes['lilia'] = re.compile(lilia_regex_str, re.I)
 
 
-def add_card_categories(c: Card) -> None:
+def add_card_categories(c: Card) -> List[str]:
     """
     Add card categories to a card object inplace.
     :param c: the card to modify
-    :return: nothing
+    :return: the categories added
     """
     generate_regexes()
     # Since MSEM does not have MDFCs yet, all CMC checks and oracle checks are done to the joined oracle/CMC.
@@ -150,3 +150,4 @@ def add_card_categories(c: Card) -> None:
         categories.append('cane-dancer')
 
     c.categories = categories
+    return categories
