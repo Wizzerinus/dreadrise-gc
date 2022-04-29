@@ -9,6 +9,8 @@ from shared import fetch_tools
 from shared.helpers.card_engines.cockatrice import process_cockatrice_set
 from shared.helpers.database import connect
 from shared.helpers.exceptions import DreadriseError, RisingDataError
+from shared.helpers.util2 import compare_cards
+from shared.types.card import Card
 from shared.types.set import Expansion
 
 from ..category import add_card_categories
@@ -37,11 +39,20 @@ def process_sets(expansions: Dict[str, Expansion], sets: List[str]) -> List[str]
     return sets
 
 
-def run() -> None:
+def compare_cards_local(c1: Card, c2: Card) -> None:
+    ans = compare_cards(c1, c2)
+    if ans:
+        logger.warning(ans)
+
+
+def run(check_integrity: bool = False) -> None:
     """
     Download the list of all MSEM cards from the server and saves them into the database.
     :return: nothing
     """
+    if check_integrity:
+        logger.warning('Integrity check is enabled!')
+
     logger.info('Scraping MSEM cards')
     data = fetch_tools.fetch_json(_msem_card_url)
     logger.info('{n} sets loaded'.format(n=len(data['data'])))
@@ -49,6 +60,7 @@ def run() -> None:
     try:
         cards = {}
         expansions = []
+        card_dates = {}
         for i in data['data'].values():
             set_id = i['code']
             if set_id == 'FLP' or set_id == 'LAIR':  # foreign language promos
@@ -64,8 +76,8 @@ def run() -> None:
                 if 'Conspiracy' in card.faces[0].types or cname in exclusions or 'Playtest' in cname:
                     continue
 
-                card.release_date = set_date.datetime
                 card_name = card.faces[0].name.split('_')[0]
+                card_dates[card_name] = set_date.datetime
                 if card_name != card.faces[0].name or (
                     len(card.faces) > 1 and (card.faces[0].name == card.faces[1].name or not card.faces[1].name)
                 ):
@@ -73,15 +85,19 @@ def run() -> None:
                 elif card_name not in cards:
                     logger.debug(f'New card: {card_name} in {set_id} ({card.faces[0].name})')
                     cards[card_name] = card
-                elif set_date < cards[card_name].release_date:
+                elif set_date < card_dates[card_name]:
                     if 'Basic' not in card.faces[0].types and not _is_masterpiece(set_id):
                         logger.info(f'Older card: {card_name} in {set_id}')
                     cards[card_name].sets.append(set_id)
+                    if check_integrity:
+                        compare_cards_local(card, cards[card_name])
                 else:
                     if 'Basic' not in card.faces[0].types and not _is_masterpiece(set_id):
                         logger.info(f'Newer card: {card_name} in {set_id}')
                     old_sets = cards[card_name].sets
                     card.sets += old_sets
+                    if check_integrity:
+                        compare_cards_local(cards[card_name], card)
                     cards[card_name] = card
 
         expansion_dict = {x.code: x for x in expansions}
@@ -94,6 +110,10 @@ def run() -> None:
                 card_arr.append(i)
             except RisingDataError as e:
                 logger.error(f'Validation failed: {e}')
+
+        if check_integrity:
+            logger.warning('Dry run requested.')
+            return
 
         logger.info('Processed {n} cards'.format(n=len(card_arr)))
         logger.warning('DROPPING COLLECTION IN 5 SECONDS! Abort the script if it is not the desired outcome.')

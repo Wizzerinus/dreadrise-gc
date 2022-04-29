@@ -5,6 +5,7 @@ from typing import Dict, List
 from dists.msem.category import add_card_categories as msem_card_categories
 from dists.penny_dreadful.category import add_card_categories as pd_card_categories
 from shared.helpers.database import connect
+from shared.helpers.util2 import print_card
 from shared.types.card import Card
 from shared.types.set import Expansion
 
@@ -57,12 +58,6 @@ def merge(dict1: Dict[str, dict], dict2: Dict[str, dict]) -> List[dict]:
         else:
             dict1[i] = j
     return list(dict1.values())
-
-
-def print_card(card: dict) -> str:
-    name, cost, oracle = card['name'], card['mana_cost_str'], card['oracle']
-    oracle = reminder_regex.sub('', oracle)
-    return f'{name} {cost}\n{oracle}'
 
 
 def check_exactness(expansions: Dict[str, Expansion]) -> None:

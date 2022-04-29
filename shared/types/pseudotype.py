@@ -1,4 +1,4 @@
-from typing import TypeVar
+from typing import Any, TypeVar
 
 T = TypeVar('T', bound='PseudoType')
 
@@ -35,3 +35,8 @@ class PseudoType:
 
     def process(self) -> None:
         pass
+
+    def get(self, u: str, v: Any) -> Any:
+        if hasattr(self, u):
+            return getattr(self, u)
+        return v

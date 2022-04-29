@@ -19,11 +19,12 @@ def hello() -> None:
 
 
 @msem.command()
-def scrape_cards() -> None:
+@click.argument('integrity_check', default=False)
+def scrape_cards(integrity_check: bool = False) -> None:
     """Scrape MSEM cards."""
     from .jobs.scrape_cards import run
     logger.info('Starting scrape process...')
-    run()
+    run(integrity_check)
     logger.info('Scraping complete.')
 
 

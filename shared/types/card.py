@@ -1,5 +1,4 @@
 import re
-from datetime import datetime
 from typing import Dict, List, Optional, Set
 
 from shared.card_enums import (CardType, Color, Legality, ManaDict, ManaType, Rarity, basics, card_types, color_order,
@@ -25,9 +24,9 @@ class CardFace(PseudoType):
     cast_colors: List[Color]
     cast_colors_len: int
 
-    power: Optional[int]
-    toughness: Optional[int]
-    loyalty: Optional[int]
+    power: Optional[int] = 0
+    toughness: Optional[int] = 0
+    loyalty: Optional[int] = 0
 
     image: str
     produces: List[ManaType]
@@ -161,15 +160,13 @@ class Card(PseudoType):
     cast_colors_len: int
     color_order: int
 
-    power: Optional[int]
-    toughness: Optional[int]
-    loyalty: Optional[int]
+    power: Optional[int] = 0
+    toughness: Optional[int] = 0
+    loyalty: Optional[int] = 0
 
     image: str
     produces: List[ManaType]
     produces_len: int
-
-    release_date: datetime
 
     singular_name: str
     fixed_faces: List[CardFace]
