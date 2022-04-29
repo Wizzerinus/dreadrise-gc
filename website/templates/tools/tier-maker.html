@@ -5,24 +5,87 @@
     <div v-if="err" class="text-danger">Error found: [[ err ]]</div>
     <ul class="nav nav-tabs mt-2">
         <li class="nav-item">
-            <a class="nav-link active" data-bs-toggle="tab" href="#tl-text">Text preview</a>
+            <a class="nav-link active" data-bs-toggle="tab" href="#main">Edit tier list</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" data-bs-toggle="tab" href="#tl-text">Text preview</a>
         </li>
         <li class="nav-item">
             <a class="nav-link" data-bs-toggle="tab" href="#tl-img" @click="loadTierList">Load image</a>
         </li>
     </ul>
     <div class="tab-content">
-        <div id="tl-text" class="tab-pane fade show active">
-            <form @submit.prevent="saveDeck">
+        <div id="main" class="tab-pane fade show active">
+            <form @submit.prevent="find">
                 <div class="row mb-2 mt-1">
-                    <div class="col-3">Width of the resulting image</div>
-                    <div class="col-9">
-                        <input type="text" v-model.number="size" class="form-control">
+                    <div class="col-3">
+                        Current card count: <b>[[ total_card_count ]]</b>
+                    </div>
+                    <div class="col-6">
+                        <input type="text" v-model="search_request" class="form-control">
+                    </div>
+                    <div class="col-1">
+                        <button class="btn btn-primary" @click="find">Search</button>
+                    </div>
+                    <div class="col-1">
+                        <button class="btn btn-dark" @click="prevPage" type="button"
+                            :disabled="loading_cards || search_error || current_page <= 1">Prev</button>
+                    </div>
+                    <div class="col-1">
+                        <button class="btn btn-dark" @click="nextPage" type="button"
+                            :disabled="loading_cards || search_error || current_page >= max_page">Next</button>
                     </div>
                 </div>
-
-                <textarea rows="10" class="form-control mb-2" v-model="tier_text" @input="changes_done = true"></textarea>
             </form>
+            <div class="row">
+                <div v-for="item in sample" class="col p-1 col-1-10">
+                    <div class="card">
+                        <img :src="'/cards/image/' + item.card_id" :alt="item.name" class="img-fluid"
+                             @dragstart="selectCard(item)" draggable="true" @dragend="deselectCard">
+                    </div>
+                </div>
+                <span v-if="sample.length === 0" class="text-warning">No matches.</span>
+                <span v-if="search_error" class="text-warning">Error happened: [[ search_error ]]</span>
+            </div>
+            <div class="row">
+                <div class="col-4" v-for="tier in tiers">
+                    <div class="card" @drop.prevent="dropHere(tier)" @dragenter.prevent="nop" @dragover.prevent="nop">
+                        <div class="card-header" :style="{'background-color': getColor(tier.color)}">
+                            <input type="text" v-model="tier.name" class="form-control" />
+                        </div>
+                        <div class="card-body">
+                            <div class="row mb-2 mt-1">
+                                <div class="col-6">Color</div>
+                                <div class="col-6">
+                                    <input type="text" v-model="tier.color" class="form-control">
+                                </div>
+                            </div>
+                            <ul>
+                                <li v-for="card in tier.cards">[[ card ]]</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <button type="button" class="btn btn-primary mt-2" @click="addTier">Add tier</button>
+        </div>
+        <div id="tl-text" class="tab-pane fade">
+            <div class="row mb-2 mt-1">
+                <div class="col-3">Width of the resulting image</div>
+                <div class="col-9">
+                    <input type="text" v-model.number="size" class="form-control">
+                </div>
+            </div>
+
+            <textarea rows="10" class="form-control mb-2" v-model="tier_text" @input="changes_done = true"></textarea>
+            <div class="row">
+                <div class="col-auto">
+                    <button type="button" @click="unparse" class="btn btn-warning">Update text from the builder</button>
+                </div>
+                <div class="col-auto">
+                    <button type="button" @click="convertTiers" class="btn btn-warning">Load tier list from text</button>
+                </div>
+            </div>
         </div>
         <div id="tl-img" class="tab-pane fade">
             <div v-if="!response.loading">
@@ -43,7 +106,21 @@ const app = {
             response: {},
             size: 10,
             changes_done: false,
-            err: false
+            err: false,
+            search_request: "",
+            sample: [],
+            matches: 0,
+            loading_cards: false,
+            max_page: 0,
+            search_error: "",
+            current_page: 0,
+            currently_dragging: false,
+            colors: {{ colors | safe }},
+        }
+    },
+    computed: {
+        total_card_count() {
+            return this.tiers.reduce((x, y) => x + y.cards.length, 0)
         }
     },
     methods: {
@@ -53,7 +130,6 @@ const app = {
         },
         async loadTierList() {
             this.response = {loading: true}
-            this.convertTiers()
             const tier_img = await this.loadImage('/api/tools/tiers')
             this.response = {tier_img}
         },
@@ -69,7 +145,68 @@ const app = {
                 answer.push({name, color, cards})
             }
             this.tiers = answer
-        }
+        },
+        unparse() {
+            const answer = []
+            for (const i of this.tiers)
+                answer.push(`${i.color} ${i.name}\n${i.cards.join('\n')}`)
+            this.tier_text = answer.join('\n\n')
+        },
+        prevPage() {
+            if (this.current_page <= 1) return
+            this.current_page--
+            this.load()
+        },
+        nextPage() {
+            if (this.current_page >= this.max_page) return
+            this.current_page++
+            this.load()
+        },
+        find() {
+            this.current_page = 1
+            this.load()
+        },
+        load() {
+            throttleSearch(async () => {
+                this.searched = true
+                const res = await axios.post('/api/card-search/cards',
+                    { query: this.search_request, page: this.current_page - 1, page_size: 10 })
+                if (res.status !== 200)
+                    this.search_error = res.statusText
+                else if (!res.data.success)
+                    this.search_error = res.data.reason
+                else {
+                    this.sample = res.data.sample
+                    this.matches = res.data.matches
+                    this.search_error = false
+                    this.max_page = res.data.max_page
+                }
+            }, this, 'loading_cards', 'search_error')()
+        },
+        selectCard(card) {
+            this.currently_dragging = card
+        },
+        deselectCard() {
+            this.currently_dragging = false
+        },
+        getColor(x) {
+            if (this.colors[x]) {
+                const [u, v, w] = this.colors[x]
+                return `rgba(${u}, ${v}, ${w})`
+            }
+            if (x[0] === '#' && (x.length === 4 || x.length === 7))
+                return x
+            return false
+        },
+        addTier() {
+            this.tiers.push({cards: [], color: 'blue', name: 'New tier'})
+        },
+        dropHere(tier) {
+            if (this.currently_dragging && tier.cards.indexOf(this.currently_dragging.name) === -1)
+                tier.cards.push(this.currently_dragging.name)
+            this.currently_dragging = false
+        },
+        nop() {}
     },
     created() {
         window.onbeforeunload = () => this.changes_done ? true : null

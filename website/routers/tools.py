@@ -1,4 +1,5 @@
 import io
+import json
 import os
 from math import ceil
 from typing import Any, Dict, List, Tuple, cast
@@ -50,7 +51,7 @@ def get_color(x: str) -> Tuple[int, int, int]:
 
 @b_tools.route('/tier-maker')
 def tiermaker() -> str:
-    return render_template('tools/tier-maker.html')
+    return render_template('tools/tier-maker.html', colors=json.dumps(ColorDict))
 
 
 @b_tools_api.route('/tiers', methods=['POST'])
