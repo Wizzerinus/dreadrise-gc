@@ -12,6 +12,7 @@ class TestMana(TestCase):
         self.assertEqual(process_mana_cost('{W}{R}{G}{G}'), ['white', 'red', 'green', 'green'])
         self.assertEqual(process_mana_cost('{X}{C}{S}{0}'), ['x', 'colorless', 'snow', 'zero'])
         self.assertEqual(process_mana_cost('{W/R}{R/W}{2/U}{B/P}'), ['red/white', 'red/white', '2/blue', 'pblack'])
+        self.assertEqual(process_mana_cost('{G/U/P}{G/U/P}'), ['pgreen/blue', 'pgreen/blue'])
 
     def test_mana_value(self):
         def string_to_mv(u):
@@ -22,5 +23,6 @@ class TestMana(TestCase):
         self.assertEqual(string_to_mv('{2/W}{2/B}{2/B}'), 6)
         self.assertEqual(string_to_mv('{0}{0}{100}{C}'), 101)
         self.assertEqual(string_to_mv('{B/P}'), 1)
-        self.assertEqual(string_to_mv('{X}'), 0)
+        self.assertEqual(string_to_mv('{X}{X}'), 0)
         self.assertEqual(string_to_mv('{X}{R}{R}{R}'), 3)
+        self.assertEqual(string_to_mv('{G/U/P}'), 1)

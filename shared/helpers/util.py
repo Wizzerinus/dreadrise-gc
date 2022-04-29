@@ -1,4 +1,6 @@
-from typing import Any, List, Optional
+from typing import Any, List, Optional, Tuple
+
+from PIL import Image, ImageFont
 
 from shared.card_enums import Legality, ManaDict
 
@@ -104,3 +106,40 @@ def fix_long_words(s: str) -> str:
     :return: the fixed string
     """
     return ' '.join(shorten_name(x, 22) for x in s.split(' '))
+
+
+def resize_with_ratio(img: Image.Image, desired_size: Tuple[int, int]) -> Image.Image:
+    """
+    Resize an image, accounting for the aspect ratio and preserving the image's center point intact.
+    :param img: the image to resize
+    :param desired_size: the size we want to get
+    :return: the rescaled image
+    """
+    ratio = img.size[0] / img.size[1]
+    desired_ratio = desired_size[0] / desired_size[1]
+
+    desired_width, desired_height = img.size[0], img.size[1]
+    if ratio > desired_ratio:  # initial too wide
+        desired_width = int(desired_ratio * img.size[1])
+    elif ratio < desired_ratio:  # initial too high
+        desired_height = int(img.size[0] / desired_ratio)
+    dx, dy = int((img.size[0] - desired_width) / 2), int((img.size[1] - desired_height) / 2)
+    return img.crop((dx, dy, desired_width - dx - 1, desired_height - dy - 1)).resize(desired_size)
+
+
+def get_wrapped_text(text: str, font: ImageFont.ImageFont, line_length: int) -> str:
+    """
+    Splits the text into multiple lines, with each line not being longer than a given number.
+    :param text: the text to split
+    :param font: the font to calculate the width for
+    :param line_length: the line length, in pixels
+    :return: the line with linebreaks
+    """
+    lines = ['']
+    for word in text.split():
+        line = f'{lines[-1]} {word}'.strip()
+        if font.getsize(line)[0] <= line_length:
+            lines[-1] = line
+        else:
+            lines.append(word)
+    return '\n'.join(lines)

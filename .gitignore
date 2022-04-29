@@ -5,3 +5,6 @@ launcher.wsgi
 **/__pycache__
 code.tar.gz
 secrets.tar.gz
+canon-overlaps.txt
+scrape-log.txt
+intelligence

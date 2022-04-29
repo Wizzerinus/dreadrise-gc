@@ -25,6 +25,7 @@ from website.routers.gateway import b_gateway
 from website.routers.imagery import b_imagery
 from website.routers.index import b_index
 from website.routers.tag import b_tags, b_tags_api
+from website.routers.tools import b_tools, b_tools_api
 from website.routers.user import b_user, b_user_api
 from website.util import get_dist, split_import
 
@@ -56,6 +57,8 @@ app.register_blueprint(b_competition, url_prefix='/competitions')
 app.register_blueprint(b_competition_api, url_prefix='/api/competitions')
 app.register_blueprint(b_tags, url_prefix='/tags')
 app.register_blueprint(b_tags_api, url_prefix='/api/tags')
+app.register_blueprint(b_tools, url_prefix='/tools')
+app.register_blueprint(b_tools_api, url_prefix='/api/tools')
 
 app.register_blueprint(b_imagery, url_prefix='/imagery')
 app.register_blueprint(b_gateway, url_prefix='/api/gateway')

@@ -1,0 +1,83 @@
+{% extends 'template.html' %}
+{% set title = 'Tier Lists' %}
+{% block main %}
+<div id="deck-editor">
+    <div v-if="err" class="text-danger">Error found: [[ err ]]</div>
+    <ul class="nav nav-tabs mt-2">
+        <li class="nav-item">
+            <a class="nav-link active" data-bs-toggle="tab" href="#tl-text">Text preview</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" data-bs-toggle="tab" href="#tl-img" @click="loadTierList">Load image</a>
+        </li>
+    </ul>
+    <div class="tab-content">
+        <div id="tl-text" class="tab-pane fade show active">
+            <form @submit.prevent="saveDeck">
+                <div class="row mb-2 mt-1">
+                    <div class="col-3">Width of the resulting image</div>
+                    <div class="col-9">
+                        <input type="text" v-model.number="size" class="form-control">
+                    </div>
+                </div>
+
+                <textarea rows="10" class="form-control mb-2" v-model="tier_text" @input="changes_done = true"></textarea>
+            </form>
+        </div>
+        <div id="tl-img" class="tab-pane fade">
+            <div v-if="!response.loading">
+                <img :src="response.tier_img" />
+            </div>
+            <span v-if="response.loading" class="text-warning">Loading...</span>
+        </div>
+    </div>
+</div>
+<script>
+const copy = {{ 1 if copy else 0 }}
+const deck_id = '{{ deck_id }}'
+const app = {
+    data() {
+        return {
+            tiers: [],
+            tier_text: '',
+            response: {},
+            size: 10,
+            changes_done: false,
+            err: false
+        }
+    },
+    methods: {
+        async loadImage(url) {
+            const res = await axios.post(url, { tiers: this.tiers, size: this.size }, { responseType: 'blob' })
+            return await readFileAsync(res.data)
+        },
+        async loadTierList() {
+            this.response = {loading: true}
+            this.convertTiers()
+            const tier_img = await this.loadImage('/api/tools/tiers')
+            this.response = {tier_img}
+        },
+        convertTiers() {
+            const tiers = this.tier_text.split('\n\n')
+            const answer = []
+            for (const i of tiers) {
+                const cards = i.split('\n')
+                const name_init = cards.shift()
+                const name_split = name_init.split(' ')
+                const color = name_split.shift()
+                const name = name_split.join(' ')
+                answer.push({name, color, cards})
+            }
+            this.tiers = answer
+        }
+    },
+    created() {
+        window.onbeforeunload = () => this.changes_done ? true : null
+    }
+}
+
+vue = Vue.createApp(app)
+vue.config.compilerOptions.delimiters = ['[[', ']]']
+vue.mount('#deck-editor')
+</script>
+{% endblock %}

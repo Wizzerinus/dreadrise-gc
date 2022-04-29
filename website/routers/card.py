@@ -1,5 +1,5 @@
 import io
-from typing import Literal, cast
+from typing import Literal
 
 from flask import Blueprint, abort, flash, redirect, render_template, send_file
 from PIL import Image
@@ -8,6 +8,7 @@ from werkzeug import Response
 
 from shared import fetch_tools
 from shared.helpers.db_loader import load_expansions
+from shared.helpers.util2 import get_card_art
 from shared.types.card import Card
 from website.util import get_dist, split_database, split_import
 
@@ -62,28 +63,6 @@ def face_image(db: Database, name: str, n: int) -> Response:
     return rotated_image(card['faces'][n]['image'], split_import().GetRotationAngle(Card().load(card)))
 
 
-def art_crop_local(card: Card) -> Image.Image:
-    img = fetch_tools.fetch_bytes(card.image)
-
-    saga_like = ['Saga', 'Discovery', 'Realm', 'Quest']
-    is_saga = len([x for x in saga_like if x in card.types]) > 0
-
-    if 'Mystery' in card.types:
-        art_coords = (30, 50, 282, 246)
-        img = cast(bytes, fetch_tools.fetch_bytes(card.faces[1].image, is_bytes=True))
-    elif is_saga:  # TODO: omg this quality is garbage. maybe fixing next time
-        art_coords = (160, 110, 286, 208)
-    elif card.layout == 'split':
-        art_coords = (48, 45, 210, 171)
-    elif 'Planeswalker' in card.types and card.oracle.count('\n') >= 3:
-        art_coords = (44, 42, 268, 216)
-    else:
-        art_coords = (30, 50, 282, 246)
-
-    image_obj = Image.open(io.BytesIO(img))
-    return image_obj.crop(art_coords).resize((225, 175))
-
-
 @b_card.route('/art/<name>')
 @split_database
 def art_crop(db: Database, name: str) -> Response:
@@ -95,7 +74,7 @@ def art_crop(db: Database, name: str) -> Response:
     constants = split_import()
     if 'cropping' not in constants.EnabledModules:
         return redirect(constants.GetCropLocation(card))
-    image = art_crop_local(card)
+    image = get_card_art(constants, card)
     crop_bytes = io.BytesIO()
     image.save(crop_bytes, 'JPEG', quality=70)
     crop_bytes.seek(0)
@@ -108,7 +87,7 @@ def art_header(db: Database, name: str) -> Response:
     card = db.cards.find_one({'card_id': name})
     if not card:
         abort(404)
-    image = art_crop_local(Card().load(card))
+    image = get_card_art(split_import(), Card().load(card))
     image = image.crop((0, 70, 225, 105))
     crop_bytes = io.BytesIO()
     image.save(crop_bytes, 'JPEG', quality=70)

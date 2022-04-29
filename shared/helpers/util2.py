@@ -1,8 +1,12 @@
+import io
 import logging
 import re
 from importlib import import_module
 from typing import Callable, Dict, List, Tuple, Union, cast
 
+from PIL import Image
+
+from shared import fetch_tools
 from shared.card_enums import card_types
 from shared.core_enums import Distribution, distributions
 from shared.types.card import Card
@@ -132,3 +136,36 @@ def compare_cards(card1: Union[dict, Card], card2: Union[dict, Card], expansions
 
     warning_str = 'Warning!' if warning else 'Notice!'
     return f'{warning_str}\nCard 1: {ct1}\nCard 2: {ct2}\n'
+
+
+def get_card_art(dc: DistConstants, card: Card) -> Image.Image:
+    """
+    Gets an image of a card art with a given size.
+    :param dc: The constants of the distribution
+    :param card: The card to process
+    :return: The art-cropped image
+    """
+
+    if 'cropping' not in dc.EnabledModules:
+        img = fetch_tools.fetch_bytes(dc.GetCropLocation(card))
+        return Image.open(io.BytesIO(img))
+
+    img = fetch_tools.fetch_bytes(card.image)
+
+    saga_like = ['Saga', 'Discovery', 'Realm', 'Quest']
+    is_saga = len([x for x in saga_like if x in card.types]) > 0
+
+    if 'Mystery' in card.types:
+        art_coords = (30, 50, 282, 246)
+        img = cast(bytes, fetch_tools.fetch_bytes(card.faces[1].image, is_bytes=True))
+    elif is_saga:  # omg this quality is garbage. maybe fixing next time
+        art_coords = (160, 110, 286, 208)
+    elif card.layout == 'split':
+        art_coords = (48, 45, 210, 171)
+    elif 'Planeswalker' in card.types and card.oracle.count('\n') >= 3:
+        art_coords = (44, 42, 268, 216)
+    else:
+        art_coords = (30, 50, 282, 246)
+
+    image_obj = Image.open(io.BytesIO(img))
+    return image_obj.crop(art_coords).resize((225, 175))

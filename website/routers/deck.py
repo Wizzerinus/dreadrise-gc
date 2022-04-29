@@ -25,16 +25,20 @@ from website.util import get_dist, get_uid, has_priv, split_database, split_impo
 b_deck = Blueprint('deck', __name__)
 
 
-@b_deck.route('/<deck_id>')
-@split_database
-def single_deck(db: Database, deck_id: str) -> str:
+def obtain_deck(db: Database, deck_id: str) -> Deck:
     query = deck_privacy({'deck_id': deck_id}, get_uid(), True, is_admin=has_priv('deck_admin'))
     deck = db.decks.find_one(query)
     if not deck:
         flash(f'Deck with ID {deck_id} not found.')
         abort(404)
 
-    loaded_deck = Deck().load(deck)
+    return Deck().load(deck)
+
+
+@b_deck.route('/<deck_id>')
+@split_database
+def single_deck(db: Database, deck_id: str) -> str:
+    loaded_deck = obtain_deck(db, deck_id)
     dist = get_dist()
     if loaded_deck.competition:
         comp = db.competitions.find_one({'competition_id': loaded_deck.competition})
@@ -57,7 +61,7 @@ def single_deck(db: Database, deck_id: str) -> str:
                     opponent_zip.append((i, 'Unknown', 'unknown', get_blank_user('Unknown')))
                 else:
                     opp = opponents.get(opponent_id, bye_user)
-                    # this is garbage but I'm too lazy to make a proper struct for this
+                    # this is garbage, but I'm too lazy to make a proper struct for this
                     opponent_zip.append((i, xdeck.name if xdeck else '-', xdeck.deck_id if xdeck else '', opp))
     else:
         competition = None
@@ -69,13 +73,7 @@ def single_deck(db: Database, deck_id: str) -> str:
 @b_deck.route('/display/<deck_id>')
 @split_database
 def deck_display(db: Database, deck_id: str) -> str:
-    query = deck_privacy({'deck_id': deck_id}, get_uid(), True, is_admin=has_priv('deck_admin'))
-    deck = db.decks.find_one(query)
-    if not deck:
-        flash(f'Deck with ID {deck_id} not found.')
-        abort(404)
-
-    loaded_deck = Deck().load(deck)
+    loaded_deck = obtain_deck(db, deck_id)
     deck_with_data = load_deck_data(get_dist(), loaded_deck)
     columns = 4
     masonry = generate_masonry(loaded_deck, deck_with_data.card_defs, columns)
