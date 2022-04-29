@@ -46,7 +46,13 @@ def get_color(x: str) -> Tuple[int, int, int]:
     if x in ColorDict:
         return ColorDict[x]
 
-    return int(x[1:3], 16), int(x[3:5], 16), int(x[5:7], 16)
+    if x[0] == '#':
+        if len(x) == 7:
+            return int(x[1:3], 16), int(x[3:5], 16), int(x[5:7], 16)
+        if len(x) == 4:
+            return int(x[1], 16) * 17, int(x[2], 16) * 17, int(x[3], 16) * 17
+
+    return 200, 200, 200
 
 
 @b_tools.route('/tier-maker')
