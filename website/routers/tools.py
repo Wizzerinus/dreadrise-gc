@@ -85,7 +85,7 @@ def tiers_api() -> Response:
     fnt = ImageFont.truetype(f'{path}/../../opensans.ttf', text_size)
     drawer = ImageDraw.Draw(image)
     current_height = 0
-    for tier, size, height, color in zip(tiers, tier_sizes, tier_heights, colors):
+    for tier, height, color in zip(tiers, tier_heights, colors):
         inside_spacing = 0
 
         # Draw the header
