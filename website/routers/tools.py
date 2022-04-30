@@ -22,7 +22,7 @@ ColorDict = {
     'red': (255, 100, 100),
     'yellow': (255, 230, 20),
     'orange': (255, 190, 55),
-    'blue': (20, 20, 240),
+    'blue': (80, 90, 240),
     'green': (20, 190, 20),
 }
 ImageCache: Dict[Tuple[str, str], Image.Image] = {}  # This gets recreated every hour so no memory leak
@@ -108,8 +108,9 @@ def tiers_api() -> Response:
                 inside_spacing = 0
                 current_height += 1
                 hh += card_height
+        current_height += 1
 
     crop_bytes = io.BytesIO()
-    image.save(crop_bytes, 'PNG', quality=70)
+    image.convert('RGB').save(crop_bytes, 'JPEG', quality=100)
     crop_bytes.seek(0)
-    return send_file(crop_bytes, mimetype='image/png')
+    return send_file(crop_bytes, mimetype='image/jpeg')
