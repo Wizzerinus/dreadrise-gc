@@ -28,6 +28,8 @@ def setup_indexes(d: Database) -> None:
     d.users.create_index('user_id', unique=True, name='user ID')
     d.users.create_index('nickname', unique=True, sparse=True, name='user nickname I')
     d.expansions.create_index('code', unique=True, name='expansion code')
+    d.next_counts.create_index('name', unique=True, name='next count card name')
+    d.next_counts.create_index('checks', name='next count checks')
 
 
 def connect(dist: Distribution) -> Database:

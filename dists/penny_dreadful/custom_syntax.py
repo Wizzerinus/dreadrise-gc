@@ -74,6 +74,7 @@ def ensure_next_join(ctx: dict) -> None:
         'foreignField': 'name', 'as': 'a_next_count'
     }})
     ctx['pipeline'].append({'id': 'unwind_next', '$unwind': '$a_next_count'})
+    ctx['pipeline'].append({'id': 'unset_next_id', '$unset': 'a_next_count._id'})
 
 
 class SearchSyntaxDeckPD(SearchSyntaxDeck):

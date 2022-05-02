@@ -116,6 +116,15 @@ def update_deck_sources() -> None:
     logger.info('Calculation complete.')
 
 
+@pd.command()
+def scrape_next() -> None:
+    """Scrape the rotation results."""
+    from .jobs.scrape_next_format import run
+    logger.info('Starting scrape process...')
+    run()
+    logger.info('Scraping complete.')
+
+
 if __name__ == '__main__':
     initlogger()
     pd()

@@ -108,7 +108,8 @@ def tiers_api() -> Response:
                 inside_spacing = 0
                 current_height += 1
                 hh += card_height
-        current_height += 1
+        if inside_spacing > 0:
+            current_height += 1
 
     crop_bytes = io.BytesIO()
     image.convert('RGB').save(crop_bytes, 'JPEG', quality=100)
