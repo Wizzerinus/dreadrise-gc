@@ -44,6 +44,10 @@ class SearchSyntaxCardPD(SearchSyntaxCard):
                       'Search the first time the card has been legal in PD.', ['ftime', 'ft'])
         self.add_func('last-time', SearchFunctionInt('ltime'),
                       'Search the last time the card has been legal in PD.', ['ltime', 'lt'])
+        self.add_func('next', SearchFunctionInt('a_next_count.checks')
+                      .add_filter(SearchFilterNextJoin())
+                      .add_transformer(SearchTransformerDelay()),
+                      'Search the confirmed legality in the next season.', ['n', 'ns'])
 
         for i in ['format', 'f', 'legal', 'l', 'restricted', 'banned', 'ban', 'not-legal', 'nl']:
             self.funcs[i][0].add_filter(SearchFilterPDFormat())
@@ -59,6 +63,17 @@ def ensure_archetype_children_join(ctx: dict) -> None:
     }})
     ctx['pipeline'].append({'id': 'unwind_children', '$unwind': '$a_tag_children'})
     ctx['pipeline'].append({'id': 'set_children', '$set': {'a_tag_children': '$a_tag_children.parents'}})
+
+
+def ensure_next_join(ctx: dict) -> None:
+    if 'next_joined' in ctx:
+        return
+    ctx['next_joined'] = 1
+    ctx['pipeline'].append({'id': 'join_on_children', '$lookup': {
+        'from': 'next_counts', 'localField': 'name',
+        'foreignField': 'name', 'as': 'a_next_count'
+    }})
+    ctx['pipeline'].append({'id': 'unwind_next', '$unwind': '$a_next_count'})
 
 
 class SearchSyntaxDeckPD(SearchSyntaxDeck):
@@ -80,6 +95,12 @@ class SearchSyntaxDeckPD(SearchSyntaxDeck):
 class SearchFilterArchetypeTree(SearchFilter):
     def invoke(self, tok: SearchToken, context: dict) -> SearchToken:
         ensure_archetype_children_join(context)
+        return tok
+
+
+class SearchFilterNextJoin(SearchFilter):
+    def invoke(self, tok: SearchToken, context: dict) -> SearchToken:
+        ensure_next_join(context)
         return tok
 
 
