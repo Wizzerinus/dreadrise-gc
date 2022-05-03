@@ -171,3 +171,14 @@ def process_mana_cost_text(o: str) -> str:
     o = re.sub(singlecolor_regex, replace, o)
     # loyalty_regex = re.compile(r'\[(0|[+-][0-9]+)]') # don't have loyalty symbols
     return Markup(o)
+
+
+def rarity_to_num(rarity: str) -> int:
+    """
+    Convert a rarity string to a number (0-5).
+    :param rarity: the rarity to convert
+    :return: the rarity number
+    """
+    rarity_val = get_rarity(rarity)
+    index = rarities.index(rarity_val)
+    return 5 - index

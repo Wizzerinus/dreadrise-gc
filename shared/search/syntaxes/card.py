@@ -2,7 +2,7 @@ from typing import Dict, List, Optional, Tuple, Union, cast
 
 from shared.card_enums import mana_symbols
 from shared.helpers.exceptions import SearchDataError
-from shared.helpers.magic import get_rarity
+from shared.helpers.magic import get_rarity, rarity_to_num
 from shared.helpers.mana_parsing import get_mana_cost
 from shared.helpers.util import ireg
 from shared.search.functions import (SearchFilterFunction, SearchFilterLowercase, SearchFunction,
@@ -225,8 +225,7 @@ class SearchSyntaxCard(SearchSyntax):
                       'Search the sets card appeared in.', ['e', 's', 'expansion', 'exp'])
         self.add_func('fprint', SearchFunctionFirstPrint(),
                       'Search the first set the card appeared in.', ['fp'])
-        self.add_func('rarity', SearchFunctionExact('rarities')
-                      .add_filter(SearchFilterFunction(get_rarity)),
+        self.add_func('rarity', SearchFunctionRarity(),
                       'Search the rarities the card appeared in.', ['r'])
         self.add_func('category', SearchFunctionExact('categories')
                       .add_filter(SearchFilterLowercase())
@@ -298,3 +297,20 @@ class SearchFilterPlayabilityJoin(SearchFilter):
     def invoke(self, tok: SearchToken, context: dict) -> SearchToken:
         ensure_playability_join(context)
         return tok
+
+
+class SearchFunctionRarity(SearchFunction):
+    def process(self, tok: SearchToken, context: dict) -> SearchAnswer:
+        cmps = {'>': ('min_rarity_n', '$gt'), '<': ('max_rarity_n', '$lt'),
+                '>=': ('min_rarity_n', '$gte'), '<=': ('max_rarity_n', '$lte')}
+        numeric = cmps.get(tok.comparator)
+        if numeric:
+            try:
+                num = rarity_to_num(tok.value)
+            except ValueError:
+                raise SearchDataError(f'Unable to parse number: {tok.value}')
+            target, cmp = numeric
+            return {target: {cmp: num}}
+        else:
+            rarity = get_rarity(tok.value)
+            return {'rarities': {'$eq': rarity}}
