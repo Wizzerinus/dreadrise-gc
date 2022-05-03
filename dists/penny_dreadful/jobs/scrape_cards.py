@@ -15,14 +15,46 @@ from ..constants import Formats, Update, pd_data
 from ..custom_syntax import PDCard, PDCardFace
 
 logger = logging.getLogger('dreadrise.dist.pd.card-scraper')
+bad_sets = ['SLD', 'PLIST']
+bad_colors = ['white', 'gold']
+bad_statuses = ['missing', 'placeholder', 'lowres']
+frame_effect_priority = {  # lower = more chance to be chosen
+    'inverted': 1,
+    'extendedart': 1,
+    'etched': 2,
+    'showcase': 3,
+}
 
 
-def is_valid(i: dict) -> bool:
-    return i['legalities']['vintage'] != 'not_legal' and i['lang'] == 'en' and \
-        i['legalities']['vintage'] != 'banned' and \
-        ((not i['promo'] and ('paper' in i['games'] or 'mtgo' in i['games']) and i['set'].upper() != 'SLD' and
-         i['border_color'] not in ['borderless', 'gold'] and not i['full_art'] and not
-          [x for x in ['etched', 'inverted', 'extendedart'] if x in i.get('frame_effects', [])]) or not i['reprint'])
+def get_priority(i: dict) -> int:
+    # These cards shouldn't be in the database at all
+    if i['lang'] != 'en' or i['legalities']['vintage'] in ['not_legal', 'banned']:
+        return 0
+
+    # These cards have lower priority
+    priority = 1 + sum(frame_effect_priority.get(x, 0) for x in i.get('frame_effects', []))
+    if len(i['set']) == 4 and i['set'][0].upper() == 'P':
+        priority += 10
+    if i['promo']:
+        priority += 3
+    if 'paper' not in i['games'] or 'mtgo' not in i['games']:
+        priority += 200
+    if i['set'].upper() in bad_sets:
+        priority += 100
+    if not i['booster']:
+        priority += 1
+    if i['border_color'] in bad_colors:
+        priority += 50
+    if 'flavor_name' in i:
+        priority += 75
+    if i['full_art']:
+        priority += 1
+    if i['image_status'] in bad_statuses:
+        priority += 50
+    if i['variation']:
+        priority += 1
+
+    return priority
 
 
 def update_card(c: Card, i: Dict) -> None:
@@ -65,10 +97,12 @@ def run() -> None:
     logger.info('Default cards loaded')
 
     cards: Dict[str, PDCard] = {}
-    for i in sorted(data, key=lambda u: u['released_at'], reverse=True):
+    data_with_priority = [(x, get_priority(x)) for x in data]
+    data_with_priority = [x for x in data_with_priority if x[1]]
+    for i, p in sorted(data_with_priority, key=lambda u: (-u[1], u[0]['released_at']), reverse=True):
         if i['name'] in cards:
             update_card(cards[i['name']], i)
-        elif is_valid(i):
+        else:
             cards[i['name']] = cast(PDCard, build_card(i, Formats, fcs, PDCard, PDCardFace))
 
             min_pd = max_pd = None

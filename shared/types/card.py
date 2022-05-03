@@ -187,13 +187,16 @@ class Card(PseudoType):
         except AttributeError:
             pass
 
+        self.name = self.get_name_from_faces()
         if len(self.faces) < 1 or len(self.faces) > 2:
             raise RisingDataError(f'Invalid number of faces (affected card: {self.name}).')
+
+        if len({x.name for x in self.faces}) != len(self.faces):
+            raise RisingDataError(f'Name is repeated among faces: {self.name}')
 
         for i in self.faces:
             i.process()
 
-        self.name = self.get_name_from_faces()
         self.card_id = clean_name(self.name)
 
         if self.mana_join():
