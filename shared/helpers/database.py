@@ -30,6 +30,10 @@ def setup_indexes(d: Database) -> None:
     d.expansions.create_index('code', unique=True, name='expansion code')
     d.next_counts.create_index('name', unique=True, name='next count card name')
     d.next_counts.create_index('checks', name='next count checks')
+    d.card_playability.create_index('card_name', name='card playability')
+    d.competition_popularities.create_index('card_name', name='card popularity over competitions')
+    d.format_popularities.create_index('card_name', name='card popularity over formats')
+    d.tag_popularities.create_index('card_name', name='card popularity over tags')
 
 
 def connect(dist: Distribution) -> Database:
