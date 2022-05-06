@@ -32,13 +32,19 @@ def single_card(db: Database, card_id: str) -> str:
     return render_template('card/single.html', data=card, cls1=class1, cls2=class2, sets=expansions)
 
 
-def rotated_image(url: str, angle: Literal[0, 90, 180, 270]) -> Response:
-    if angle == 0:
+def rotated_image(url: str, angle: Literal[0, 90, 180, 270], max_width: int = -1) -> Response:
+    if angle == 0 and max_width <= 0:
         return redirect(url)
     img = fetch_tools.fetch_bytes(url)
     image_obj = Image.open(io.BytesIO(img))
     rotated_bytes = io.BytesIO()
-    image_obj.transpose(getattr(Image, f'ROTATE_{angle}')).save(rotated_bytes, 'JPEG', quality=70)
+    if angle != 0:
+        image_obj = image_obj.transpose(getattr(Image, f'ROTATE_{angle}'))
+    if max_width > 0:
+        cur_width, cur_height = image_obj.size
+        if cur_width > max_width:
+            image_obj = image_obj.resize((max_width, int(max_width / cur_width * cur_height)))
+    image_obj.save(rotated_bytes, 'JPEG', quality=70)
     rotated_bytes.seek(0)
     return send_file(rotated_bytes, mimetype='image/jpeg')
 
@@ -60,7 +66,9 @@ def face_image(db: Database, name: str, n: int) -> Response:
     if not card:
         abort(404)
 
-    return rotated_image(card['faces'][n]['image'], split_import().GetRotationAngle(Card().load(card)))
+    card_obj = Card().load(card)
+    return rotated_image(card_obj.faces[n].image, split_import().GetRotationAngle(Card().load(card)),
+                         max_width=(len(card_obj.fixed_faces) - 1) * 320)
 
 
 @b_card.route('/art/<name>')
