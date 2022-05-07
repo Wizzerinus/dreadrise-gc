@@ -39,6 +39,7 @@ def generate_masonry(d: Deck, cards: Dict[str, Card], columns: int = 4) -> Tuple
         answer_length[pending_column] += v
 
     answer.sort(key=len, reverse=True)
+    answer_length.sort(reverse=True)
     lands.sort()
     sideboard.sort(key=get_card_sorter(cards))
 
