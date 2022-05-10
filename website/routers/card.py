@@ -1,7 +1,7 @@
 import io
 from typing import Literal
 
-from flask import Blueprint, abort, flash, redirect, render_template, send_file
+from flask import Blueprint, abort, flash, redirect, render_template, request, send_file
 from PIL import Image
 from pymongo.database import Database
 from werkzeug import Response
@@ -32,7 +32,7 @@ def single_card(db: Database, card_id: str) -> str:
     return render_template('card/single.html', data=card, cls1=class1, cls2=class2, sets=expansions)
 
 
-def rotated_image(url: str, angle: Literal[0, 90, 180, 270], max_width: int = -1) -> Response:
+def rotated_image(url: str, angle: Literal[0, 90, 180, 270], max_width: int = 0) -> Response:
     if angle == 0 and max_width <= 0:
         return redirect(url)
     img = fetch_tools.fetch_bytes(url)
@@ -67,8 +67,11 @@ def face_image(db: Database, name: str, n: int) -> Response:
         abort(404)
 
     card_obj = Card().load(card)
+    max_width = 0
+    if request.args.get('searching'):
+        max_width = (len(card_obj.fixed_faces) - 1) * 320
     return rotated_image(card_obj.faces[n].image, split_import().GetRotationAngle(Card().load(card)),
-                         max_width=(len(card_obj.fixed_faces) - 1) * 320)
+                         max_width=max_width)
 
 
 @b_card.route('/art/<name>')

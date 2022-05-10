@@ -111,7 +111,7 @@ class Card(PseudoType):
 
     def mana_join(self) -> bool:
         """Returns whether the mana cost of the card should include costs of each face (true), or only one (false)."""
-        return self.layout in ['split', 'modal_dfc']
+        return self.layout == 'split'
 
     def type_join(self) -> bool:
         """Returns whether the type of the card should include types of each face (true), or only one (false)."""
@@ -122,7 +122,7 @@ class Card(PseudoType):
         return self.layout in ['modal_dfc', 'transform']
 
     def cast_join(self) -> bool:
-        """Returns whether both halves of the card can be cast (true), or only one (false)."""
+        """Returns whether both halves of the card can be cast (true), or only one (false). Used for Karsten module."""
         return self.layout in ['split', 'adventure', 'modal_dfc']
 
     def get_name_from_faces(self) -> str:
