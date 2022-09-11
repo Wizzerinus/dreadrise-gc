@@ -6,6 +6,7 @@ from time import sleep
 from typing import Dict, Iterable, List, Set, Tuple, Union, cast
 
 from arrow import Arrow, get
+from pymongo import UpdateMany
 from pymongo.database import Database
 
 from shared import fetch_tools
@@ -23,8 +24,8 @@ from ..constants import Update, pd_data
 
 logger = logging.getLogger('dreadrise.dist.pd.deck-scraper')
 pdm_host = 'https://pennydreadfulmagic.com'
-page_size = 300
-match_page_size = 500
+page_size = 100
+match_page_size = 200
 
 
 def init() -> Database:
@@ -131,8 +132,10 @@ def obtain_comps(existing_comps: Dict[str, Competition], decks: List[Dict], fd: 
     return ans
 
 
-def obtain_users(existing_users: Dict[str, User], decks: List[Dict]) -> List[User]:
-    ans = []
+def obtain_users(existing_users: Dict[str, User], decks: List[Dict], user_logins: Dict[str, str]) -> \
+        Tuple[List[User], Dict[str, str]]:
+    ans = {}
+    removals = {}
     for x in decks:
         user_id = str(x['personId'])
         if user_id in existing_users:
@@ -143,10 +146,16 @@ def obtain_users(existing_users: Dict[str, User], decks: List[Dict]) -> List[Use
         new_user.nickname = x['person']
         if x['discordId']:
             new_user.login = 'discord.' + str(x['discordId'])
+            if (old_user_id := user_logins.get(new_user.login, user_id)) != user_id:
+                logger.warning(f'Duplicate login: {new_user.login}')
+                existing_users[old_user_id] = User()
+                ans.pop(old_user_id, None)
+                removals[old_user_id] = user_id
+
         new_user.privileges = UserPrivileges()
         existing_users[user_id] = new_user
-        ans.append(new_user)
-    return ans
+        ans[user_id] = new_user
+    return list(ans.values()), removals
 
 
 def get_min_date(decks: List[dict]) -> Arrow:
@@ -154,7 +163,7 @@ def get_min_date(decks: List[dict]) -> Arrow:
 
 
 def load_all(existing_users: Dict[str, User], existing_competitions: Dict[str, Competition], url: str) -> \
-        Tuple[Dict[int, Deck], List[User], List[Competition]]:
+        Tuple[Dict[int, Deck], List[User], List[Competition], Dict[str, str]]:
     db = connect('penny_dreadful')
     logger.info('Loading cards')
     cards = {x['name']: Card().load(x) for x in db.cards.find()}
@@ -169,14 +178,25 @@ def load_all(existing_users: Dict[str, User], existing_competitions: Dict[str, C
     for i in range(1, pages):
         sleep(0.5)
         logger.info(f'Loading page {i}')
-        new_page = fetch_tools.fetch_json(pdm_host + url + str(i))
+        try:
+            new_page = fetch_tools.fetch_json(pdm_host + url + str(i))
+        except FetchError as e:
+            if '502' in str(e):
+                logger.warning('We are being rate-limited. Sleeping for 10 seconds.')
+                sleep(10)
+                new_page = fetch_tools.fetch_json(pdm_host + url + str(i))
+            else:
+                logger.error(f'Failed to load page {i}!')
+                raise e
+
         deck_arr += new_page['objects']
 
     first_date = get_min_date(deck_arr)
     decks = obtain_decks(existing_decks, deck_arr, first_date, cards)
     comps = obtain_comps(existing_competitions, deck_arr, first_date)
-    users = obtain_users(existing_users, deck_arr)
-    return decks, users, comps
+    users, removed_users = obtain_users(existing_users, deck_arr,
+                                        {user.login: user_id for user_id, user in existing_users.items()})
+    return decks, users, comps, removed_users
 
 
 def inject_single_match(deck: Deck, record: Dict, not_opponent: bool) -> None:
@@ -242,8 +262,8 @@ def run_all_decks(season_num: Union[int, str]) -> None:
     logger.info('Loading users')
     all_users = {x['user_id']: User().load(x) for x in client.users.find()}
     logger.info('Loading PDM')
-    decks, users, comps = load_all(all_users, {},
-                                   f'/api/decks/?deckType=all&pageSize={page_size}&seasonId={season_num}&page=')
+    decks, users, comps, user_removals = load_all(
+        all_users, {}, f'/api/decks/?deckType=all&pageSize={page_size}&seasonId={season_num}&page=')
     logger.info('Finished loading decks, loading matches')
     inject_matches(decks, f'/api/matches/?pageSize={match_page_size}&seasonId={season_num}&page=')
     logger.warning(f'Deleting everything related to season {season_num} in 5 seconds!')
@@ -255,6 +275,13 @@ def run_all_decks(season_num: Union[int, str]) -> None:
         logger.info(f'Inserting {len(decks)} decks...')
         client.decks.insert_many([x.save() for x in decks.values()])
     if users:
+        if user_removals:
+            logger.warning(f'Filtering out duplicate users (found {len(user_removals)})...')
+            client.users.delete_many({'user_id': {'$in': list(user_removals.keys())}})
+            # then we need to replace the user ids in the deck entries... pain
+            operations = [UpdateMany({'author': user_id}, {'$set': {'author': new_id}})
+                          for user_id, new_id in user_removals.items()]
+            client.decks.bulk_write(operations)
         logger.info(f'Inserting {len(users)} users...')
         client.users.insert_many([x.save() for x in users])
     if comps:
