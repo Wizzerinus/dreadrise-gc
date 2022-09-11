@@ -20,7 +20,7 @@ class UserPrivileges(PseudoType):
 
 
 class User(PseudoType):
-    user_id: str
+    user_id: str = ''
     login: str
     nickname: str
     privileges: UserPrivileges
