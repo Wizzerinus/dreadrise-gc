@@ -18,6 +18,7 @@ authlib = "~=1.0.0b1"
 pillow = "~=9.0.1"
 plotly = "~=5.3.1"
 uwsgi = "*"
+pyuwsgi = "*"
 
 [dev-packages]
 mypy = "~=0.910"
