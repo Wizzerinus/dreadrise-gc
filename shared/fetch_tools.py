@@ -1,5 +1,6 @@
 import json
 import logging
+import time
 import urllib.request
 from typing import Any, Dict, Optional, Union, cast
 
@@ -10,7 +11,7 @@ from shared.helpers.exceptions import FetchError
 logger = logging.getLogger('dreadrise.fetcher')
 
 
-def fetch_core(url: str, character_encoding: Optional[str] = None, force: bool = False, retry: bool = False,
+def fetch_core(url: str, character_encoding: Optional[str] = None, force: bool = False, retry: bool = True,
                session: Optional[requests.Session] = None, is_bytes: bool = False) -> Union[str, bytes]:
     headers = {}
     if force:
@@ -27,10 +28,17 @@ def fetch_core(url: str, character_encoding: Optional[str] = None, force: bool =
             response = requests.get(url, headers=headers)
         if character_encoding is not None:
             response.encoding = character_encoding
+
         if response.status_code in [500, 502, 503]:
             raise FetchError(f'Server returned a {response.status_code} from {url}')
         logger.info(f'Fetching {url} done')
         return response.text if not is_bytes else response.content
+    except FetchError as e:
+        if "502" in str(e) and retry:
+            logger.warning('Got a 502 Bad Gateway, retrying in 5 seconds')
+            time.sleep(5)
+            return fetch_core(url, character_encoding, force, False, session, is_bytes)
+        raise e from e
     except (urllib.error.HTTPError, requests.exceptions.ConnectionError, TimeoutError) as e:  # type: ignore
         if retry:
             logger.warning(f'Fetch {url} failed, retrying')
