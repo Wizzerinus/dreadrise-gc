@@ -13,30 +13,17 @@ from shared.types.dist_constants import DistConstants
 logger = logging.getLogger('dreadrise.website')
 
 
-def swap_logins(dist: str) -> None:
-    g.actual_session['dist'] = dist
-    g.actual_session['user'] = None
-    if 'logins' in g.actual_session and dist in g.actual_session['logins']:
-        g.actual_session['user'] = g.actual_session['logins'][dist]
-    g.session_dirty = True
-
-
 def get_dist() -> Distribution:
     """
     Get the currently used distribution. Updates the session record if it changed.
     :return: the distribution being used
     """
-    session = g.actual_session
-    dist = request.args['dist'] if 'dist' in request.args else (
-        session['dist'] if 'dist' in session else '')
-    if dist not in distribution_rollback and 'msem' in request.url_root:  # hacky
-        dist = 'msem'
-    dist_actual = distribution_rollback.get(dist, default_distribution)
 
-    if 'dist' not in session or session['dist'] != dist_actual:
-        logger.debug('Changing current distribution to', dist_actual)
-        swap_logins(dist_actual)
-    return dist_actual
+    for url_part, dist_name in distribution_rollback.items():
+        if url_part in request.url_root:
+            return dist_name
+
+    return default_distribution
 
 
 def split_database(f: Callable[..., Any]) -> Callable[..., Any]:

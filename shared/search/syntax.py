@@ -4,7 +4,6 @@ from typing import Any, Dict, Generic, Iterable, List, Tuple, Type, TypeVar, Uni
 
 from pymongo.database import Database
 from pymongo.errors import OperationFailure
-from pyparsing import ParseResults
 
 from shared.core_enums import Distribution
 from shared.helpers import configuration
@@ -168,7 +167,7 @@ class SearchSyntax(Generic[T]):
             deep_invert = not deep_invert
         return self.parse_recursive(data.items, context, deep_invert, invert)
 
-    def parse_recursive(self, data: Iterable[Union[SearchToken, SearchGroup, ParseResults]],
+    def parse_recursive(self, data: Iterable[Union[SearchToken, SearchGroup]],
                         context: dict, deep_invert: bool = False, invert: bool = False) -> Tuple[dict, dict]:
         operators = [x.value for x in data if isinstance(x, SearchToken) and x.name == '_operator']
         operator_list = list(set(operators))

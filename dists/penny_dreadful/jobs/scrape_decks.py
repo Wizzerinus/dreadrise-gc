@@ -135,8 +135,8 @@ def obtain_comps(existing_comps: Dict[str, Competition], decks: List[Dict], fd: 
 
 def obtain_users(existing_users: Dict[str, User], decks: List[Dict], user_logins: Dict[str, str]) -> \
         Tuple[List[User], Dict[str, str]]:
-    ans = {}
-    removals = {}
+    ans: Dict[str, User] = {}
+    removals: Dict[str, str] = {}
     for x in decks:
         user_id = str(x['personId'])
         if user_id in existing_users:

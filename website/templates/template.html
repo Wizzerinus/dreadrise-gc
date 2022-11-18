@@ -26,14 +26,6 @@
     <nav class="navbar navbar-expand-sm navbar-dark bg-dark">
         <div class="container">
             <a class="navbar-brand" href="/">{{ config['BRAND'] }}</a>
-            <div class="nav-item dropdown">
-                <a class="nav-link dropdown-toggle dropdown-toggle-split" href="#" data-bs-toggle="dropdown"></a>
-                <ul class="dropdown-menu">
-                    {% for dist in distributions %}
-                    <li><a class="dropdown-item" href="/dist-change/{{ dist }}">{{ distributions[dist] }}</a></li>
-                    {% endfor %}
-                </ul>
-            </div>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#nav-content">
                 <span class="navbar-toggler-icon"></span>
             </button>

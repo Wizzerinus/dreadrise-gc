@@ -1,13 +1,11 @@
 import logging
 
-from flask import Blueprint, redirect, render_template, request
+from flask import Blueprint, render_template, request
 from pymongo.database import Database
-from werkzeug import Response
 
-from shared.core_enums import distribution_rollback
 from shared.helpers.db_loader import load_competitions
 from shared.types.caching import FormatPopularity
-from website.util import get_dist, split_database, split_import, swap_logins
+from website.util import get_dist, split_database, split_import
 
 b_index = Blueprint('index', __name__)
 logger = logging.getLogger('dreadrise.website.index')
@@ -53,18 +51,3 @@ def formats(db: Database) -> str:
         dfp.deck_count = sum([x[2].deck_count for x in fmts_ordered])
         fmts_ordered.insert(1, ('_all', 'All formats', dfp))
     return render_template('index/formats.html', formats=fmts_ordered, redirect_to=redirect_to)
-
-
-@b_index.route('/dist-change/<dist>')
-def dist_change(dist: str) -> Response:
-    if dist in distribution_rollback:
-        swap_logins(distribution_rollback[dist])
-
-    ref_split = request.referrer.split('?')
-    if len(ref_split) != 2:
-        return redirect(request.referrer)
-
-    full_split = ref_split[1].split('&')
-    full_split = [x for x in full_split if 'dist' not in x]
-    start_url = ref_split[0] + '?' + '&'.join(full_split)
-    return redirect(start_url)

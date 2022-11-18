@@ -1,0 +1,11 @@
+#!/bin/bash
+
+if [ -f PIDlock ]; then
+  exit
+fi
+
+FLOCKTIMEOUT=54
+flock -Fw $FLOCKTIMEOUT PIDlock2 \
+    pipenv run uwsgi \
+    --http 0.0.0.0:3002 --master --processes 4 \
+    --file uwsgi.py -H $(pipenv --venv)
