@@ -12,6 +12,7 @@ from pymongo.database import Database
 from shared import fetch_tools
 from shared.card_enums import Archetype
 from shared.helpers.database import connect
+from shared.helpers.exceptions import FetchError
 from shared.helpers.util import clean_name
 from shared.helpers.util2 import calculate_color_data
 from shared.types.card import Card
