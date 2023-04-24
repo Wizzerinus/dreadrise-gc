@@ -97,7 +97,7 @@ def check_yorion(d: Deck, c: Dict[str, Card]) -> Tuple[DeckCheckStatus, str]:
 def check_umori(d: Deck, c: Dict[str, Card]) -> Tuple[DeckCheckStatus, str]:
     if 'Umori, the Collector' not in d.sideboard:
         return deck_check_statuses[0], ''
-    types = ['Creature', 'Artifact', 'Enchantment', 'Instant', 'Sorcery', 'Planeswalker', 'Tribal']
+    types = ['Creature', 'Artifact', 'Enchantment', 'Instant', 'Sorcery', 'Planeswalker', 'Tribal', 'Battle']
     good_type = ''
     for i in types:
         bad_cards = [x for x in d.mainboard if x not in c or ('Land' not in c[x].types or i not in c[x].types)]

@@ -52,7 +52,7 @@ DeckCheckers = [
 IndexTypes: List[str] = []
 
 
-def GetRotationAngle(c: FusionCard) -> int:
+def GetRotationAngle(c: FusionCard, face_index: int = 0) -> int:
     return MSEMAngle(c) if c.database == 'custom' else PDAngle(c)
 
 

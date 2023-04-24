@@ -27,7 +27,9 @@ mana_symbols: Tuple[ManaSymbol, ...] = get_args(ManaSymbol)
 
 basics: Dict[str, Color] = {'Plains': 'white', 'Island': 'blue', 'Swamp': 'black', 'Mountain': 'red', 'Forest': 'green'}
 
-CardType = Literal['land', 'creature', 'planeswalker', 'artifact', 'enchantment', 'instant', 'sorcery', 'tribal']
+CardType = Literal[
+    'land', 'creature', 'planeswalker', 'artifact', 'enchantment', 'instant', 'sorcery', 'battle', 'tribal'
+]
 card_types: Tuple[CardType, ...] = get_args(CardType)
 
 Rarity = Literal['special', 'mythic', 'rare', 'uncommon', 'common', 'basic']

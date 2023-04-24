@@ -7,7 +7,7 @@
     <div class="{{ cls1 }}">
         <div class="row row-cols-{{ data.fixed_faces | length }}">
             {% for face in data.fixed_faces %}
-            <div class="col">
+            <div class="col my-auto">
                 <img src="/cards/face-image/{{ data.card_id }}/{{ loop.index0 }}" alt="{{ face.name }}"
                      class="img-fluid" />
             </div>

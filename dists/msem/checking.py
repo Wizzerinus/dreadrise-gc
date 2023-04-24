@@ -109,7 +109,7 @@ def check_searle(d: Deck, c: Dict[str, Card]) -> Tuple[DeckCheckStatus, str]:
 def check_tabia(d: Deck, c: Dict[str, Card]) -> Tuple[DeckCheckStatus, str]:
     if 'Tabia of the Lionheart' not in d.sideboard:
         return deck_check_statuses[0], ''
-    card_types = ['Creature', 'Planeswalker', 'Artifact', 'Enchantment', 'Instant', 'Sorcery', 'Tribal']
+    card_types = ['Creature', 'Planeswalker', 'Artifact', 'Enchantment', 'Instant', 'Sorcery', 'Tribal', 'Battle']
     type_breakdown = {x: [y for y in d.mainboard if y in c and x in c[y].faces[0].types] for x in card_types}
     type_counts = {x: sum([d.mainboard[y] for y in z]) for x, z in type_breakdown.items()}
     bad_types = [x for x, z in type_counts.items() if z > 8]

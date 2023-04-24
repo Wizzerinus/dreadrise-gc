@@ -70,7 +70,7 @@ def face_image(db: Database, name: str, n: int) -> Response:
     max_width = 0
     if request.args.get('searching'):
         max_width = (len(card_obj.fixed_faces) - 1) * 320
-    return rotated_image(card_obj.faces[n].image, split_import().GetRotationAngle(Card().load(card)),
+    return rotated_image(card_obj.faces[n].image, split_import().GetRotationAngle(Card().load(card), n),
                          max_width=max_width)
 
 

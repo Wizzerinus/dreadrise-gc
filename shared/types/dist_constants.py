@@ -50,7 +50,7 @@ class DistConstants:
                                 Tuple[Literal['Success!', 'Warnings found!', 'Errors found!'], str]]]
 
     @staticmethod
-    def GetRotationAngle(c: Card) -> Literal[0, 90, 180, 270]:
+    def GetRotationAngle(c: Card, face_index: int = 0) -> Literal[0, 90, 180, 270]:
         pass
 
     @staticmethod

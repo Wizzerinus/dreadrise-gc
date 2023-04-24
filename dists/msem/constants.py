@@ -74,7 +74,7 @@ DeckCheckers = [check_adam, check_tabia, check_mable, check_marisa, check_hugo, 
 IndexTypes = ['gp']
 
 
-def GetRotationAngle(c: Card) -> int:
+def GetRotationAngle(c: Card, face_index: int = 0) -> int:
     return 0
 
 

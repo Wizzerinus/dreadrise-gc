@@ -118,8 +118,15 @@ DeckCheckers = [check_sideboard_size, check_maindeck_size, check_max_count, chec
 IndexTypes = ['kickoff', 'pd500']
 
 
-def GetRotationAngle(c: Card) -> int:
-    return 270 if c.layout == 'split' and 'Aftermath' not in c.faces[1].oracle else 0
+def GetRotationAngle(c: Card, face_index: int = 0) -> int:
+    return (
+        270
+        if (
+            (c.layout == 'split' and 'Aftermath' not in c.faces[1].oracle) or
+            ('Battle' in c.types and face_index == 0)
+        )
+        else 0
+    )
 
 
 def GetSideboardImportance(c: Card, w: int) -> int:
