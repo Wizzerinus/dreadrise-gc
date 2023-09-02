@@ -67,7 +67,7 @@ def run_popularity(fmt: str, all_cards: Dict[str, Card], all_decks: List[Deck], 
             dtp.preprocess()
             dt_pop.append(dtp)
 
-    if fmt == '_all':
+    if fmt == '_all' or not card_popularities:
         fp = Popularity()
     else:
         c, val = min(card_popularities.items(), key=lambda x: all_format_popularities[x[0]] * format_popularity - x[1])

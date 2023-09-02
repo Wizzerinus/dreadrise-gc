@@ -126,6 +126,10 @@ def run_json(json: dict, timeout: bool = True, card_cache: Optional[Dict[str, Ca
         client.decks.delete_many({'competition': clean_name(comp_name)})
         logger.warning(f'Deleted {comp_name}.')
 
+    if not decks:
+        logger.info('Not inserting any decks.')
+        return all_cards
+
     comp = Competition()
     comp.competition_id = clean_name(comp_name)
     comp.name = comp_name

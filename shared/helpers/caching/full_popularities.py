@@ -62,10 +62,18 @@ def run_all_popularities(client: Database, postprocess_playability: Callable[[Ca
                     x, all_cards, all_decks, all_competitions, all_tags)
                 logger.info(f'Calculated {len(comp_pop)} popularity entries for competitions, {len(dt_pop)} for tags')
 
-                logger.info('Inserting popularities...')
-                client.competition_popularities.insert_many([y.save() for y in comp_pop])
-                client.tag_popularities.insert_many([y.save() for y in dt_pop])
-                if len(formats) > 1 and x != '_all':
+                if comp_pop:
+                    logger.info('Inserting competition popularities...')
+                    client.competition_popularities.insert_many([y.save() for y in comp_pop])
+                else:
+                    logger.warning('No competition popularities found.')
+                if dt_pop:
+                    logger.info('Inserting tag popularities...')
+                    client.tag_popularities.insert_many([y.save() for y in dt_pop])
+                else:
+                    logger.warning('No tag popularities found.')
+
+                if len(formats) > 1 and x != '_all' and hasattr(f_pop, 'self_popularity'):
                     client.format_popularities.insert_one(f_pop.save())
                 logger.info('Insert complete.')
 
@@ -73,8 +81,11 @@ def run_all_popularities(client: Database, postprocess_playability: Callable[[Ca
                 arch_cache = run_tag_covers(x, all_decks, all_tags, dt_pop)
                 logger.info(f'Calculated {len(arch_cache)} tag covers')
 
-                logger.info('Inserting archetypes...')
-                client.archetype_cache.insert_many([y.save() for y in arch_cache])
+                if arch_cache:
+                    logger.info('Inserting archetypes...')
+                    client.archetype_cache.insert_many([y.save() for y in arch_cache])
+                else:
+                    logger.warning('No archetypes generated.')
                 logger.info('Insert complete.')
 
                 logger.info('Calculating staples cache...')
