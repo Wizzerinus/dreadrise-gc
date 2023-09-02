@@ -143,6 +143,8 @@ def run_json(json: dict, timeout: bool = True, card_cache: Optional[Dict[str, Ca
         for u in m['players']:
             if 'list' in u:
                 u['list'] = clean_name(u['list'][1:].replace('.txt', ''))
+            else:
+                u['list'] = u['username'].lower() + str(u['run'])
     logger.info('Parsed matches')
 
     decks_by_id = {}
@@ -189,6 +191,13 @@ def run_json(json: dict, timeout: bool = True, card_cache: Optional[Dict[str, Ca
                        value['sideCount'] > 0}
         d.is_sorted = False
         d.color_data = calculate_color_data(d, all_cards)
+
+        # awesome way to fix list names
+        for m in matches:
+            for p in m['players']:
+                if d.deck_id.endswith('-' + p['list']):
+                    p['list'] = d.deck_id
+
     logger.info('Finished building decks')
 
     if decks_by_name:
