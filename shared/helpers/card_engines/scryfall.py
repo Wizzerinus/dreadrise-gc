@@ -16,7 +16,7 @@ def get(key: str, d: dict, d2: dict) -> str:
 
 
 def get_number(s: str) -> int:
-    number_regex = re.compile(r'(\d)+')
+    number_regex = re.compile(r'(\d+)')
     try:
         match = number_regex.match(s)
         return int(match.group(1)) if match else 0
