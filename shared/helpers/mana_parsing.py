@@ -13,7 +13,7 @@ def mana_cost_filter() -> pp.OneOrMore:
     word.set_parse_action(lambda t: t[0].replace('/', ''))
     num = pp.Word(pp.nums)
     num.set_parse_action(lambda t: int(t[0]))
-    sym = pp.Char('WUBRGSC') | num
+    sym = pp.Char('WUBRGSCVX') | num
     symbol = (left_brace + word + right_brace) | sym
     return pp.OneOrMore(symbol)
 

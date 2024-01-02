@@ -62,6 +62,8 @@ def process_mana_cost(cost: str) -> List[ManaSymbol]:
                 i = i.upper()
                 if i == 'X':
                     ans.append('x')
+                elif i == 'V' or i == 'VP':
+                    ans.append('prismatic')
                 elif i not in color_symbols_single:
                     raise RisingDataError(f'Invalid single-symbol mana symbol: {i}.')
                 else:
