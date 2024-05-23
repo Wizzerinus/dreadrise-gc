@@ -5,9 +5,8 @@ the MSE Modern community.
 
 ## Development setup
 
-* Install python 3.9 (if you have asdf or pyenv you can get that automatically)
-  * Should probably work on 3.8 and 3.10 too
-* Run `pipenv install --dev`
+* Install python 3.10+
+* Run `pip install -r requirements.txt -r requirements-dev.txt`
 * Create a MongoDB database for each distribution you're planning to use.
   They can be on the same or different clusters.
 * Put the connection string into the `config/dist/<dname>/secrets.yml` file like this:

@@ -1,9 +1,8 @@
 import logging
-from typing import Optional
 
 from colorlog import ColoredFormatter
 
-logger_initialized: Optional[logging.Logger] = None
+logger_initialized: logging.Logger | None = None
 
 
 def initlogger() -> logging.Logger:

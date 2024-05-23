@@ -1,6 +1,5 @@
 import logging
 import re
-from typing import Dict, List
 
 from dists.msem.category import add_card_categories as msem_card_categories
 from dists.penny_dreadful.category import add_card_categories as pd_card_categories
@@ -46,7 +45,7 @@ def remove_msem(card: Card) -> dict:
     return ans
 
 
-def merge(dict1: Dict[str, dict], dict2: Dict[str, dict]) -> List[dict]:
+def merge(dict1: dict[str, dict], dict2: dict[str, dict]) -> list[dict]:
     for i, j in dict2.items():
         if i in dict1:
             dict1[i]['sets'] += j['sets']
@@ -60,7 +59,7 @@ def merge(dict1: Dict[str, dict], dict2: Dict[str, dict]) -> List[dict]:
     return list(dict1.values())
 
 
-def check_exactness(expansions: Dict[str, Expansion]) -> None:
+def check_exactness(expansions: dict[str, Expansion]) -> None:
     for canon, custom in exact_checks:
         canon_text = print_card(canon).strip()
         custom_text = print_card(custom).strip()
@@ -72,12 +71,12 @@ def check_exactness(expansions: Dict[str, Expansion]) -> None:
         canon_date = min(u.release_date for u in canon_exp)
         custom_date = min(u.release_date for u in custom_exp)
         if canon_date < custom_date:
-            print('WARNING!')
+            logger.warning('The canon card is older than the custom card!')
 
-        print(f'Canon date: {canon_date} | Custom date: {custom_date}')
-        print('Canon:', canon_text)
-        print('Custom:', custom_text)
-        print('')
+        logger.info(f'Canon date: {canon_date} | Custom date: {custom_date}')
+        logger.info('Canon:', canon_text)
+        logger.info('Custom:', custom_text)
+        logger.info('')
 
 
 def run() -> None:

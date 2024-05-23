@@ -3,7 +3,7 @@ from datetime import datetime
 from functools import reduce
 from math import ceil
 from time import sleep
-from typing import Dict, Iterable, List, Set, Tuple, Union, cast
+from typing import Iterable, cast
 
 from arrow import Arrow, get
 from pymongo import UpdateMany
@@ -34,11 +34,11 @@ def init() -> Database:
     return connect('penny_dreadful')
 
 
-def get_deck(d: List[dict]) -> Dict[str, int]:
+def get_deck(d: list[dict]) -> dict[str, int]:
     return {x['name']: x['n'] for x in d}
 
 
-def get_competition(name: str) -> Tuple[str, str]:
+def get_competition(name: str) -> tuple[str, str]:
     replacements = [('Penny Dreadful', 'PD'), ('Championships', 'CS'), ('Championship', 'CS'),
                     ('Tournament of Champions', 'Final'), ('Season ', 'S')]
     name = reduce(lambda a, kv: a.replace(*kv), replacements, name)
@@ -53,7 +53,7 @@ def get_competition(name: str) -> Tuple[str, str]:
     return name, ctype
 
 
-def obtain_deck(d: Dict, fd: Arrow, cards: Dict[str, Card]) -> Deck:
+def obtain_deck(d: dict, fd: Arrow, cards: dict[str, Card]) -> Deck:
     dk = Deck()
 
     dk.deck_id = 'pdm-' + str(d['id'])
@@ -93,7 +93,7 @@ def check_deck_filter(x: dict) -> bool:
         (x['sourceName'] == 'League' or x['sourceName'] == 'Gatherling') and x['wins'] + x['losses'] > 0
 
 
-def obtain_decks(existing_decks: Set[int], decks: List[Dict], fd: Arrow, cards: Dict[str, Card]) -> Dict[int, Deck]:
+def obtain_decks(existing_decks: set[int], decks: list[dict], fd: Arrow, cards: dict[str, Card]) -> dict[int, Deck]:
     ans = {}
     for x in decks:
         if not check_deck_filter(x) or x['id'] in existing_decks:
@@ -105,7 +105,7 @@ def obtain_decks(existing_decks: Set[int], decks: List[Dict], fd: Arrow, cards: 
     return ans
 
 
-def obtain_comps(existing_comps: Dict[str, Competition], decks: List[Dict], fd: Arrow) -> List[Competition]:
+def obtain_comps(existing_comps: dict[str, Competition], decks: list[dict], fd: Arrow) -> list[Competition]:
     ans = []
     for x in decks:
         if not check_deck_filter(x):
@@ -133,10 +133,10 @@ def obtain_comps(existing_comps: Dict[str, Competition], decks: List[Dict], fd: 
     return ans
 
 
-def obtain_users(existing_users: Dict[str, User], decks: List[Dict], user_logins: Dict[str, str]) -> \
-        Tuple[List[User], Dict[str, str]]:
-    ans: Dict[str, User] = {}
-    removals: Dict[str, str] = {}
+def obtain_users(existing_users: dict[str, User], decks: list[dict], user_logins: dict[str, str]) -> \
+        tuple[list[User], dict[str, str]]:
+    ans: dict[str, User] = {}
+    removals: dict[str, str] = {}
     for x in decks:
         user_id = str(x['personId'])
         if user_id in existing_users:
@@ -159,12 +159,12 @@ def obtain_users(existing_users: Dict[str, User], decks: List[Dict], user_logins
     return list(ans.values()), removals
 
 
-def get_min_date(decks: List[dict]) -> Arrow:
+def get_min_date(decks: list[dict]) -> Arrow:
     return get(min((x['activeDate'] for x in decks)))
 
 
-def load_all(existing_users: Dict[str, User], existing_competitions: Dict[str, Competition], url: str) -> \
-        Tuple[Dict[int, Deck], List[User], List[Competition], Dict[str, str]]:
+def load_all(existing_users: dict[str, User], existing_competitions: dict[str, Competition], url: str) -> \
+        tuple[dict[int, Deck], list[User], list[Competition], dict[str, str]]:
     db = connect('penny_dreadful')
     logger.info('Loading cards')
     cards = {x['name']: Card().load(x) for x in db.cards.find()}
@@ -175,7 +175,7 @@ def load_all(existing_users: Dict[str, User], existing_competitions: Dict[str, C
     pages = ceil(entries / page_size)
     logger.info(f'Found {entries} decks, loading {pages - 1} extra pages')
 
-    existing_decks: Set[int] = set()
+    existing_decks: set[int] = set()
     for i in range(1, pages):
         sleep(0.5)
         logger.info(f'Loading page {i}')
@@ -200,7 +200,7 @@ def load_all(existing_users: Dict[str, User], existing_competitions: Dict[str, C
     return decks, users, comps, removed_users
 
 
-def inject_single_match(deck: Deck, record: Dict, not_opponent: bool) -> None:
+def inject_single_match(deck: Deck, record: dict, not_opponent: bool) -> None:
     dgr = DeckGameRecord()
     odi_base = record['opponentDeckId'] if not_opponent else record['deckId']
     if odi_base:
@@ -213,7 +213,7 @@ def inject_single_match(deck: Deck, record: Dict, not_opponent: bool) -> None:
     deck.games.append(dgr)
 
 
-def inject_single_bye(deck: Deck, record: Dict) -> None:
+def inject_single_bye(deck: Deck, record: dict) -> None:
     dgr = DeckGameRecord()
     dgr.opposing_deck_id = ''
     dgr.player_wins = 2
@@ -224,7 +224,7 @@ def inject_single_bye(deck: Deck, record: Dict) -> None:
     deck.games.append(dgr)
 
 
-def inject_matches_from(decks: Dict[int, Deck], objects: Iterable[Dict]) -> None:
+def inject_matches_from(decks: dict[int, Deck], objects: Iterable[dict]) -> None:
     for i in objects:
         deck_id, opponent_deck_id = i['deckId'], i['opponentDeckId']
         if deck_id and deck_id not in decks:
@@ -241,7 +241,7 @@ def inject_matches_from(decks: Dict[int, Deck], objects: Iterable[Dict]) -> None
             inject_single_match(decks[opponent_deck_id], i, False)
 
 
-def inject_matches(decks: Dict[int, Deck], base_url: str) -> None:
+def inject_matches(decks: dict[int, Deck], base_url: str) -> None:
     initial_load = fetch_tools.fetch_json(pdm_host + base_url + '0')
     entries = initial_load['total']
     sample = initial_load['objects']
@@ -258,7 +258,7 @@ def inject_matches(decks: Dict[int, Deck], base_url: str) -> None:
     inject_matches_from(decks, sorted_sample)
 
 
-def run_all_decks(season_num: Union[int, str]) -> None:
+def run_all_decks(season_num: int | str) -> None:
     client = init()
     logger.info('Loading users')
     all_users = {x['user_id']: User().load(x) for x in client.users.find()}
@@ -322,12 +322,12 @@ def run_archetypes() -> None:
     arch_load = fetch_tools.fetch_json(f'{pdm_host}/api/archetypes')
 
     logger.info('Parsing archetypes')
-    archetype_tree: Dict[str, str] = {}
+    archetype_tree: dict[str, str] = {}
     archetype_output = []
 
     remaining_archetypes = arch_load['objects']
-    reverse_tree: Dict[str, List[str]] = {}
-    tree_paths: Dict[str, List[str]] = {}
+    reverse_tree: dict[str, list[str]] = {}
+    tree_paths: dict[str, list[str]] = {}
     depth = 0  # OH NO!
     while remaining_archetypes:
         depth += 1

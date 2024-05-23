@@ -1,4 +1,4 @@
-from typing import Dict, List, Optional, Tuple, Union, cast
+from typing import cast
 
 from shared.card_enums import mana_symbols
 from shared.helpers.exceptions import SearchDataError
@@ -16,18 +16,18 @@ from shared.types.card import Card
 
 
 class SearchFunctionOracle(SearchFunction):
-    def process(self, tok: SearchToken, context: dict) -> Optional[dict]:
+    def process(self, tok: SearchToken, context: dict) -> dict | None:
         name = 'oracle' if '~' not in tok.value else 't_oracle'
         val = tok.value if tok.comparator != '=' else f'^{tok.value}$'
         return {name: {'$regex': val, '$options': 'i'}}
 
 
 class SearchFunctionLegality(SearchFunction):
-    def __init__(self, targets: List[str]):
+    def __init__(self, targets: list[str]):
         super().__init__()
         self.tgts = targets
 
-    def process(self, tok: SearchToken, context: dict) -> Optional[dict]:
+    def process(self, tok: SearchToken, context: dict) -> dict | None:
         obj = self.tgts[0] if len(self.tgts) == 1 else {'$in': self.tgts}
         return {f'legality.{tok.value}': obj}
 
@@ -126,8 +126,8 @@ def get_set_request(val: str, target: str = 'a_sets', allow_prelim: bool = True)
 
 class SearchFunctionOrder(SearchFunction):
     @staticmethod
-    def get_orders(tok: SearchToken) -> List[str]:
-        known_orders: Dict[str, Union[str, List[str]]] = {
+    def get_orders(tok: SearchToken) -> list[str]:
+        known_orders: dict[str, str | list[str]] = {
             'cmc-asc': ['mana_value~1'], 'mv-asc': 'cmc-asc', 'cmc-desc': ['mana_value~-1'], 'mv-desc': 'cmc-desc',
             'cmc': 'cmc-asc', 'mv': 'cmc-asc',
             'rarity': 'rarity-desc', 'rarity-asc': ['min_rarity_n~1'], 'rarity-desc': ['max_rarity_n~-1'],
@@ -140,11 +140,11 @@ class SearchFunctionOrder(SearchFunction):
         if tok.value in known_orders:
             intermediate = known_orders[tok.value]
             if isinstance(intermediate, str):
-                return cast(List[str], known_orders[intermediate])
+                return cast(list[str], known_orders[intermediate])
             return intermediate
         raise SearchDataError(f'Unknown order: {tok.value}')
 
-    def process(self, tok: SearchToken, context: dict) -> Optional[dict]:
+    def process(self, tok: SearchToken, context: dict) -> dict | None:
         if 'wr' in tok.value or 'winrate' in tok.value or 'decks' in tok.value:
             ensure_playability_join(context)
         orders = self.get_orders(tok)
@@ -170,7 +170,7 @@ class SearchFunctionPlayability(SearchFunction):
             arr.append(tok.value)
         return {'$in': arr}
 
-    def process(self, tok: SearchToken, context: dict) -> Tuple[dict, bool]:
+    def process(self, tok: SearchToken, context: dict) -> tuple[dict, bool]:
         return {'a_playability.playability': self.get_target(tok)}, False
 
 
@@ -193,7 +193,7 @@ class SearchSyntaxCard(SearchSyntax):
         super().__init__('cards', 'name', Card)
         self.add_filters()
 
-    def parse_token(self, tok: SearchToken, context: dict, operator: str, invert: bool) -> Tuple[dict, dict]:
+    def parse_token(self, tok: SearchToken, context: dict, operator: str, invert: bool) -> tuple[dict, dict]:
         face_search = False
         if tok.name[0] == '@':
             tok.name = tok.name[1:]
@@ -210,7 +210,7 @@ class SearchSyntaxCard(SearchSyntax):
         return left, right
 
     def parse_group(self, data: SearchGroup, context: dict, deep_invert: bool = False,
-                    invert: bool = False) -> Tuple[dict, dict]:
+                    invert: bool = False) -> tuple[dict, dict]:
         left, right = super().parse_group(data, context, deep_invert, invert)
         if '@' not in data.modifiers:
             return left, right

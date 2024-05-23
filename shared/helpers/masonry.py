@@ -1,12 +1,11 @@
 from math import ceil
-from typing import Dict, List, Tuple
 
 from shared.helpers.util2 import get_card_sorter
 from shared.types.card import Card
 from shared.types.deck import Deck
 
 
-def generate_masonry(d: Deck, cards: Dict[str, Card], columns: int = 4) -> Tuple[List[str], List[str], List[str]]:
+def generate_masonry(d: Deck, cards: dict[str, Card], columns: int = 4) -> tuple[list[str], list[str], list[str]]:
     """
     Generate a masonry-like display for a deck.
     :param d: the deck to generate the display for.
@@ -14,11 +13,11 @@ def generate_masonry(d: Deck, cards: Dict[str, Card], columns: int = 4) -> Tuple
     :param columns: the number of columns in the main part
     :return: a tuple consisting of the main part, the land part, and the sideboard
     """
-    answer: List[List[str]] = [[] for _ in range(columns)]
-    answer_length: List[int] = [0 for _ in range(columns)]
-    card_index: Dict[str, int] = {}
-    lands: List[str] = []
-    sideboard: List[str] = []
+    answer: list[list[str]] = [[] for _ in range(columns)]
+    answer_length: list[int] = [0 for _ in range(columns)]
+    card_index: dict[str, int] = {}
+    lands: list[str] = []
+    sideboard: list[str] = []
 
     for k, v in d.mainboard.items():
         if k in cards and cards[k].main_type == 'land':

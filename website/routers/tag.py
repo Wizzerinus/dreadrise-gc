@@ -1,5 +1,5 @@
 from math import ceil
-from typing import Any, Dict
+from typing import Any
 
 from flask import Blueprint, abort, flash, render_template, request
 from pymongo.database import Database
@@ -57,12 +57,12 @@ b_tags_api = Blueprint('tags_api', __name__)
 def api_archetypes(db: Database, page: int = 1) -> dict:
     constants = split_import()
     fmt = request.args.get('format', constants.DefaultFormat)
-    q: Dict[str, Any] = {'cards.0': {'$exists': True}}
+    q: dict[str, Any] = {'cards.0': {'$exists': True}}
     if 'all' not in fmt:
         q['format'] = fmt
     else:
         q['format'] = '_all'
-    tcount = db.archetype_cache.find(q).count()
+    tcount = db.archetype_cache.count_documents(q)
     # I have no idea why mongotypes doesn't support cursor slicing
     tags = list(db.archetype_cache.find(  # type: ignore
         q, sort=[('deck_count', -1), ('deck_winrate', -1), ('tag_name', 1)])

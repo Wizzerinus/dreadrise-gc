@@ -1,5 +1,5 @@
 from copy import deepcopy
-from typing import Any, Callable, Dict, Mapping, Optional, Tuple
+from typing import Any, Callable, Mapping
 from uuid import uuid4
 
 import arrow
@@ -8,7 +8,7 @@ from werkzeug import Response
 
 from website.data_engines.sessions.constants import current_session_version, default_session
 
-connection: Dict[str, Any] = {'db': None, 'sessions': None}
+connection: dict[str, Any] = {'db': None, 'sessions': None}
 
 
 def initialize() -> None:
@@ -18,7 +18,7 @@ def initialize() -> None:
     connection['sessions'] = connection['db'].collection('sessions')
 
 
-def get_session_firestore() -> Tuple[Mapping[str, Any], Optional[Callable[[Response], None]]]:
+def get_session_firestore() -> tuple[Mapping[str, Any], Callable[[Response], None] | None]:
     session_cookie = request.cookies.get('fs_session_id')
     cookie_needs_updating = False
     if not session_cookie:
@@ -46,7 +46,7 @@ def get_session_firestore() -> Tuple[Mapping[str, Any], Optional[Callable[[Respo
     return session, update_response if cookie_needs_updating else None
 
 
-def save_session_firestore(data: Dict[str, Any]) -> None:
+def save_session_firestore(data: dict[str, Any]) -> None:
     db, sessions = connection['db'], connection['sessions']
     if not db:
         raise ConnectionError('Not connected to Firestore')

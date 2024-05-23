@@ -1,5 +1,4 @@
 import re
-from typing import List
 
 from shared.types.card import Card
 
@@ -8,7 +7,7 @@ def _is_typed(c: str) -> bool:
     return 'Island' in c or 'Plains' in c or 'Forest' in c or 'Swamp' in c or 'Mountain' in c
 
 
-def add_card_categories(c: Card) -> List[str]:
+def add_card_categories(c: Card) -> list[str]:
     """
     Add card categories to a card object inplace.
     :param c: the card to modify

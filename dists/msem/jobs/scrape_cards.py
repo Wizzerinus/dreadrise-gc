@@ -1,7 +1,6 @@
 import logging
 import traceback
 from time import sleep
-from typing import Dict, List
 
 import arrow
 
@@ -33,7 +32,7 @@ exclusions = ['Velir, the Sunderer', 'Masahita, Bloodotongue', 'Acin, the Toymak
               'Small Gifts', 'Big Presents', 'Massive Surprises']
 
 
-def process_sets(expansions: Dict[str, Expansion], sets: List[str]) -> List[str]:
+def process_sets(expansions: dict[str, Expansion], sets: list[str]) -> list[str]:
     sets = list(set(sets))
     sets.sort(key=lambda x: expansions[x].release_date, reverse=True)
     return sets

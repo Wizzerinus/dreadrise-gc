@@ -1,5 +1,3 @@
-from typing import List, Tuple
-
 from plotly import graph_objects as pgo
 from pymongo.database import Database
 
@@ -9,7 +7,7 @@ from shared.types.deck import Deck
 from shared.types.deck_tag import DeckTag
 
 
-def calculate_winrate(decks: List[Deck]) -> float:
+def calculate_winrate(decks: list[Deck]) -> float:
     wins = sum([x.wins for x in decks])
     losses = sum([x.losses for x in decks])
     if wins + losses > 0:
@@ -17,7 +15,7 @@ def calculate_winrate(decks: List[Deck]) -> float:
     return -1
 
 
-def interpolate(num: float, breakpoints: List[Tuple[int, int, int]]) -> Tuple[int, int, int]:
+def interpolate(num: float, breakpoints: list[tuple[int, int, int]]) -> tuple[int, int, int]:
     single_percentage = 1 / (len(breakpoints) - 1)
     segment_num = int(num / single_percentage)
     if segment_num == len(breakpoints) - 1:
@@ -31,7 +29,7 @@ def interpolate(num: float, breakpoints: List[Tuple[int, int, int]]) -> Tuple[in
     )
 
 
-def tuple_to_color(color: Tuple[int, int, int]) -> str:
+def tuple_to_color(color: tuple[int, int, int]) -> str:
     return '#' + ''.join([f'{x:X}' for x in color])
 
 
@@ -49,7 +47,7 @@ def calculate_winrate_color(wr: float) -> str:
     return tuple_to_color(color)
 
 
-def metagame_breakdown(db: Database, decks: List[Deck], winrate_colors: bool = True) -> pgo.Figure:
+def metagame_breakdown(db: Database, decks: list[Deck], winrate_colors: bool = True) -> pgo.Figure:
     required_tags = list({x.tags[0] if x.tags else '' for x in decks})
     # loaded_tags = {x.tag_id: x for x in DeckTag.objects(tag_id__in=required_tags)}
     loaded_tags = {x['tag_id']: DeckTag().load(x) for x in db.deck_tags.find({'tag_id': {'$in': required_tags}})}
@@ -65,7 +63,7 @@ def metagame_breakdown(db: Database, decks: List[Deck], winrate_colors: bool = T
     else:
         min_decks = sorted_tag_counts[9][0]
 
-    data: List[Tuple[str, str, int, str, str, float]] = []
+    data: list[tuple[str, str, int, str, str, float]] = []
     for i in archetypes:
         with_this_archetype = [x for x in decks if loaded_tags[x.tags[0]].archetype == i]
         if not with_this_archetype:

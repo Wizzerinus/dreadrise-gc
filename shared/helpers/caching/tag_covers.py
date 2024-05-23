@@ -1,5 +1,4 @@
 import logging
-from typing import Dict, List, Tuple
 
 from shared.types.caching import DeckTagCache, DeckTagPopularity
 from shared.types.deck import Deck
@@ -8,12 +7,12 @@ from shared.types.deck_tag import DeckTag
 logger = logging.getLogger('dreadrise.popularity.tags')
 
 
-def run_tag_covers(fmt: str, dck: List[Deck], tags: List[DeckTag], pops: List[DeckTagPopularity]) -> List[DeckTagCache]:
+def run_tag_covers(fmt: str, dck: list[Deck], tags: list[DeckTag], pops: list[DeckTagPopularity]) -> list[DeckTagCache]:
     decks_in_format = [x for x in dck if x.format == fmt] if fmt != '_all' else dck
     tag_dict = {x.tag_id: x for x in tags}
     card_stuff = [(z.tags[0], z.wins, z.losses) for z in decks_in_format if z.tags]
-    counter: Dict[str, DeckTagCache] = {}
-    wins_losses: Dict[str, Tuple[int, int]] = {}
+    counter: dict[str, DeckTagCache] = {}
+    wins_losses: dict[str, tuple[int, int]] = {}
     for tag_id, wins, losses in card_stuff:
         dtc = counter.get(tag_id, None)
         if not dtc:

@@ -1,5 +1,3 @@
-from typing import List
-
 from dists.fusion.checking import check_fusion_legality
 from dists.fusion.custom_syntax import FusionCard, SearchSyntaxCardFusion
 from dists.msem.checking import (check_adam, check_alvarez, check_asabeth, check_ashe, check_garth, check_harriet,
@@ -49,7 +47,7 @@ DeckCheckers = [
     check_fusion_legality
 ]
 
-IndexTypes: List[str] = []
+IndexTypes: list[str] = []
 
 
 def GetRotationAngle(c: FusionCard, face_index: int = 0) -> int:

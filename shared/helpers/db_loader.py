@@ -1,5 +1,5 @@
 from itertools import chain
-from typing import Any, Callable, Dict, List, Set, Tuple
+from typing import Any, Callable
 
 import arrow
 
@@ -16,22 +16,22 @@ from shared.types.deck_tag import DeckTag
 from shared.types.set import Expansion
 from shared.types.user import User
 
-CardType = List[Tuple[Card, int]]  # [(card_name, card_count)]
-CardCategory = List[Tuple[str, CardType, int]]  # [(card_type, CardType, total_count)]
+CardType = list[tuple[Card, int]]  # [(card_name, card_count)]
+CardCategory = list[tuple[str, CardType, int]]  # [(card_type, CardType, total_count)]
 
 
 class LoadedDeck:
     deck: Deck = default_deck
-    card_defs: Dict[str, Card] = {}
+    card_defs: dict[str, Card] = {}
     author: User = get_blank_user('')
     main_card: str = 'island'
-    tags: List[DeckTag] = []
-    sorted_cards: List[CardCategory]
+    tags: list[DeckTag] = []
+    sorted_cards: list[CardCategory]
     format: str = 'Unknown'
     date_str: str = '?'
     competition: Competition
 
-    def jsonify(self) -> Dict:
+    def jsonify(self) -> dict:
         return {
             'deck': self.deck.save() if self.deck.deck_id else False,
             'card_defs': {x: y.virtual_save() for x, y in self.card_defs.items()},
@@ -51,7 +51,7 @@ class PopularCardData:
     wins: int = 0
     losses: int = 0
 
-    def jsonify(self) -> Dict:
+    def jsonify(self) -> dict:
         return {
             'card': self.card.virtual_save() if self.card.card_id else False,
             'weight': self.weight,
@@ -62,18 +62,18 @@ class PopularCardData:
 
 class LoadedCompetition:
     competition: Competition
-    decks: List[LoadedDeck] = []
-    cards: Dict[str, Card] = {}
-    users: Dict[str, User] = {}
+    decks: list[LoadedDeck] = []
+    cards: dict[str, Card] = {}
+    users: dict[str, User] = {}
     format: str = 'Unknown'
     main_card: str = 'island'
-    tags: Dict[str, DeckTag] = {}
-    popular_cards: List[PopularCardData] = []
+    tags: dict[str, DeckTag] = {}
+    popular_cards: list[PopularCardData] = []
     date_str: str = '?'
     deck_count: int = 0
     partial_load: bool = False
 
-    def jsonify(self) -> Dict:
+    def jsonify(self) -> dict:
         return {
             'competition': self.competition.save() if hasattr(self, 'competition') else False,
             'decks': [x.jsonify() for x in self.decks],
@@ -102,12 +102,12 @@ class SingleCardAnalysis:
 
 class SingleTypeAnalysis:
     type: str = ''
-    sca: List[SingleCardAnalysis] = []
+    sca: list[SingleCardAnalysis] = []
     average_count: float = 0
 
 
 class DeckAnalysis:
-    card_type_analysis: List[SingleTypeAnalysis] = []
+    card_type_analysis: list[SingleTypeAnalysis] = []
     full_count: int = 1
     wins: int = 0
     losses: int = 1
@@ -116,13 +116,13 @@ class DeckAnalysis:
     example_comp: Competition
 
 
-def load_cards_from_decks(dist: Distribution, decks: List[Deck]) -> Dict[str, Card]:
+def load_cards_from_decks(dist: Distribution, decks: list[Deck]) -> dict[str, Card]:
     db = connect(dist)
     card_list = [x for y in decks for x in y.mainboard] + [x for y in decks for x in y.sideboard]
     return {x['name']: Card().load(x) for x in db.cards.find({'name': {'$in': card_list}})}
 
 
-def sort_deck_cards(ld: LoadedDeck) -> List[CardCategory]:
+def sort_deck_cards(ld: LoadedDeck) -> list[CardCategory]:
     categories = [
         ['creature', 'planeswalker', 'other'],
         ['instant', 'sorcery', 'artifact', 'enchantment'],
@@ -149,7 +149,7 @@ def sort_deck_cards(ld: LoadedDeck) -> List[CardCategory]:
     return categories_loaded
 
 
-def load_multiple_decks(dist: Distribution, decks: List[Deck]) -> Tuple[List[LoadedDeck], Dict[str, Card]]:
+def load_multiple_decks(dist: Distribution, decks: list[Deck]) -> tuple[list[LoadedDeck], dict[str, Card]]:
     db = connect(dist)
     card_defs = load_cards_from_decks(dist, decks)
     user_ids = list({x.author for x in decks})
@@ -184,8 +184,8 @@ def load_deck_data(dist: Distribution, deck: Deck) -> LoadedDeck:
     return load_multiple_decks(dist, [deck])[0][0]
 
 
-def import_deck_data(dist: Distribution, lc: LoadedCompetition, decks: List[Deck]) -> List[LoadedDeck]:
-    loaded_decks: List[LoadedDeck] = []
+def import_deck_data(dist: Distribution, lc: LoadedCompetition, decks: list[Deck]) -> list[LoadedDeck]:
+    loaded_decks: list[LoadedDeck] = []
     for i in decks:
         ld = LoadedDeck()
         ld.deck = i
@@ -200,7 +200,7 @@ def import_deck_data(dist: Distribution, lc: LoadedCompetition, decks: List[Deck
     return loaded_decks
 
 
-def get_main_card(dist: Distribution, deck: Deck, card_defs: Dict[str, Card]) -> str:
+def get_main_card(dist: Distribution, deck: Deck, card_defs: dict[str, Card]) -> str:
     if deck.main_card:
         return deck.main_card
 
@@ -212,13 +212,13 @@ def get_main_card(dist: Distribution, deck: Deck, card_defs: Dict[str, Card]) ->
     return max(imps)[1]
 
 
-def generate_popular_cards(dist: Distribution, cd: Dict[str, Card], decks: List[LoadedDeck],
-                           threshold: int = 0) -> List[PopularCardData]:
+def generate_popular_cards(dist: Distribution, cd: dict[str, Card], decks: list[LoadedDeck],
+                           threshold: int = 0) -> list[PopularCardData]:
     constants = get_dist_constants(dist)
     stuff = [(x, y) for z in decks for x, y in z.deck.mainboard.items() if x in cd] + \
             [(x, constants.GetSideboardImportance(cd[x], y))
              for z in decks for x, y in z.deck.sideboard.items() if x in cd]
-    popularity_counter: Dict[str, int] = {}
+    popularity_counter: dict[str, int] = {}
     for card_name, card_weight in stuff:
         if cd[card_name].main_type != 'land':
             popularity_counter[card_name] = popularity_counter.get(card_name, 0) + card_weight
@@ -243,15 +243,17 @@ def generate_popular_cards(dist: Distribution, cd: Dict[str, Card], decks: List[
     return all_data
 
 
-def load_competition_single(dist: Distribution, com: Competition, req_fields: Set[str] = None) -> LoadedCompetition:
+def load_competition_single(
+    dist: Distribution, com: Competition, req_fields: set[str] | None = None
+) -> LoadedCompetition:
     req_fields = req_fields or set()
     db = connect(dist)  # this doesn't actually create any overhead because of db caching
     lc = LoadedCompetition()
     lc.competition = com
 
     if 'decks' in req_fields:
-        q: Dict[str, Any] = {'competition': com.competition_id}
-        lc.deck_count = db.decks.count(q)
+        q: dict[str, Any] = {'competition': com.competition_id}
+        lc.deck_count = db.decks.count_documents(q)
         if lc.deck_count > 250:
             min_wins = 5 if lc.deck_count > 1000 else 4
             q['wins'] = {'$gte': min_wins}
@@ -267,7 +269,7 @@ def load_competition_single(dist: Distribution, com: Competition, req_fields: Se
             lc.tags = {x['tag_id']: DeckTag().load(x) for x in db.deck_tags.find({'tag_id': {'$in': tag_list}})}
         lc.decks = import_deck_data(dist, lc, loaded_decks)
     else:
-        lc.deck_count = db.decks.count({'competition': com.competition_id})
+        lc.deck_count = db.decks.count_documents({'competition': com.competition_id})
 
     main_card_obj = db.competition_popularities.find_one({'competition': com.competition_id, 'format': com.format},
                                                          sort=[('true_popularity', -1)])
@@ -281,13 +283,13 @@ def load_competition_single(dist: Distribution, com: Competition, req_fields: Se
     return lc
 
 
-def load_competitions(dist: Distribution, q: dict, required_fields: Set[str] = None) -> List[LoadedCompetition]:
+def load_competitions(dist: Distribution, q: dict, required_fields: set[str] | None = None) -> list[LoadedCompetition]:
     db = connect(dist)
     comps = [Competition().load(x) for x in db.competitions.find(q)]
     return [load_competition_single(dist, x, required_fields) for x in comps]
 
 
-def analyze(cards_to_load: List[Tuple[str, Card, List[Deck]]], attr: str = 'mainboard') -> List[SingleCardAnalysis]:
+def analyze(cards_to_load: list[tuple[str, Card, list[Deck]]], attr: str = 'mainboard') -> list[SingleCardAnalysis]:
     analysises = []
     for card_name, card_def, s_decks in sorted(cards_to_load, key=lambda u: -len(u[2])):
         sca = SingleCardAnalysis()
@@ -303,7 +305,7 @@ def analyze(cards_to_load: List[Tuple[str, Card, List[Deck]]], attr: str = 'main
     return analysises
 
 
-def get_best_deck(decks: List[Deck], deck_weight: Callable[[Deck], float]) -> Deck:
+def get_best_deck(decks: list[Deck], deck_weight: Callable[[Deck], float]) -> Deck:
     if not decks:
         return default_deck
     max_weight = (-1.0, default_deck)
@@ -314,7 +316,7 @@ def get_best_deck(decks: List[Deck], deck_weight: Callable[[Deck], float]) -> De
     return max_weight[1]
 
 
-def load_deck_analysis(dist: Distribution, decks: List[Deck], threshold: float = 0.2) -> DeckAnalysis:
+def load_deck_analysis(dist: Distribution, decks: list[Deck], threshold: float = 0.2) -> DeckAnalysis:
     cards = load_cards_from_decks(dist, decks)
     deck_count = len(decks)
 
@@ -357,7 +359,7 @@ def load_deck_analysis(dist: Distribution, decks: List[Deck], threshold: float =
     return da
 
 
-def load_expansions(dist: Distribution) -> Dict[str, Expansion]:
+def load_expansions(dist: Distribution) -> dict[str, Expansion]:
     db = connect(dist)
     cursor = db.expansions.find({})
     return {x['code']: Expansion().load(x) for x in cursor}

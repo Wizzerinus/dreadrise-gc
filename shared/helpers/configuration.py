@@ -1,6 +1,5 @@
 import logging
 import os
-from typing import Dict, Optional
 
 import yaml
 
@@ -10,10 +9,10 @@ from shared.helpers.util import int_def
 
 logger = logging.getLogger('dreadrise.configuration')
 
-cache: Dict[str, Dict[str, str]] = {}
+cache: dict[str, dict[str, str]] = {}
 
 
-def _merge(i: Optional[Dict[str, str]], j: Dict[str, str]) -> Dict[str, str]:
+def _merge(i: dict[str, str] | None, j: dict[str, str]) -> dict[str, str]:
     if not i:
         return j
 
@@ -23,7 +22,7 @@ def _merge(i: Optional[Dict[str, str]], j: Dict[str, str]) -> Dict[str, str]:
     return j
 
 
-def _preload_directory(directory: str, distribution: str) -> Dict[str, str]:
+def _preload_directory(directory: str, distribution: str) -> dict[str, str]:
     core = {}
     for i, j in os.environ.items():
         if i.startswith(f'{distribution}__'):

@@ -1,6 +1,5 @@
 import logging
 from itertools import chain
-from typing import Dict, Set
 
 from shared.card_enums import Color
 from shared.types.card import Card
@@ -9,7 +8,7 @@ from shared.types.deck import Deck
 logger = logging.getLogger('dreadrise.tagging.color')
 
 
-def color_rule_applies(d: Deck, cards: Dict[str, Card], colors: Set[Color]) -> bool:
+def color_rule_applies(d: Deck, cards: dict[str, Card], colors: set[Color]) -> bool:
     """
     Check whether a color rule applies to a deck.
     :param d: the deck to test

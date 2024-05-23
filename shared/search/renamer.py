@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Any, Callable, Dict, List, Tuple
+from typing import Any, Callable
 
 RenameMethod = Callable[[Any, Callable[[str], str]], Any]
 
@@ -26,7 +26,7 @@ def rename_expression(value: Any, renamer: Callable[[str], str]) -> Any:
         Literal: Anything without a $.
         System Variable: Anything prepended with $$.
         Expression Object: dict[Field, Expression]
-        Expression Operator: singleItemDict[operatorname, argument] operatorname starts with $
+        Expression Operator: singleItemdict[operatorname, argument] operatorname starts with $
     """
     # Oh yeah I have no idea whether rename_expression != rename_query
     if isinstance(value, str):
@@ -75,7 +75,7 @@ class OperatorControllerSingular(OperatorController):
 
 
 class OperatorControllerDict(OperatorController):
-    def __init__(self, signature: Dict[str, Tuple[RenameMethod, RenameMethod]]):
+    def __init__(self, signature: dict[str, tuple[RenameMethod, RenameMethod]]):
         # First method is for the name, second for the value
         self.signature = signature
 
@@ -95,7 +95,7 @@ class OperatorControllerDict(OperatorController):
 
 
 class AggregationRenameController:
-    operators: Dict[str, OperatorController]
+    operators: dict[str, OperatorController]
 
     def __init__(self) -> None:
         self.operators = {}
@@ -103,7 +103,7 @@ class AggregationRenameController:
     def add_operator(self, name: str, oc: OperatorController) -> None:
         self.operators['$' + name] = oc
 
-    def rename_pipeline(self, pipeline: List[Dict[str, Any]], renamer: Callable[[str], str]) -> List[Dict[str, Any]]:
+    def rename_pipeline(self, pipeline: list[dict[str, Any]], renamer: Callable[[str], str]) -> list[dict[str, Any]]:
         result = []
         for i in pipeline:
             if not i:

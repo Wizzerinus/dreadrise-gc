@@ -1,6 +1,6 @@
 import logging
 from time import sleep
-from typing import Dict, cast
+from typing import cast
 
 from shared import fetch_tools
 from shared.helpers.card_engines.scryfall import build_card, build_expansion
@@ -57,7 +57,7 @@ def get_priority(i: dict) -> int:
     return priority
 
 
-def update_card(c: Card, i: Dict) -> None:
+def update_card(c: Card, i: dict) -> None:
     rarity = get_rarity(i['rarity'])
     if rarity not in c.rarities:
         c.rarities.append(rarity)
@@ -96,7 +96,7 @@ def run() -> None:
     data = fetch_tools.fetch_json(card_url)
     logger.info('Default cards loaded')
 
-    cards: Dict[str, PDCard] = {}
+    cards: dict[str, PDCard] = {}
     data_with_priority = [(x, get_priority(x)) for x in data]
     data_with_priority = [x for x in data_with_priority if x[1]]
     for i, p in sorted(data_with_priority, key=lambda u: (-u[1], u[0]['released_at']), reverse=True):

@@ -1,4 +1,4 @@
-from typing import Any, Dict, cast
+from typing import Any, cast
 
 from flask import Blueprint, make_response, request
 from werkzeug import Response
@@ -23,7 +23,7 @@ def operate(dist_choice: str = '') -> Response:
         json = {'success': False, 'reason': f'Gateway is disabled for the chosen distribution ({dist}).'}
         return make_response(json, 400)
 
-    json = cast(Dict[str, Any], request.get_json())
+    json = cast(dict[str, Any], request.get_json())
     good = 'gateway_key' in json and json['gateway_key'] == configuration.get('gateway_key', dist_cast)
     if not good:
         json = {'success': False, 'reason': 'Gateway key does not match. '

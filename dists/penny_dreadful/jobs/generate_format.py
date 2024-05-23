@@ -1,5 +1,4 @@
 import logging
-from typing import List
 
 from shared import fetch_tools
 from shared.helpers.database import connect
@@ -7,7 +6,7 @@ from shared.helpers.database import connect
 logger = logging.getLogger('dreadrise.dist.pd.format-loader')
 
 
-def get_exceptions(code: str) -> List[str]:
+def get_exceptions(code: str) -> list[str]:
     if code != 'EMN':
         return []
     return ['Séance', 'Lim-Dûl the Necromancer', 'Dandân', 'Jötun Grunt', 'Jötun Owl Keeper', 'Khabál Ghoul',
@@ -34,7 +33,7 @@ def run() -> None:
         logger.warning(f'Season {n} not found, downloading...')
         url = f'https://pennydreadfulmtg.github.io/{code}_legal_cards.txt'
         legal_list = [x for x in fetch_tools.fetch_str(url).replace('\r', '').split('\n') if x] + get_exceptions(code)
-        client.format_cache.insert({'format': fmt, 'legal': legal_list, 'restricted': [], 'banned': []})
+        client.format_cache.insert_one({'format': fmt, 'legal': legal_list, 'restricted': [], 'banned': []})
         logger.warning(f'Processed season {n}, {len(legal_list)} legal cards')
 
     if need_to_regenerate_pdsx:
@@ -42,7 +41,7 @@ def run() -> None:
         client.format_cache.delete_one({'format': 'pdsx'})
         fcs = client.format_cache.find()
         legal_cards = {x for y in fcs for x in y['legal']}
-        client.format_cache.insert({'format': 'pdsx', 'legal': list(legal_cards), 'restricted': [], 'banned': []})
+        client.format_cache.insert_one({'format': 'pdsx', 'legal': list(legal_cards), 'restricted': [], 'banned': []})
         logger.warning(f'PD Eternal finished, {len(legal_cards)} legal cards')
 
     logger.info('Format caches saved.')

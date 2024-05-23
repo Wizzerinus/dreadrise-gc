@@ -125,8 +125,8 @@ class PDCardFace(CardFace):
 
 
 class PDCard(Card):
-    # faces: List[PDCardFace]
-    # fixed_faces: List[PDCardFace]
+    # faces: list[PDCardFace]
+    # fixed_faces: list[PDCardFace]
     # This doesn't work within MyPy for reasons I don't understand
     ftime: int
     ltime: int

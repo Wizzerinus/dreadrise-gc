@@ -1,6 +1,6 @@
 import json
 from math import ceil
-from typing import Any, Dict
+from typing import Any
 
 from flask import Blueprint, abort, flash, make_response, render_template, request
 from plotly import utils
@@ -43,7 +43,7 @@ def api_competitions(db: Database, page: int = 0) -> dict:
     constants = split_import()
     fmt = request.args.get('format', constants.DefaultFormat)
     query = {} if 'all' in fmt else {'format': fmt}
-    ccount = db.competitions.find(query).count()
+    ccount = db.competitions.count_documents(query)
     competition_cursor = db.competitions.find(query, sort=[('date', -1)])[page * 12 - 12:page * 12]  # type: ignore
     comps = [Competition().load(x) for x in competition_cursor]
     dist = get_dist()
@@ -77,8 +77,8 @@ def api_metagame_breakdown(db: Database, competition_id: str) -> Response:
         abort(404)
 
     # decks = list(Deck.objects(competition=competition))
-    query: Dict[str, Any] = {'competition': competition_id}
-    deck_count = db.decks.find(query).count()
+    query: dict[str, Any] = {'competition': competition_id}
+    deck_count = db.decks.count_documents(query)
     if deck_count > 500:
         min_wins = 5 if deck_count > 2000 else 4
         query['wins'] = {'$gte': min_wins}

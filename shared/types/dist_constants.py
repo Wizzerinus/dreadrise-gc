@@ -1,4 +1,5 @@
-from typing import Callable, Dict, List, Literal, Set, Tuple, Type
+import abc
+from typing import Callable, Literal
 
 from shared.search.syntaxes.abstract import SearchSyntaxCardAbstract, SearchSyntaxDeckAbstract
 from shared.types.card import Card
@@ -37,41 +38,47 @@ class DistConstants:
             and the "action" field (must be checked by the distribution). The output must include "success" (bool)
             and "reason" if success=false.
     """
-    Formats: List[str]
-    ScrapedFormats: List[str]
-    FormatLocalization: Dict[str, str]
+    Formats: list[str]
+    ScrapedFormats: list[str]
+    FormatLocalization: dict[str, str]
     DefaultFormat: str
-    EnabledModules: Set[FormatModule]
-    CategoryDescriptions: List[Tuple[str, str]]
-    CardSearchSyntax: Type[SearchSyntaxCardAbstract]
-    DeckSearchSyntax: Type[SearchSyntaxDeckAbstract]
+    EnabledModules: set[FormatModule]
+    CategoryDescriptions: list[tuple[str, str]]
+    CardSearchSyntax: type[SearchSyntaxCardAbstract]
+    DeckSearchSyntax: type[SearchSyntaxDeckAbstract]
     DefaultCard: str
-    DeckCheckers: List[Callable[[Deck, Dict[str, Card]],
-                                Tuple[Literal['Success!', 'Warnings found!', 'Errors found!'], str]]]
+    DeckCheckers: list[Callable[[Deck, dict[str, Card]],
+                                tuple[Literal['Success!', 'Warnings found!', 'Errors found!'], str]]]
 
     @staticmethod
+    @abc.abstractmethod
     def GetRotationAngle(c: Card, face_index: int = 0) -> Literal[0, 90, 180, 270]:
         pass
 
     @staticmethod
+    @abc.abstractmethod
     def GetSideboardImportance(c: Card, i: int) -> int:
         pass
 
     @staticmethod
+    @abc.abstractmethod
     def GetCropLocation(c: Card) -> str:
         pass
 
     @staticmethod
+    @abc.abstractmethod
     def GetDeckWeight(d: Deck) -> float:
         pass
 
     @staticmethod
+    @abc.abstractmethod
     def Update() -> None:
         pass
 
     @staticmethod
+    @abc.abstractmethod
     def ParseGateway(data: dict) -> dict:
         pass
 
-    IndexTypes: List[str]
-    NewDeckFormats: List[str]
+    IndexTypes: list[str]
+    NewDeckFormats: list[str]

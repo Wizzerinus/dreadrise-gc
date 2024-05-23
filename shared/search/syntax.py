@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from logging import getLogger
-from typing import Any, Dict, Generic, Iterable, List, Tuple, Type, TypeVar, Union, cast
+from typing import Any, Generic, Iterable, TypeVar, cast
 
 from pymongo.database import Database
 from pymongo.errors import OperationFailure
@@ -15,7 +15,7 @@ from shared.types.pseudotype import PseudoType
 
 logger = getLogger('dreadrise.search')
 
-SearchAnswer = Union[None, dict, Tuple[dict, bool], Tuple[dict, dict]]
+SearchAnswer = dict | tuple[dict, bool] | tuple[dict, dict] | None
 
 
 class SearchFilter(ABC):
@@ -31,8 +31,8 @@ class SearchTransformer(ABC):
 
 
 class SearchFunction(ABC):
-    filters: List[SearchFilter]
-    transformers: List[SearchTransformer]
+    filters: list[SearchFilter]
+    transformers: list[SearchTransformer]
 
     def __init__(self) -> None:
         self.filters = []
@@ -67,13 +67,13 @@ T = TypeVar('T', bound=PseudoType)
 
 class SearchSyntax(Generic[T]):
     default: str = ''
-    funcs: Dict[str, Tuple[SearchFunction, str, List[str], bool]]
-    aliases: Dict[str, List[str]]
+    funcs: dict[str, tuple[SearchFunction, str, list[str], bool]]
+    aliases: dict[str, list[str]]
     table_name: str
-    model: Type[T]
+    model: type[T]
     arc: AggregationRenameController
 
-    def __init__(self, table_name: str, default: str, model: Type[T]):
+    def __init__(self, table_name: str, default: str, model: type[T]):
         self.default = default
         self.funcs = {}
         self.aliases = {}
@@ -106,7 +106,7 @@ class SearchSyntax(Generic[T]):
         self.arc.add_operator('unset', OperatorControllerSingular(rename_field_name))
         self.arc.add_operator('unwind', OperatorControllerSingular(rename_expression))
 
-    def add_func(self, name: str, func: SearchFunction, desc: str, aliases: List[str] = None) -> None:
+    def add_func(self, name: str, func: SearchFunction, desc: str, aliases: list[str] | None = None) -> None:
         aliases = aliases or []
         self.funcs[name] = (func, desc, aliases, True)
         if aliases:
@@ -121,7 +121,7 @@ class SearchSyntax(Generic[T]):
             for i in self.aliases[name]:
                 self.funcs[i] = (func, desc, [], False)
 
-    def process_token(self, tok: SearchToken, context: dict, operator: str, invert: bool) -> Tuple[dict, dict]:
+    def process_token(self, tok: SearchToken, context: dict, operator: str, invert: bool) -> tuple[dict, dict]:
         if tok.name == 'default':
             tok.name = self.default
         if tok.name not in self.funcs:
@@ -131,7 +131,7 @@ class SearchSyntax(Generic[T]):
         return self.obtain_token_tuple(func.postprocess(tok, context) or
                                        self.default_object, operator, invert != tok.invert)
 
-    def obtain_token_tuple(self, x: SearchAnswer, operator: str, invert: bool) -> Tuple[dict, dict]:
+    def obtain_token_tuple(self, x: SearchAnswer, operator: str, invert: bool) -> tuple[dict, dict]:
         inverted_operator = operator if not invert else \
             ('n' if operator[0] == 'n' else '') + ('and' if 'and' not in operator else 'or')
         default_obj = self.default_object if 'and' in inverted_operator else self.invalid_object
@@ -145,14 +145,14 @@ class SearchSyntax(Generic[T]):
             return x
         return default_obj, x[0]
 
-    def parse_token(self, tok: SearchToken, context: dict, operator: str, invert: bool) -> Tuple[dict, dict]:
+    def parse_token(self, tok: SearchToken, context: dict, operator: str, invert: bool) -> tuple[dict, dict]:
         pre_aggregation, post_aggregation = self.process_token(tok, context, operator, invert)
         if tok.invert:
             pre_aggregation = {'$nor': [pre_aggregation]}
             post_aggregation = {'$nor': [post_aggregation]}
         return pre_aggregation, post_aggregation
 
-    def join(self, operator: str, data: List[Dict[str, Any]]) -> dict:
+    def join(self, operator: str, data: list[dict[str, Any]]) -> dict:
         min_count = 1 if operator != 'or' else 2
         while len(data) < min_count:
             data.append(self.default_object if 'and' in operator else self.invalid_object)
@@ -162,13 +162,13 @@ class SearchSyntax(Generic[T]):
             return {'$nor': [{'$and': data}]}
 
     def parse_group(self, data: SearchGroup, context: dict, deep_invert: bool = False,
-                    invert: bool = False) -> Tuple[dict, dict]:
+                    invert: bool = False) -> tuple[dict, dict]:
         if invert:
             deep_invert = not deep_invert
         return self.parse_recursive(data.items, context, deep_invert, invert)
 
-    def parse_recursive(self, data: Iterable[Union[SearchToken, SearchGroup]],
-                        context: dict, deep_invert: bool = False, invert: bool = False) -> Tuple[dict, dict]:
+    def parse_recursive(self, data: Iterable[SearchToken | SearchGroup],
+                        context: dict, deep_invert: bool = False, invert: bool = False) -> tuple[dict, dict]:
         operators = [x.value for x in data if isinstance(x, SearchToken) and x.name == '_operator']
         operator_list = list(set(operators))
         if len(operator_list) > 1:
@@ -186,11 +186,11 @@ class SearchSyntax(Generic[T]):
         right_join = self.join(operator, [x[1] for x in arr])
         return left_join, right_join
 
-    def parse(self, data: str, context: dict) -> Tuple[dict, dict]:
+    def parse(self, data: str, context: dict) -> tuple[dict, dict]:
         results = tokenize_string(data)
         return self.parse_recursive(results, context)
 
-    def unwind_request_once(self, data: Any) -> Tuple[Any, bool]:
+    def unwind_request_once(self, data: Any) -> tuple[Any, bool]:
         if not isinstance(data, dict):
             return data, False
 
@@ -216,7 +216,7 @@ class SearchSyntax(Generic[T]):
             op = ans[1]
         return data
 
-    def create_pipeline(self, q: str, lim: int = 60, skip: int = 0) -> Tuple[List[Dict[str, Any]], List[Any], Any]:
+    def create_pipeline(self, q: str, lim: int = 60, skip: int = 0) -> tuple[list[dict[str, Any]], list[Any], Any]:
         data = str(q).rstrip() if q else ''
         if not data:
             raise EmptySearchError('Please provide one or more search operators.')
@@ -235,8 +235,8 @@ class SearchSyntax(Generic[T]):
 
         pipeline_ids = set()
         aggregation = [{'$match': query_left}]
-        i: Dict[str, Any]
-        for i in cast(List[Dict[str, Any]], context['pipeline']):
+        i: dict[str, Any]
+        for i in cast(list[dict[str, Any]], context['pipeline']):
             if i['id'] not in pipeline_ids:
                 pipeline_ids.add(i['id'])
                 del i['id']
@@ -251,19 +251,19 @@ class SearchSyntax(Generic[T]):
         build_sort[self.default] = 1
         build_sort['_id'] = 1
 
-        limit_query: List[Dict[str, Any]] = [{'$sort': build_sort}]
+        limit_query: list[dict[str, Any]] = [{'$sort': build_sort}]
         if cast(int, context['limit']) > -1:
             limit_query.append({'$skip': skip})
             limit_query.append({'$limit': context['limit']})
 
-        facets = cast(Dict[str, List[Any]], context['facets'])
+        facets = cast(dict[str, list[Any]], context['facets'])
         facets['sample'] = limit_query
         aggregation.append({'$facet': facets})
         extra_facets = [x for x in facets if x not in ['sample', 'count']]
         return aggregation, extra_facets, (query_left, query_right)
 
     @staticmethod
-    def remove_facets(pipeline: List[Dict[str, Any]]) -> Tuple[List[Dict[str, Any]], List[Dict[str, Any]]]:
+    def remove_facets(pipeline: list[dict[str, Any]]) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
         facets = []
         pipeline2 = []
         for i in pipeline:
@@ -274,12 +274,12 @@ class SearchSyntax(Generic[T]):
         return pipeline2, facets
 
     def search(self, dist: Distribution, db: Database, q: str,
-               lim: int = 60, s: int = 0) -> Tuple[int, List[T], Dict[str, Any]]:
+               lim: int = 60, s: int = 0) -> tuple[int, list[T], dict[str, Any]]:
         aggregation, extra_facets, debug_data = self.create_pipeline(q, lim, s)
         return self.search_with_pipeline(dist, db, aggregation, extra_facets, debug_data)
 
-    def search_with_pipeline(self, dist: Distribution, db: Database, agg: List[Dict[str, Any]],
-                             ef: List[Any], debug: Any) -> Tuple[int, List[T], Dict[str, Any]]:
+    def search_with_pipeline(self, dist: Distribution, db: Database, agg: list[dict[str, Any]],
+                             ef: list[Any], debug: Any) -> tuple[int, list[T], dict[str, Any]]:
         try:
             allow_disk_use = bool(configuration.get('search_disk_use', dist))
             agg = list(db[self.table_name].aggregate(agg, allowDiskUse=allow_disk_use))
@@ -293,7 +293,7 @@ class SearchSyntax(Generic[T]):
             raise SearchDataError(e)
 
 
-def format_func(x: str, y: Tuple[SearchFunction, str, List[str], bool]) -> str:
+def format_func(x: str, y: tuple[SearchFunction, str, list[str], bool]) -> str:
     if not y[3]:
         return ''
     if len(y[2]) == 0:

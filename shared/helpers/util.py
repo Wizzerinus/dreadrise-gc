@@ -1,11 +1,11 @@
-from typing import Any, List, Optional, Tuple
+from typing import Any
 
 from PIL import Image, ImageFont
 
 from shared.card_enums import Legality, ManaDict
 
 
-def clean_name(s: Optional[str]) -> str:
+def clean_name(s: str | None) -> str:
     """
     Clean the name by removing bad symbols from it, returns a name possible to use in an URL.
     :param s: the name to process
@@ -35,7 +35,7 @@ def clean_card(name: str) -> str:
     return name
 
 
-def sum_mana_costs(costs: List[ManaDict]) -> ManaDict:
+def sum_mana_costs(costs: list[ManaDict]) -> ManaDict:
     """
     Add all given mana costs without modifying them and returns the sum.
     :param costs: the mana cost to add
@@ -108,7 +108,7 @@ def fix_long_words(s: str) -> str:
     return ' '.join(shorten_name(x, 22) for x in s.split(' '))
 
 
-def resize_with_ratio(img: Image.Image, desired_size: Tuple[int, int]) -> Image.Image:
+def resize_with_ratio(img: Image.Image, desired_size: tuple[int, int]) -> Image.Image:
     """
     Resize an image, accounting for the aspect ratio and preserving the image's center point intact.
     :param img: the image to resize
@@ -138,7 +138,7 @@ def get_wrapped_text(text: str, font: ImageFont.ImageFont, line_length: int) -> 
     lines = ['']
     for word in text.split():
         line = f'{lines[-1]} {word}'.strip()
-        if font.getsize(line)[0] <= line_length:
+        if font.getlength(line) <= line_length:
             lines[-1] = line
         else:
             lines.append(word)

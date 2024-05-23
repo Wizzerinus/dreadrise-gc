@@ -1,5 +1,3 @@
-from typing import Dict
-
 from pymongo import MongoClient
 from pymongo.database import Database
 
@@ -7,7 +5,7 @@ from shared.core_enums import Distribution
 from shared.helpers import configuration
 from shared.helpers.exceptions import ConfigurationError
 
-mongo_clients: Dict[Distribution, Database] = {}
+mongo_clients: dict[Distribution, Database] = {}
 
 
 def setup_indexes(d: Database) -> None:

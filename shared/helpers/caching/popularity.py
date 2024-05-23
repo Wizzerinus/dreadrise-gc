@@ -1,6 +1,6 @@
 import logging
 from collections import Counter
-from typing import Dict, Iterable, List, Tuple
+from typing import Iterable
 
 from shared.card_enums import format_popularity, popularity_multiplier
 from shared.types.caching import CompetitionPopularity, DeckTagPopularity, FormatPopularity, Popularity
@@ -12,8 +12,8 @@ from shared.types.deck_tag import DeckTag
 logger = logging.getLogger('dreadrise.popularity')
 
 
-def count(decks: List[Deck], cards: Dict[str, Card]) -> Dict[str, float]:
-    card_counts: Dict[str, int] = Counter()
+def count(decks: list[Deck], cards: dict[str, Card]) -> dict[str, float]:
+    card_counts: dict[str, int] = Counter()
     for i in decks:
         if i.competition:
             for j, c in i.mainboard.items():
@@ -23,9 +23,9 @@ def count(decks: List[Deck], cards: Dict[str, Card]) -> Dict[str, float]:
     return {x: c / max_popularity for x, c in card_counts.items()}
 
 
-def run_popularity(fmt: str, all_cards: Dict[str, Card], all_decks: List[Deck], all_competitions: List[Competition],
-                   all_tags: List[DeckTag]) -> \
-        Tuple[List[CompetitionPopularity], List[DeckTagPopularity], Popularity, Dict[str, str]]:
+def run_popularity(fmt: str, all_cards: dict[str, Card], all_decks: list[Deck], all_competitions: list[Competition],
+                   all_tags: list[DeckTag]) -> \
+        tuple[list[CompetitionPopularity], list[DeckTagPopularity], Popularity, dict[str, str]]:
     decks_from_format = [x for x in all_decks if x.format == fmt] if fmt != '_all' else all_decks
     all_format_popularities = count(all_decks, all_cards)
     card_popularities = count(decks_from_format, all_cards)
@@ -33,8 +33,8 @@ def run_popularity(fmt: str, all_cards: Dict[str, Card], all_decks: List[Deck], 
     nonland_cards = {x for x, y in all_cards.items() if y.main_type != 'land'}
     basics = {x for x, y in all_cards.items() if 'Basic' not in y.types}
 
-    comp_pop: List[CompetitionPopularity] = []
-    dt_pop: List[DeckTagPopularity] = []
+    comp_pop: list[CompetitionPopularity] = []
+    dt_pop: list[DeckTagPopularity] = []
     for i in all_competitions:
         decks = [x for x in decks_from_format if x.competition == i.competition_id]
         if not decks:
@@ -82,7 +82,7 @@ def run_popularity(fmt: str, all_cards: Dict[str, Card], all_decks: List[Deck], 
     top_cards_per_id = {}
     if fmt != '_all':
         for k in decks_from_format:
-            nonland_cards_lst: Iterable[Tuple[str, int]] = [x for x in k.mainboard.items() if x[0] in nonland_cards]
+            nonland_cards_lst: Iterable[tuple[str, int]] = [x for x in k.mainboard.items() if x[0] in nonland_cards]
             if nonland_cards_lst:
                 top_cards_per_id[k.deck_id] = max(
                     nonland_cards_lst, key=lambda u: u[1] / 2 - card_popularities[u[0]])[0]

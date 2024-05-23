@@ -1,7 +1,7 @@
 import datetime
 import json
 from math import ceil
-from typing import Any, Dict, Optional, cast
+from typing import Any, cast
 
 from flask import Blueprint, abort, flash, g, make_response, redirect, render_template, request
 from plotly import utils
@@ -44,7 +44,7 @@ def single_deck(db: Database, deck_id: str) -> str:
         comp = db.competitions.find_one({'competition_id': loaded_deck.competition})
         if not comp:
             abort(404)
-        competition: Optional[Competition] = Competition().load(comp)
+        competition: Competition | None = Competition().load(comp)
         opposing_deck_ids = [x.opposing_deck_id for x in loaded_deck.games]
         opposing_decks = {x['deck_id']: Deck().load(x) for x in db.decks.find({'deck_id': {'$in': opposing_deck_ids}})}
         opponent_ids = [x.author for x in opposing_decks.values()]
@@ -138,7 +138,7 @@ def api_decks_with_card(db: Database, card_id: str) -> dict:
         return {'decks': [], 'popular_cards': []}
 
     card_name = card['name']
-    base_query: Dict[str, Any] = {'$or': [{f'mainboard.{card_name}': {'$gte': 1}},
+    base_query: dict[str, Any] = {'$or': [{f'mainboard.{card_name}': {'$gte': 1}},
                                           {f'sideboard.{card_name}': {'$gte': 1}}]}
 
     constants = split_import()
@@ -147,7 +147,7 @@ def api_decks_with_card(db: Database, card_id: str) -> dict:
         base_query = {'$and': [base_query, {'format': fmt}]}
     query = deck_privacy(base_query, get_uid(), True, is_admin=has_priv('deck_admin'))
 
-    deck_count = db.decks.find(query).count()
+    deck_count = db.decks.count_documents(query)
     if deck_count > 250:
         min_wins = 5 if deck_count > 1000 else 4
         query = {'$and': [{'wins': {'$gte': min_wins}}, query]}
@@ -158,7 +158,7 @@ def api_decks_with_card(db: Database, card_id: str) -> dict:
     dist = get_dist()
     loaded_decks, cd = load_multiple_decks(dist, decks)
     popular_card_data = generate_popular_cards(dist, cd, loaded_decks, threshold=10)
-    base: Dict[str, Any] = {'decks': [x.jsonify() for x in loaded_decks],
+    base: dict[str, Any] = {'decks': [x.jsonify() for x in loaded_decks],
                             'popular_cards': [x.jsonify() for x in popular_card_data]}
     if min_wins:
         base['partial_load'] = True
@@ -174,7 +174,7 @@ def api_card_metagame_breakdown(db: Database, card_id: str) -> Response:
         abort(404)
 
     card_name = card['name']
-    base_query: Dict[str, Any] = {'$or': [{f'mainboard.{card_name}': {'$gte': 1}},
+    base_query: dict[str, Any] = {'$or': [{f'mainboard.{card_name}': {'$gte': 1}},
                                           {f'sideboard.{card_name}': {'$gte': 1}}]}
 
     constants = split_import()
@@ -184,7 +184,7 @@ def api_card_metagame_breakdown(db: Database, card_id: str) -> Response:
 
     query = {'$and': [base_query, {'competition': {'$exists': 1}}]}
 
-    deck_count = db.decks.find(query).count()
+    deck_count = db.decks.count_documents(query)
     if deck_count > 250:
         min_wins = 5 if deck_count > 1000 else 4
         query = {'$and': [{'wins': {'$gte': min_wins}}, query]}
@@ -198,7 +198,7 @@ def api_card_metagame_breakdown(db: Database, card_id: str) -> Response:
     return resp
 
 
-def load_from_dict(x: Dict[str, int]) -> str:
+def load_from_dict(x: dict[str, int]) -> str:
     return '\n'.join([f'{u}x {v}' for v, u in x.items()])
 
 
@@ -224,7 +224,7 @@ def deck_list_text(db: Database, deck_id: str) -> dict:
 @b_deck_api.route('/check', methods=['POST'])
 def check_deck() -> dict:
     constants = split_import()
-    req = cast(Dict[str, Any], request.get_json())
+    req = cast(dict[str, Any], request.get_json())
     deck_list = req['deck_list']
     deck = build_deck(deck_list)
     deck.format = str(req['format'])
@@ -239,7 +239,7 @@ def check_deck() -> dict:
 
 @b_deck_api.route('/karsten', methods=['POST'])
 def karsten() -> dict:
-    req = cast(Dict[str, Any], request.get_json())
+    req = cast(dict[str, Any], request.get_json())
     deck_list = req['deck_list']
     deck = build_deck(deck_list)
     status, errors, warnings, messages = karsten_dict(get_dist(), deck)
@@ -267,7 +267,7 @@ def create_deck(db: Database) -> dict:
     if 'user' not in session:
         return {'success': False, 'reason': 'You need to be logged in to save decks!'}
 
-    req = cast(Dict[str, Any], request.get_json())
+    req = cast(dict[str, Any], request.get_json())
     deck_list = req['deck_list']
     deck_name = req['name']
     if not deck_name:

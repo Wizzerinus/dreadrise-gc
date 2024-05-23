@@ -1,8 +1,8 @@
 import logging
 import re
-from typing import List, Tuple, cast
+from typing import cast
 
-from jinja2 import Markup
+from markupsafe import Markup
 
 from shared.card_enums import (Color, ManaDict, ManaSymbol, Rarity, color_combo_localization, color_symbols_single,
                                color_symbols_to_colors, color_symbols_to_mana_types, colors, colors_single,
@@ -13,14 +13,14 @@ from shared.helpers.util import int_def
 logger = logging.getLogger('dreadrise.magic')
 
 
-def process_mana_cost(cost: str) -> List[ManaSymbol]:
+def process_mana_cost(cost: str) -> list[ManaSymbol]:
     """
     Process mana cost, returning it in the List format.
     :param cost: the mana cost string
     :return: the mana cost list
     """
     reg = re.compile(r'{(.+?)}')
-    ans: List[ManaSymbol] = []
+    ans: list[ManaSymbol] = []
     for i in re.findall(reg, cost):
         if '/' in i:
             tup = i.upper().split('/')
@@ -107,7 +107,7 @@ def get_rarity(s: str) -> Rarity:
     raise RisingDataError(f'Unknown rarity: {s}')
 
 
-def get_color_combination(s: str) -> Tuple[Color, ...]:
+def get_color_combination(s: str) -> tuple[Color, ...]:
     if s in colors:
         return cast(Color, s),
     if s in color_combo_localization:

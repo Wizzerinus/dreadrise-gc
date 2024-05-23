@@ -1,5 +1,5 @@
 import logging
-from typing import Callable, Dict, List, Tuple, Type, TypeVar, cast
+from typing import Callable, TypeVar, cast
 
 import arrow
 
@@ -17,7 +17,7 @@ C = TypeVar('C', bound=Card)
 F = TypeVar('F', bound=CardFace)
 
 
-def process_cockatrice_card(card: dict, image_getter: Callable[[dict], str], fcls: Type[F]) -> F:
+def process_cockatrice_card(card: dict, image_getter: Callable[[dict], str], fcls: type[F]) -> F:
     if 'name' not in card:
         raise ScrapeError('Invalid card dictionary.')
     logger.debug('Processing card {name}'.format(name=card['name']))
@@ -45,9 +45,9 @@ def process_cockatrice_card(card: dict, image_getter: Callable[[dict], str], fcl
     return f
 
 
-def process_cockatrice_set(cset: dict, image_getter: Callable[[str, dict], str], formats: Dict[str, str],
-                           ccls: Type[C], fcls: Type[F]) -> \
-        Tuple[List[C], Expansion]:
+def process_cockatrice_set(cset: dict, image_getter: Callable[[str, dict], str], formats: dict[str, str],
+                           ccls: type[C], fcls: type[F]) -> \
+        tuple[list[C], Expansion]:
     if 'cards' not in cset or 'name' not in cset or 'code' not in cset:
         raise ScrapeError('Invalid cockatrice set dictionary.')
 
@@ -59,7 +59,7 @@ def process_cockatrice_set(cset: dict, image_getter: Callable[[str, dict], str],
     for i in cset['cards']:
         card_faces_dict[i['id']] = process_cockatrice_card(i, lambda dct: image_getter(set_id, dct), fcls)
 
-    answer: List[C] = []
+    answer: list[C] = []
     for i in cset['cards']:
         if 'side' in i and i['side'] == 'b':
             continue

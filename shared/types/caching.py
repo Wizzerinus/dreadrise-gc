@@ -1,5 +1,3 @@
-from typing import List
-
 from shared.card_enums import popularity_multiplier
 from shared.types.pseudotype import PseudoType
 
@@ -31,7 +29,7 @@ class DeckTagCache(PseudoType):
     format: str
     tag: str
     tag_name: str
-    cards: List[str]
+    cards: list[str]
     deck_count: int
     deck_wins: int
     deck_losses: int

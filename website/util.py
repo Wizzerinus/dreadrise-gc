@@ -1,7 +1,7 @@
 import logging
 import traceback
 from functools import wraps
-from typing import Any, Callable, List, Optional
+from typing import Any, Callable
 
 from flask import abort, g, jsonify, make_response, request
 
@@ -61,7 +61,7 @@ def requires_module(k: str) -> Callable[[Callable[..., Any]], Callable[..., Any]
     return decorate
 
 
-def privileges_required(privileges: List[str]) -> Callable[[Callable[..., Any]], Any]:
+def privileges_required(privileges: list[str]) -> Callable[[Callable[..., Any]], Any]:
     def decorator(f: Callable[..., Any]) -> Callable[..., Any]:
         @wraps(f)
         def decorated(*args: Any, **kwargs: Any) -> Any:
@@ -98,7 +98,7 @@ def try_catch_json(f: Callable[..., Any]) -> Callable[..., Any]:
     return decorated
 
 
-def get_uid() -> Optional[str]:
+def get_uid() -> str | None:
     return g.actual_session['user']['user_id'] if g.actual_session['user'] else None
 
 

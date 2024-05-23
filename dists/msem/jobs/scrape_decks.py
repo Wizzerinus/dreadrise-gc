@@ -1,7 +1,6 @@
 import logging
 import traceback
 from time import sleep
-from typing import Dict, Optional
 
 import arrow
 from pymongo.database import Database
@@ -19,7 +18,7 @@ logger = logging.getLogger('dreadrise.dist.msem.deck-scraper')
 _competition_file_path = 'file:///home/wizzerinus/Documents/MSEM/league-oct-2021.json'
 
 
-def _create_user(db: Database, username: str, user_discord: Optional[int]) -> str:
+def _create_user(db: Database, username: str, user_discord: int | None) -> str:
     u = db.users.find_one({'nickname': username})
     if u:
         logger.info(f'User {username} already exists')
@@ -51,7 +50,7 @@ def _create_user(db: Database, username: str, user_discord: Optional[int]) -> st
     return user_id
 
 
-def get_match(x: dict, position: int, legacy: Dict[str, str] = None) -> DeckGameRecord:
+def get_match(x: dict, position: int, legacy: dict[str, str] | None = None) -> DeckGameRecord:
     dg = DeckGameRecord()
     try:
         opposing_uid = legacy[x['players'][1 - position]['username']] if legacy else x['players'][1 - position]['list']
@@ -66,7 +65,7 @@ def get_match(x: dict, position: int, legacy: Dict[str, str] = None) -> DeckGame
     return dg
 
 
-def _build_deck_record(deck: Deck, matches: list, uid: str, legacy: Dict[str, str] = None) -> None:
+def _build_deck_record(deck: Deck, matches: list, uid: str, legacy: dict[str, str] | None = None) -> None:
     key = 'list' if not legacy else 'username'
     first_matches = [(k, get_match(x, 0, legacy)) for k, x in enumerate(matches) if key in x['players'][0] and
                      x['players'][0][key] == uid]
@@ -79,7 +78,7 @@ def _build_deck_record(deck: Deck, matches: list, uid: str, legacy: Dict[str, st
     deck.ties = len([x for x in all_games if x[1].result == 0])
 
 
-def smart_clean(name: str, cards: Dict[str, Card]) -> str:
+def smart_clean(name: str, cards: dict[str, Card]) -> str:
     name = clean_card(name).split(' // ')[0].split(' (')[0]
     if name not in cards:
         # logger.error(f'Card {name} not found')
@@ -87,7 +86,7 @@ def smart_clean(name: str, cards: Dict[str, Card]) -> str:
     return cards[name].name
 
 
-def run_json(json: dict, timeout: bool = True, card_cache: Optional[Dict[str, Card]] = None) -> Dict[str, Card]:
+def run_json(json: dict, timeout: bool = True, card_cache: dict[str, Card] | None = None) -> dict[str, Card]:
     logger.info('Connecting to the database')
     client = connect('msem')
 

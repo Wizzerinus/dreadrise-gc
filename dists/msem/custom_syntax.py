@@ -14,7 +14,7 @@ class MSEMCardFace(CardFace):
 
 
 class MSEMCard(Card):
-    # faces: List[MSEMCardFace]
-    # fixed_faces: List[MSEMCardFace]
+    # faces: list[MSEMCardFace]
+    # fixed_faces: list[MSEMCardFace]
     # This doesn't work within MyPy for reasons I don't understand
     pass

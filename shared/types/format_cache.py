@@ -1,13 +1,11 @@
-from typing import Set
-
 from shared.types.pseudotype import PseudoType
 
 
 class FormatCache(PseudoType):
     format: str = 'unknown'
-    legal: Set[str] = set()
-    restricted: Set[str] = set()
-    banned: Set[str] = set()
+    legal: set[str] = set()
+    restricted: set[str] = set()
+    banned: set[str] = set()
 
     def pre_load(self, data: dict) -> None:
         self.format = data['format']

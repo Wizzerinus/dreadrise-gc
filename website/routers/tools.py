@@ -2,7 +2,7 @@ import io
 import json
 import os
 from math import ceil
-from typing import Any, Dict, List, Tuple, cast
+from typing import Any, cast
 
 from flask import Blueprint, render_template, request, send_file
 from PIL import Image, ImageDraw, ImageFont
@@ -25,10 +25,10 @@ ColorDict = {
     'blue': (80, 90, 240),
     'green': (20, 190, 20),
 }
-ImageCache: Dict[Tuple[str, str], Image.Image] = {}  # This gets recreated every hour so no memory leak
+ImageCache: dict[tuple[str, str], Image.Image] = {}  # This gets recreated every hour so no memory leak
 
 
-def generate_image_cache(dist: Distribution, cards: List[str], scale: Tuple[int, int]) -> Dict[str, Image.Image]:
+def generate_image_cache(dist: Distribution, cards: list[str], scale: tuple[int, int]) -> dict[str, Image.Image]:
     already_loaded = {x: ImageCache[(dist, x)] for x in cards if (dist, x) in ImageCache}
     cards = [x for x in cards if (dist, x) not in ImageCache]
     db = connect(dist)
@@ -42,7 +42,7 @@ def generate_image_cache(dist: Distribution, cards: List[str], scale: Tuple[int,
     return already_loaded
 
 
-def get_color(x: str) -> Tuple[int, int, int]:
+def get_color(x: str) -> tuple[int, int, int]:
     if x in ColorDict:
         return ColorDict[x]
 
@@ -62,9 +62,9 @@ def tiermaker() -> str:
 
 @b_tools_api.route('/tiers', methods=['POST'])
 def tiers_api() -> Response:
-    req = cast(Dict[str, Any], request.get_json())
+    req = cast(dict[str, Any], request.get_json())
     size = int(req['size'])
-    tiers = cast(List[Dict[str, Any]], req['tiers'])
+    tiers = cast(list[dict[str, Any]], req['tiers'])
     tier_sizes = [len(x['cards']) for x in tiers]
     img_base_width = min(size, max(1, *tier_sizes))
     tier_heights = [ceil(x / img_base_width) for x in tier_sizes]

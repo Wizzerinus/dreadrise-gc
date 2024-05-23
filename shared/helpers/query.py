@@ -1,7 +1,4 @@
-from typing import Optional
-
-
-def deck_privacy(query: dict, username: Optional[str], show_unlisted: bool = False, is_admin: bool = False) -> dict:
+def deck_privacy(query: dict, username: str | None, show_unlisted: bool = False, is_admin: bool = False) -> dict:
     if is_admin:
         return query
     privacy_list = ['private']

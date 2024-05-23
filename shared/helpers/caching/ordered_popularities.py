@@ -1,6 +1,6 @@
 import logging
 import traceback
-from typing import Callable, List
+from typing import Callable
 
 from pymongo import UpdateOne
 from pymongo.database import Database
@@ -19,7 +19,7 @@ logger = logging.getLogger('dreadrise.popularity')
 
 
 def run_ordered_popularities(client: Database, postprocess_playability: Callable[[CardPlayability, str, int], None],
-                             format_order: List[str], formats: List[str]) -> None:
+                             format_order: list[str], formats: list[str]) -> None:
     """
     Calculate the popularity of various cards with ordered formats.
     :return: nothing

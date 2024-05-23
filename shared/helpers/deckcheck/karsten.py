@@ -1,5 +1,5 @@
 from math import ceil
-from typing import Dict, List, Optional, Tuple, cast
+from typing import cast
 
 from shared.card_enums import ManaSymbol
 from shared.core_enums import Distribution
@@ -15,12 +15,12 @@ triple_costs = [-1, -1, 23, 20, 18, 16]
 all_costs = [single_costs, double_costs, triple_costs]
 
 
-def requires_colors(c: Optional[Card], color_combo: ManaSymbol, num: int) -> bool:
+def requires_colors(c: Card | None, color_combo: ManaSymbol, num: int) -> bool:
     if not c:
         return False
 
     faces_fixed = c.faces if c.cast_join() else [c.faces[0]]
-    colors = cast(List[ManaSymbol], color_combo.split('/'))
+    colors = cast(list[ManaSymbol], color_combo.split('/'))
     for i in faces_fixed:
         if '/' in color_combo and color_combo in c.mana_cost:
             return c.mana_cost[color_combo] == num
@@ -40,7 +40,7 @@ def requires_colors(c: Optional[Card], color_combo: ManaSymbol, num: int) -> boo
     return False
 
 
-def get_ij_producers(d: Deck, all_cards: Dict[str, Card], color_combo: str, num: int) -> int:
+def get_ij_producers(d: Deck, all_cards: dict[str, Card], color_combo: str, num: int) -> int:
     cc_split = color_combo.split('/')
     cards = [(x, z) for x, z in d.mainboard.items() if all_cards[x].mana_value <= 3 and
              [y for y in cc_split if y in all_cards[x].produces]]
@@ -54,7 +54,7 @@ def get_ij_producers(d: Deck, all_cards: Dict[str, Card], color_combo: str, num:
     return ceil(creatures / 2 + noncreatures)
 
 
-def check_karsten(dist: Distribution, d: Deck) -> List[Tuple[str, str, int, int]]:
+def check_karsten(dist: Distribution, d: Deck) -> list[tuple[str, str, int, int]]:
     """
     Check the single colored and the double colored costs with up to 3 mana symbols.
     Costs with more than 3 mana symbols (Phyrexian Obliterator) are considered to have 3 symbols.
@@ -64,10 +64,10 @@ def check_karsten(dist: Distribution, d: Deck) -> List[Tuple[str, str, int, int]
     (card_name, mana_symbol, required_sources, given_sources).
     """
     all_cards = load_cards_from_decks(dist, [d])
-    colors: List[ManaSymbol] = ['white', 'blue', 'black', 'red', 'green', 'colorless', 'snow']
-    color_combos: List[ManaSymbol] = ['white/blue', 'blue/black', 'black/red', 'red/green', 'green/white',
+    colors: list[ManaSymbol] = ['white', 'blue', 'black', 'red', 'green', 'colorless', 'snow']
+    color_combos: list[ManaSymbol] = ['white/blue', 'blue/black', 'black/red', 'red/green', 'green/white',
                                       'white/black', 'blue/red', 'black/green', 'red/white', 'green/blue']
-    answer: List[Tuple[str, str, int, int]] = []
+    answer: list[tuple[str, str, int, int]] = []
     multiplier = max(1.0, (sum(d.mainboard.values()) / 60) ** 1.2)
     for i in colors + color_combos:
         for j in range(3):
@@ -84,13 +84,13 @@ def check_karsten(dist: Distribution, d: Deck) -> List[Tuple[str, str, int, int]
     return answer
 
 
-def stringify(u: Tuple[str, str, int, int]) -> str:
+def stringify(u: tuple[str, str, int, int]) -> str:
     color_sym = '{' + u[1].replace('white', 'W').replace('blue', 'U').replace('black', 'B') \
         .replace('red', 'R').replace('green', 'G').replace('snow', 'S').replace('colorless', 'C') + '}'
     return f'<b>{u[0]}</b> - expected {u[2]}x {process_mana_cost_text(color_sym)}, got {u[3]}'
 
 
-def karsten_dict(dist: Distribution, d: Deck) -> Tuple[DeckCheckStatus, List[str], List[str], List[str]]:
+def karsten_dict(dist: Distribution, d: Deck) -> tuple[DeckCheckStatus, list[str], list[str], list[str]]:
     karsten = check_karsten(dist, d)
     errors = [stringify(x) for x in karsten if x[2] - x[3] >= 3]
     warnings = [stringify(x) for x in karsten if 3 > x[2] - x[3] > 0]

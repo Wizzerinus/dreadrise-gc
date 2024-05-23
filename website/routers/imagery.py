@@ -1,7 +1,7 @@
 import io
 import os
 from math import ceil
-from typing import Any, Dict, List, Literal, Optional, Tuple, cast
+from typing import Any, Literal, cast
 
 from flask import Blueprint, Response, abort, request, send_file
 from PIL import Image, ImageDraw, ImageFont
@@ -16,7 +16,7 @@ from website.util import get_dist, split_database
 b_imagery = Blueprint('imagery', __name__)
 
 
-def generate_colors_from_deck(cards: Dict[str, Card], deck: Deck, full_width: int = 150,
+def generate_colors_from_deck(cards: dict[str, Card], deck: Deck, full_width: int = 150,
                               angle: Literal[0, 90, 180, 270] = 0) -> Response:
     counts = {'white': 0, 'blue': 0, 'black': 0, 'red': 0, 'green': 0}
     colors = {'white': (255, 255, 128), 'blue': (0, 0, 200), 'black': (10, 10, 10),
@@ -34,7 +34,7 @@ def generate_colors_from_deck(cards: Dict[str, Card], deck: Deck, full_width: in
     if count_sum:
         normalized_counts = {x: y * full_width / count_sum for x, y in counts.items()}
 
-        stops: List[Tuple[Optional[str], int]] = [(None, 0)]
+        stops: list[tuple[str | None, int]] = [(None, 0)]
         last_stop: float = 0
         for color, n in normalized_counts.items():
             last_stop += n
@@ -54,7 +54,7 @@ def generate_colors_from_deck(cards: Dict[str, Card], deck: Deck, full_width: in
     return send_file(crop_bytes, mimetype='image/png')
 
 
-def generate_curve_from_deck(cards: Dict[str, Card], deck: Deck, full_height: int = 175) -> Response:
+def generate_curve_from_deck(cards: dict[str, Card], deck: Deck, full_height: int = 175) -> Response:
     total_columns = 9  # 0, 1, 2, 3, 4, 5, 6, 7+, X
     counts = [0 for _ in range(total_columns)]
     colors = [(200 - 12 * x, 200 - 12 * x, 200 - 12 * x) for x in range(total_columns)]
@@ -120,7 +120,7 @@ def generate_colors_rotated(db: Database, deck_id: str) -> Response:
 
 @b_imagery.route('/colors', methods=['POST'])
 def generate_colors_api() -> Response:
-    req = cast(Dict[str, Any], request.get_json())
+    req = cast(dict[str, Any], request.get_json())
     deck_list = req['deck_list']
     deck = build_deck(deck_list)
     cards = load_cards_from_decks(get_dist(), [deck])
@@ -140,7 +140,7 @@ def generate_curve(db: Database, deck_id: str, height: int = 175) -> Response:
 
 @b_imagery.route('/curve', methods=['POST'])
 def generate_curve_api() -> Response:
-    req = cast(Dict[str, Any], request.get_json())
+    req = cast(dict[str, Any], request.get_json())
     deck_list = req['deck_list']
     deck = build_deck(deck_list)
     cards = load_cards_from_decks(get_dist(), [deck])

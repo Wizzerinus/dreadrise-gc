@@ -1,5 +1,4 @@
 import re
-from typing import Dict, List, Optional, Set
 
 from shared.card_enums import (CardType, Color, Legality, ManaDict, ManaType, Rarity, basics, card_types, color_order,
                                color_symbols_single, color_symbols_to_colors, mana_types, rarities)
@@ -19,21 +18,21 @@ class CardFace(PseudoType):
     types: str
     main_type: CardType
 
-    colors: List[Color]
+    colors: list[Color]
     colors_len: int
-    cast_colors: List[Color]
+    cast_colors: list[Color]
     cast_colors_len: int
 
-    power: Optional[int] = 0
-    toughness: Optional[int] = 0
-    loyalty: Optional[int] = 0
+    power: int | None = 0
+    toughness: int | None = 0
+    loyalty: int | None = 0
 
     image: str
-    produces: List[ManaType]
+    produces: list[ManaType]
     produces_len: int
 
     def process_produces(self) -> None:
-        produces_set: Set[ManaType] = set()
+        produces_set: set[ManaType] = set()
         if 'Land' in self.types:
             for k, v in basics.items():
                 if k in self.types:
@@ -128,19 +127,19 @@ class Card(PseudoType):
     def get_name_from_faces(self) -> str:
         return ' // '.join([x.name for x in self.faces]) if self.name_join() else self.faces[0].name
 
-    faces: List[CardFace]
+    faces: list[CardFace]
     layout: str  # impossible to make this an enum due to database differences
-    color_identity: List[Color]
+    color_identity: list[Color]
     color_identity_len: int
 
-    sets: List[str]
-    rarities: List[Rarity]
+    sets: list[str]
+    rarities: list[Rarity]
     min_rarity: Rarity
     max_rarity: Rarity
     min_rarity_n: int
     max_rarity_n: int
-    categories: List[str]  # impossible to make this an enum due to database differences
-    legality: Dict[str, Legality]
+    categories: list[str]  # impossible to make this an enum due to database differences
+    legality: dict[str, Legality]
     max_count: int
 
     name: str
@@ -152,24 +151,24 @@ class Card(PseudoType):
     t_oracle: str
     types: str
     main_type: CardType
-    keywords: List[str] = []
+    keywords: list[str] = []
 
-    colors: List[Color]
+    colors: list[Color]
     colors_len: int
-    cast_colors: List[Color]
+    cast_colors: list[Color]
     cast_colors_len: int
     color_order: int
 
-    power: Optional[int] = 0
-    toughness: Optional[int] = 0
-    loyalty: Optional[int] = 0
+    power: int | None = 0
+    toughness: int | None = 0
+    loyalty: int | None = 0
 
     image: str
-    produces: List[ManaType]
+    produces: list[ManaType]
     produces_len: int
 
     singular_name: str
-    fixed_faces: List[CardFace]
+    fixed_faces: list[CardFace]
     processed_oracle: str
     processed_mana_cost: str
 

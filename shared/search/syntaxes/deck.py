@@ -1,4 +1,4 @@
-from typing import Any, Dict, List, Tuple
+from typing import Any
 
 from shared.helpers.exceptions import SearchSyntaxError
 from shared.helpers.util import ireg
@@ -76,11 +76,11 @@ class SearchSyntaxDeck(SearchSyntax):
         self.add_func('color', color_func, 'Search the deck\'s colors.', ['col'])
 
     @staticmethod
-    def get_winrate_facet() -> List[Dict[str, Any]]:
+    def get_winrate_facet() -> list[dict[str, Any]]:
         winrate = {'$group': {'_id': None, 'wins': {'$sum': '$wins'}, 'losses': {'$sum': '$losses'}}}
         return [winrate, {'$project': {'_id': 0}}]
 
-    def parse(self, data: str, context: dict) -> Tuple[dict, dict]:
+    def parse(self, data: str, context: dict) -> tuple[dict, dict]:
         d1, d2 = super().parse(data, context)
         context['facets']['winrate'] = self.get_winrate_facet()
         context['sort'].append('date~-1')

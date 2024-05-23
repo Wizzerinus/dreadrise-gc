@@ -1,5 +1,4 @@
 import re
-from typing import List
 
 from shared.types.card import Card
 
@@ -52,7 +51,7 @@ def generate_regexes() -> None:
     generated_regexes['lilia'] = re.compile(lilia_regex_str, re.I)
 
 
-def add_card_categories(c: Card) -> List[str]:
+def add_card_categories(c: Card) -> list[str]:
     """
     Add card categories to a card object inplace.
     :param c: the card to modify
@@ -65,7 +64,7 @@ def add_card_categories(c: Card) -> List[str]:
     first_half_type = c.types.split(' // ')[0]
     # reminder_regex = re.compile(r'\((.+?)\)')
     # no_reminder_oracle = re.sub(reminder_regex, '', lower_oracle)
-    categories: List[str] = []
+    categories: list[str] = []
     if c.mana_value in [0, 1, 3]:
         categories.append('hugo')
 

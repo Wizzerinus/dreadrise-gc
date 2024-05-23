@@ -1,7 +1,6 @@
 import logging
 from threading import Thread
 from traceback import print_exc
-from typing import Dict
 
 from pymongo.errors import OperationFailure
 
@@ -43,7 +42,7 @@ def update_cards() -> None:
     logger.info('Update complete.')
 
 
-def create_competition(data: dict, card_cache: MaybeCC = None) -> Dict[str, Card]:
+def create_competition(data: dict, card_cache: MaybeCC = None) -> dict[str, Card]:
     from .jobs.scrape_decks import run_json
 
     logger.info('Updating decks...')

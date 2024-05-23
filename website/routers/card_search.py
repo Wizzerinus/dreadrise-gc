@@ -1,5 +1,5 @@
 from math import ceil
-from typing import Any, Dict, List, cast
+from typing import Any, cast
 
 from flask import Blueprint, render_template, request
 from pymongo.database import Database
@@ -19,8 +19,8 @@ def card_search() -> str:
 
 @b_card_search_api.route('/cards', methods=['POST'])
 @split_database
-def api_card_search(db: Database) -> Dict[str, Any]:
-    req = cast(Dict[str, Any], request.get_json())
+def api_card_search(db: Database) -> dict[str, Any]:
+    req = cast(dict[str, Any], request.get_json())
     query = cast(str, req['query'])
     current_page = cast(int, req['page'])
     page_size = cast(int, req['page_size'])
@@ -43,9 +43,9 @@ def api_card_search(db: Database) -> Dict[str, Any]:
 
 @b_card_search_api.route('/card-defs', methods=['POST'])
 @split_database
-def api_card_defs(db: Database) -> Dict[str, Any]:
-    req = cast(Dict[str, Any], request.get_json())
-    card_list = cast(List[str], req['list'])
+def api_card_defs(db: Database) -> dict[str, Any]:
+    req = cast(dict[str, Any], request.get_json())
+    card_list = cast(list[str], req['list'])
     field = cast(str, req['field'])
     if len(card_list) > 70:
         return {}
@@ -53,7 +53,7 @@ def api_card_defs(db: Database) -> Dict[str, Any]:
 
 
 @b_card_search_api.route('/syntax')
-def api_card_search_syntax() -> Dict[str, List[str]]:
+def api_card_search_syntax() -> dict[str, list[str]]:
     constants = split_import()
     funcs_dict = constants.CardSearchSyntax().funcs
     funcs = [format_func(x, y) for x, y in funcs_dict.items()]

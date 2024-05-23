@@ -1,5 +1,3 @@
-from typing import List, Union
-
 import pyparsing as pp
 
 from shared.card_enums import color_symbols_to_colors, colors, colors_single, mana_symbols
@@ -18,10 +16,10 @@ def mana_cost_filter() -> pp.OneOrMore:
     return pp.OneOrMore(symbol)
 
 
-def get_mana_cost(query: str) -> List[Union[int, str]]:
+def get_mana_cost(query: str) -> list[int | str]:
     syntax = mana_cost_filter()
 
-    ans: List[Union[int, str]] = []
+    ans: list[int | str] = []
     for i in syntax.parse_string(query.upper()):
         if isinstance(i, int):
             ans.append(i)

@@ -1,5 +1,5 @@
 import re
-from typing import List, Type, TypeVar, cast
+from typing import TypeVar, cast
 
 import arrow
 
@@ -28,7 +28,7 @@ C = TypeVar('C', bound=Card)
 F = TypeVar('F', bound=CardFace)
 
 
-def build_card_face(fcls: Type[F], d1: dict, d2: dict) -> F:
+def build_card_face(fcls: type[F], d1: dict, d2: dict) -> F:
     cf = fcls()
     cf.name = get('name', d1, d2)
     cf.mana_cost_str = get('mana_cost', d1, d2)
@@ -55,7 +55,7 @@ def build_card_face(fcls: Type[F], d1: dict, d2: dict) -> F:
     return cf
 
 
-def build_card(i: dict, formats: List[str], fcs: List[FormatCache], ccls: Type[C], fcls: Type[F]) -> C:
+def build_card(i: dict, formats: list[str], fcs: list[FormatCache], ccls: type[C], fcls: type[F]) -> C:
     c = ccls()
     c.layout = i['layout'].lower()
     if 'card_faces' in i:

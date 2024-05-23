@@ -1,10 +1,10 @@
-from typing import Any, List, Union
+from typing import Any
 
 import pyparsing as pp
 
 pp.ParserElement.enable_left_recursion()
 
-default_separators: List[str] = ['=', ':', '>', '<', '>=', '<=']
+default_separators: list[str] = ['=', ':', '>', '<', '>=', '<=']
 
 
 class SearchToken:
@@ -14,7 +14,7 @@ class SearchToken:
     invert: bool = False
     magic: str = ''
 
-    def __init__(self, data: Union[List[str], str]):
+    def __init__(self, data: str | list[str]):
         if isinstance(data, str):
             data = [data]
         if len(data) >= 1:
@@ -58,7 +58,7 @@ class SearchGroup:
 
 
 class _SearchToken(pp.Or):
-    def __init__(self, separators: List[str] = None):
+    def __init__(self, separators: list[str] | None = None):
         if separators is None:
             separators = default_separators
         alphanums = pp.alphanums + '-_@/~,.\'#'

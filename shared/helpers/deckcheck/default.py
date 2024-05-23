@@ -1,12 +1,11 @@
 from itertools import chain
-from typing import Dict, Tuple
 
 from shared.helpers.deckcheck.core import DeckCheckStatus, deck_check_statuses
 from shared.types.card import Card
 from shared.types.deck import Deck
 
 
-def check_maindeck_size(d: Deck, c: Dict[str, Card]) -> Tuple[DeckCheckStatus, str]:
+def check_maindeck_size(d: Deck, c: dict[str, Card]) -> tuple[DeckCheckStatus, str]:
     count = sum([x for x in d.mainboard.values()])
     expected_size = 100 if 'EDH' in d.format.upper() or 'COMMANDER' in d.format.upper() else 60
     force_upper = expected_size == 100
@@ -17,7 +16,7 @@ def check_maindeck_size(d: Deck, c: Dict[str, Card]) -> Tuple[DeckCheckStatus, s
     return deck_check_statuses[0], ''
 
 
-def check_max_count(d: Deck, c: Dict[str, Card]) -> Tuple[DeckCheckStatus, str]:
+def check_max_count(d: Deck, c: dict[str, Card]) -> tuple[DeckCheckStatus, str]:
     main_side_sum = {}
     for x, y in d.mainboard.items():
         main_side_sum[x] = y
@@ -33,7 +32,7 @@ def check_max_count(d: Deck, c: Dict[str, Card]) -> Tuple[DeckCheckStatus, str]:
     return deck_check_statuses[0], ''
 
 
-def check_sideboard_size(d: Deck, c: Dict[str, Card]) -> Tuple[DeckCheckStatus, str]:
+def check_sideboard_size(d: Deck, c: dict[str, Card]) -> tuple[DeckCheckStatus, str]:
     card_count = sum([x for x in d.sideboard.values()])
     expected_size = 0 if 'EDH' in d.format.upper() or 'COMMANDER' in d.format.upper() else 15
     if card_count < expected_size:
@@ -43,7 +42,7 @@ def check_sideboard_size(d: Deck, c: Dict[str, Card]) -> Tuple[DeckCheckStatus, 
     return deck_check_statuses[0], ''
 
 
-def check_general_legality(d: Deck, c: Dict[str, Card]) -> Tuple[DeckCheckStatus, str]:
+def check_general_legality(d: Deck, c: dict[str, Card]) -> tuple[DeckCheckStatus, str]:
     bad = ['banned', 'not_legal']
     bad_cards = [x for x in d.mainboard if x not in c or c[x].legality.get(d.format, '') in bad]
     bad_sb_cards = [x + ' (sideboard)' for x in d.sideboard if x not in c or c[x].legality.get(d.format, '') in bad]
@@ -52,7 +51,7 @@ def check_general_legality(d: Deck, c: Dict[str, Card]) -> Tuple[DeckCheckStatus
     return deck_check_statuses[0], ''
 
 
-def check_restricted_list(d: Deck, c: Dict[str, Card]) -> Tuple[DeckCheckStatus, str]:
+def check_restricted_list(d: Deck, c: dict[str, Card]) -> tuple[DeckCheckStatus, str]:
     bad_cards = [x for x in chain(d.mainboard.keys(), d.sideboard.keys()) if x in c and
                  c[x].legality.get(d.format, '') == 'restricted' and d.mainboard.get(x, 0) + d.sideboard.get(x, 0) > 1]
     if bad_cards:

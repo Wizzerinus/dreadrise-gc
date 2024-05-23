@@ -1,5 +1,5 @@
 from math import ceil
-from typing import Any, Dict, List, cast
+from typing import Any, cast
 
 import arrow
 from flask import Blueprint, render_template, request
@@ -26,8 +26,8 @@ def matchup_search() -> str:
 
 @b_deck_search_api.route('/decks', methods=['POST'])
 @split_database
-def api_card_search(db: Database) -> Dict[str, Any]:
-    req = cast(Dict[str, Any], request.get_json())
+def api_card_search(db: Database) -> dict[str, Any]:
+    req = cast(dict[str, Any], request.get_json())
     query = cast(str, req['query'])
     cpage = cast(int, req['page'])
     page_size = cast(int, req['page_size'])
@@ -69,8 +69,8 @@ def api_card_search(db: Database) -> Dict[str, Any]:
 
 @b_deck_search_api.route('/matchups', methods=['POST'])
 @split_database
-def api_matchup_search(db: Database) -> Dict[str, Any]:
-    req = cast(Dict[str, Any], request.get_json())
+def api_matchup_search(db: Database) -> dict[str, Any]:
+    req = cast(dict[str, Any], request.get_json())
     q1 = cast(str, req['q1'])
     q2 = cast(str, req['q2'])
     current_page = cast(int, req['page'])
@@ -80,7 +80,7 @@ def api_matchup_search(db: Database) -> Dict[str, Any]:
         constants = split_import()
         dss = constants.DeckSearchSyntax()
         hero, ef_hero, dd_hero = dss.create_pipeline(q1, page_size, current_page * page_size)
-        intermediate: List[Dict[str, Any]] = [
+        intermediate: list[dict[str, Any]] = [
             {'$unwind': '$games'},
             {'$lookup': {'from': 'decks', 'localField': 'games.opposing_deck_id',
                          'foreignField': 'deck_id', 'as': 'enemy'}},
@@ -146,7 +146,7 @@ def api_matchup_search(db: Database) -> Dict[str, Any]:
 
 
 @b_deck_search_api.route('/syntax')
-def api_deck_search_syntax() -> Dict[str, List[str]]:
+def api_deck_search_syntax() -> dict[str, list[str]]:
     constants = split_import()
     funcs_dict = constants.DeckSearchSyntax().funcs
     funcs = [format_func(x, y) for x, y in funcs_dict.items()]

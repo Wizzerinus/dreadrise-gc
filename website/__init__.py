@@ -1,9 +1,9 @@
 import logging
-from typing import Any, Callable, Dict, List, Tuple, cast
+from typing import Any, Callable, cast
 
 import yaml
 from flask import Flask, Response, g, render_template, request
-from jinja2 import Markup
+from markupsafe import Markup
 
 from shared.core_enums import Distribution, distribution_localization, distributions
 from shared.helpers import configuration
@@ -64,9 +64,9 @@ app.register_blueprint(b_imagery, url_prefix='/imagery')
 app.register_blueprint(b_gateway, url_prefix='/api/gateway')
 
 
-def find_random_card(dist: Distribution, txt: str, default: str) -> Tuple[str, str]:
+def find_random_card(dist: Distribution, txt: str, default: str) -> tuple[str, str]:
     db = connect(dist)
-    pipeline: List[Dict[str, Any]] = [{'$match': {'card_id': {'$regex': txt}}},
+    pipeline: list[dict[str, Any]] = [{'$match': {'card_id': {'$regex': txt}}},
                                       {'$project': {'name': 1, 'card_id': 1}}, {'$sample': {"size": 1}}]
 
     for aggregated in db.cards.aggregate(pipeline):
@@ -101,13 +101,13 @@ def page_error(*args: Any):  # type: ignore
 
 
 @app.context_processor
-def inject_configuration() -> Dict[str, Any]:
+def inject_configuration() -> dict[str, Any]:
     cdist = get_dist()
     stuff = split_import()
     formats = stuff.Formats
     localization = stuff.FormatLocalization
 
-    def split_legality(ld: Dict) -> List[Tuple[str, str, str]]:
+    def split_legality(ld: dict) -> list[tuple[str, str, str]]:
         return [(localization[x], ld[x].replace('_', ' '), get_legality_color(ld[x])) for x in formats if x in ld]
 
     return {

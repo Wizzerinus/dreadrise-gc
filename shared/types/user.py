@@ -1,4 +1,4 @@
-from typing import Any, Dict
+from typing import Any
 
 from shared.helpers.util import clean_name
 from shared.types.pseudotype import PseudoType
@@ -9,7 +9,7 @@ class UserPrivileges(PseudoType):
     deck_admin: bool = False
     deck_mod: bool = False
 
-    def serialize(self) -> Dict[str, bool]:
+    def serialize(self) -> dict[str, bool]:
         data = {
             'full_admin': self.full_admin or False,
             'deck_admin': self.full_admin or self.deck_admin or False,
@@ -38,6 +38,6 @@ class User(PseudoType):
         if not self.user_id:
             self.user_id = clean_name(self.nickname)
 
-    def serialize(self) -> Dict[str, Any]:
+    def serialize(self) -> dict[str, Any]:
         return {'user_id': self.user_id, 'nickname': self.nickname,
                 'privileges': self.privileges.serialize() if self.privileges else []}

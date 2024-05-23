@@ -1,5 +1,5 @@
 from abc import abstractmethod
-from typing import Any, Callable, List, Optional
+from typing import Any, Callable
 
 import arrow
 
@@ -15,7 +15,7 @@ class SearchFunctionExact(SearchFunction):
         super().__init__()
         self.name = name
 
-    def process(self, tok: SearchToken, context: dict) -> Optional[dict]:
+    def process(self, tok: SearchToken, context: dict) -> dict | None:
         return {self.name: {'$eq': tok.value}}
 
 
@@ -24,7 +24,7 @@ class SearchFunctionArray(SearchFunction):
         super().__init__()
         self.name = name
 
-    def process(self, tok: SearchToken, context: dict) -> Optional[dict]:
+    def process(self, tok: SearchToken, context: dict) -> dict | None:
         return {self.name: {'$in': tok.value}}
 
 
@@ -33,7 +33,7 @@ class SearchFunctionDict(SearchFunction):
         super().__init__()
         self.name = name
 
-    def process(self, tok: SearchToken, context: dict) -> Optional[dict]:
+    def process(self, tok: SearchToken, context: dict) -> dict | None:
         return {f'{self.name}.{tok.value}': {'$exists': 1}}
 
 
@@ -42,7 +42,7 @@ class SearchFunctionString(SearchFunction):
         super().__init__()
         self.name = name
 
-    def process(self, tok: SearchToken, context: dict) -> Optional[dict]:
+    def process(self, tok: SearchToken, context: dict) -> dict | None:
         val = tok.value if tok.comparator != '=' else f'^{tok.value}$'
         return {self.name: ireg(val)}
 
@@ -52,7 +52,7 @@ class SearchFunctionInt(SearchFunction):
         super().__init__()
         self.name = name
 
-    def process(self, tok: SearchToken, context: dict) -> Optional[dict]:
+    def process(self, tok: SearchToken, context: dict) -> dict | None:
         try:
             num = int(tok.value)
         except ValueError:
@@ -67,7 +67,7 @@ class SearchFunctionFloat(SearchFunction):
         super().__init__()
         self.name = name
 
-    def process(self, tok: SearchToken, context: dict) -> Optional[dict]:
+    def process(self, tok: SearchToken, context: dict) -> dict | None:
         try:
             num = float(tok.value)
         except ValueError:
@@ -78,7 +78,7 @@ class SearchFunctionFloat(SearchFunction):
 
 
 class SearchFunctionArrayValidator(SearchFunction):
-    def __init__(self, targets: List[str]):
+    def __init__(self, targets: list[str]):
         super().__init__()
         self.targets = targets
 
@@ -98,10 +98,10 @@ class SearchFunctionArrayValidator(SearchFunction):
     def contains(self, target: str, tok: SearchToken) -> bool:
         pass
 
-    def process(self, tok: SearchToken, context: dict) -> Optional[dict]:
-        all_required_greater_or_equal: List[dict] = []
-        some_required_greater: List[dict] = []
-        some_reverse_exists: List[dict] = []
+    def process(self, tok: SearchToken, context: dict) -> dict | None:
+        all_required_greater_or_equal: list[dict] = []
+        some_required_greater: list[dict] = []
+        some_reverse_exists: list[dict] = []
 
         for i in self.targets:
             if self.contains(i, tok):
@@ -122,7 +122,7 @@ class SearchFunctionArrayValidator(SearchFunction):
 
 
 class SearchFunctionBitmap(SearchFunctionArrayValidator):
-    def __init__(self, name: str, targets: List[str]):
+    def __init__(self, name: str, targets: list[str]):
         super().__init__(targets)
         self.name = name
 
@@ -140,7 +140,7 @@ class SearchFunctionBitmap(SearchFunctionArrayValidator):
 
 
 class SearchFunctionZeroList(SearchFunctionArrayValidator):
-    def __init__(self, name: str, targets: List[str]):
+    def __init__(self, name: str, targets: list[str]):
         super().__init__(targets)
         self.name = name
 
@@ -199,7 +199,7 @@ class SearchTransformerDelay(SearchTransformer):
 
 
 class SearchFunctionColor(SearchFunction):
-    def __init__(self, name: str, targets: List[str] = None, using_zerolist: bool = False):
+    def __init__(self, name: str, targets: list[str] | None = None, using_zerolist: bool = False):
         super().__init__()
         if not targets:
             targets = ['white', 'blue', 'black', 'red', 'green'] if not using_zerolist else ['0', '1', '2', '3', '4']
@@ -245,6 +245,6 @@ class SearchFunctionStringArray(SearchFunction):
         super().__init__()
         self.name = name
 
-    def process(self, tok: SearchToken, context: dict) -> Optional[dict]:
+    def process(self, tok: SearchToken, context: dict) -> dict | None:
         val = tok.value if tok.comparator != '=' else f'^{tok.value}$'
         return {self.name: {'$elemMatch': ireg(val)}}

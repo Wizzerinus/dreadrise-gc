@@ -1,5 +1,4 @@
 import logging
-from typing import Dict
 
 from pymongo import UpdateOne
 
@@ -15,9 +14,9 @@ logger = logging.getLogger('dreadrise.migration')
 def run_migration(dist: Distribution) -> None:
     db = connect(dist)
     logger.info('Loading cards...')
-    cards: Dict[str, Card] = {x['name']: Card().load(x) for x in db.cards.find()}
+    cards: dict[str, Card] = {x['name']: Card().load(x) for x in db.cards.find()}
     logger.info('Loading decks...')
-    decks: Dict[str, Deck] = {x['deck_id']: Deck().load(x) for x in db.decks.find()}
+    decks: dict[str, Deck] = {x['deck_id']: Deck().load(x) for x in db.decks.find()}
     logger.info(f'{len(decks)} decks loaded.')
 
     operation = []

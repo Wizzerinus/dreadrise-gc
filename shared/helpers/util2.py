@@ -2,7 +2,7 @@ import io
 import logging
 import re
 from importlib import import_module
-from typing import Callable, Dict, List, Tuple, Union, cast
+from typing import Callable, cast
 
 from PIL import Image
 
@@ -18,7 +18,7 @@ logger = logging.getLogger('dreadrise.util')
 reminder_regex = re.compile(r' \((.+?)\)')
 
 
-def build_deck(deck_list: List[Tuple[int, str, int, bool, int]]) -> Deck:
+def build_deck(deck_list: list[tuple[int, str, int, bool, int]]) -> Deck:
     """
     Create a deck from the deck builder deck definition.
     :param deck_list: the deck builder definition.
@@ -55,14 +55,14 @@ def update_distributions() -> None:
                 logger.info(f'Update function for {i} does not exist')
 
 
-def get_card_sorter(cards: Dict[str, Card]) -> Callable[[str], Tuple[int, str]]:
+def get_card_sorter(cards: dict[str, Card]) -> Callable[[str], tuple[int, str]]:
     """
     Create the function sorting cards.
     :param cards: the card dictionary the cards should be drawn from
     :return: the resulting function, can be used as the key parameter
     """
 
-    def card_sorter(name: str) -> Tuple[int, str]:
+    def card_sorter(name: str) -> tuple[int, str]:
         if name not in cards:
             return -1, name
 
@@ -77,7 +77,7 @@ def get_card_sorter(cards: Dict[str, Card]) -> Callable[[str], Tuple[int, str]]:
     return card_sorter
 
 
-def calculate_color_data(deck: Deck, cards: Dict[str, Card]) -> List[float]:
+def calculate_color_data(deck: Deck, cards: dict[str, Card]) -> list[float]:
     """
     Calculate the color data for a deck.
     :param deck: the deck in question
@@ -100,7 +100,7 @@ def calculate_color_data(deck: Deck, cards: Dict[str, Card]) -> List[float]:
     return [x / count_sum for x in counts]
 
 
-def print_card(card: Union[dict, Card]) -> str:
+def print_card(card: dict | Card) -> str:
     true_card = Card().load(card) if isinstance(card, dict) else card
     card_face = true_card.faces[0]
     name, cost, oracle = card_face.name, card_face.mana_cost_str, card_face.oracle
@@ -115,7 +115,7 @@ def print_card(card: Union[dict, Card]) -> str:
     return f'{name} {cost} {power_text}\n{ctype}\n{oracle}'
 
 
-def compare_cards(card1: Union[dict, Card], card2: Union[dict, Card], expansions: Dict[str, Expansion] = None) -> str:
+def compare_cards(card1: dict | Card, card2: dict | Card, expansions: dict[str, Expansion] | None = None) -> str:
     """
     Compares two cards on having identical text. If expansion dict is passed, assumes the first card can be different
     from the second one if its first print is earlier. Otherwise, assumes the cards must be identical.

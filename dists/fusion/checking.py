@@ -1,12 +1,11 @@
 from itertools import chain
-from typing import Dict, Tuple
 
 from shared.helpers.deckcheck.core import DeckCheckStatus, deck_check_statuses
 from shared.types.card import Card
 from shared.types.deck import Deck
 
 
-def check_fusion_legality(d: Deck, c: Dict[str, Card]) -> Tuple[DeckCheckStatus, str]:
+def check_fusion_legality(d: Deck, c: dict[str, Card]) -> tuple[DeckCheckStatus, str]:
     if d.format != 'fusion':
         return deck_check_statuses[0], ''
 

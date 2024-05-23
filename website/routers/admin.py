@@ -1,5 +1,5 @@
 from logging import getLogger
-from typing import Any, Dict, List, cast
+from typing import Any, cast
 
 from flask import Blueprint, flash, g, redirect, render_template, request, url_for
 from pymongo.database import Database
@@ -78,7 +78,7 @@ def rerun_all_rules(db: Database) -> Response:
 @split_database
 def tag_manager(db: Database) -> str:
     tags = [DeckTag().load(x) for x in db.deck_tags.find()]
-    rules: List[DeckRule] = [TextDeckRule().load(x) for x in db.text_deck_rules.find({'text': {'$ne': ''}})]
+    rules: list[DeckRule] = [TextDeckRule().load(x) for x in db.text_deck_rules.find({'text': {'$ne': ''}})]
     rules += [ColorDeckRule().load(x) for x in db.color_deck_rules.find()]
     tag_dict = {x.tag_id: (x, 0) for x in tags}
     for i in rules:
@@ -107,10 +107,10 @@ def rule_manager(db: Database) -> str:
 @privileges_required(['full_admin'])
 @requires_module('admin')
 @split_database
-def find_users(db: Database) -> Dict[str, Any]:
-    req = cast(Dict[str, str], request.get_json())
+def find_users(db: Database) -> dict[str, Any]:
+    req = cast(dict[str, str], request.get_json())
     st = req['query']
-    query: Dict[str, Any] = {'$or': [
+    query: dict[str, Any] = {'$or': [
         {'nickname': ireg(st)},
         {'login': ireg(st)}
     ]}
@@ -134,7 +134,7 @@ def find_users(db: Database) -> Dict[str, Any]:
 @requires_module('admin')
 @split_database
 def bind_users(db: Database) -> Response:
-    req = cast(Dict[str, str], request.get_json())
+    req = cast(dict[str, str], request.get_json())
     u1, u2 = req['with_login'], req['with_no_login']
     u1_obj, u2_obj = db.users.find_one({'user_id': u1}), db.users.find_one({'user_id': u2})
     if not u1_obj or not u2_obj:
@@ -155,7 +155,7 @@ def bind_users(db: Database) -> Response:
 @requires_module('admin')
 @split_database
 def manage_privileges(db: Database) -> Response:
-    req = cast(Dict[str, str], request.get_json())
+    req = cast(dict[str, str], request.get_json())
     uid, privs_str = req['id'], req['new_privs']
     current_user = g.actual_session['user']['user_id']
     if uid == current_user:
@@ -185,7 +185,7 @@ def manage_privileges(db: Database) -> Response:
 @requires_module('admin')
 @split_database
 def change_nickname(db: Database) -> Response:
-    req = cast(Dict[str, str], request.get_json())
+    req = cast(dict[str, str], request.get_json())
     uid, new_name = req['id'], req['new_name']
     user_with_name = db.users.find_one({'nickname': new_name})
     if user_with_name:
@@ -205,7 +205,7 @@ def change_nickname(db: Database) -> Response:
 @requires_module('archetyping')
 @split_database
 def create_deck_tag(db: Database) -> Response:
-    req: Dict[str, str] = request.form
+    req: dict[str, str] = request.form
     tag_name, tag_desc, tag_archetype = req['tag_name'], req['tag_desc'], req['tag_archetype']
     if len(tag_name) < 3:
         flash('Tag name is too short!')
@@ -261,7 +261,7 @@ def delete_deck_tag(db: Database, tag_id: str) -> Response:
 @requires_module('archetyping')
 @split_database
 def create_rules(db: Database) -> Response:
-    req: Dict[str, str] = request.form
+    req: dict[str, str] = request.form
     tag_name = req['tag_name']
     tag_id = clean_name(tag_name)
     tag = db.deck_tags.find_one({'tag_id': tag_id})
@@ -269,7 +269,7 @@ def create_rules(db: Database) -> Response:
         flash('Wrong tag ID!')
         return redirect(url_for('admin.rule_manager'))
 
-    already_existing = db.text_deck_rules.find({'tag_id': tag_id}).count()
+    already_existing = db.text_deck_rules.count_documents({'tag_id': tag_id})
     new_rules = []
     for i in range(3):
         new_rule = TextDeckRule()
@@ -287,7 +287,7 @@ def create_rules(db: Database) -> Response:
 @requires_module('archetyping')
 @split_database
 def update_rule(db: Database) -> Response:
-    req: Dict[str, str] = request.form
+    req: dict[str, str] = request.form
     rule_id, priority, rule_text = req['rule_id'], req['priority'], req['rule_text']
 
     rule = db.text_deck_rules.find_one({'rule_id': rule_id})

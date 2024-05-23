@@ -1,6 +1,6 @@
 import logging
 import traceback
-from typing import Callable, Dict, Optional
+from typing import Callable
 
 from pymongo import UpdateOne
 from pymongo.database import Database
@@ -21,7 +21,7 @@ logger = logging.getLogger('dreadrise.popularity')
 
 def run_all_popularities(client: Database, postprocess_playability: Callable[[CardPlayability, str, int], None],
                          time_check: Callable[[Deck], bool] = lambda a: True,
-                         card_cache: Optional[Dict[str, Card]] = None) -> None:
+                         card_cache: dict[str, Card] | None = None) -> None:
     """
     Calculate the popularity of various cards.
     :return: nothing

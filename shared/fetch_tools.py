@@ -2,7 +2,7 @@ import json
 import logging
 import time
 import urllib.request
-from typing import Any, Dict, Optional, Union, cast
+from typing import Any, cast
 
 import requests
 
@@ -11,8 +11,8 @@ from shared.helpers.exceptions import FetchError
 logger = logging.getLogger('dreadrise.fetcher')
 
 
-def fetch_core(url: str, character_encoding: Optional[str] = None, force: bool = False, retry: bool = True,
-               session: Optional[requests.Session] = None, is_bytes: bool = False) -> Union[str, bytes]:
+def fetch_core(url: str, character_encoding: str | None = None, force: bool = False, retry: bool = True,
+               session: requests.Session | None = None, is_bytes: bool = False) -> str | bytes:
     headers = {}
     if force:
         headers['Cache-Control'] = 'no-cache'
@@ -56,7 +56,7 @@ def fetch_bytes(*args: Any, **kwargs: Any) -> bytes:
     return cast(bytes, fetch_core(*args, **kwargs))
 
 
-def fetch_json(url: str, character_encoding: Optional[str] = None, session: Optional[requests.Session] = None) -> Any:
+def fetch_json(url: str, character_encoding: str | None = None, session: requests.Session | None = None) -> Any:
     try:
         blob = fetch_core(url, character_encoding, session=session)
         if blob:
@@ -66,7 +66,7 @@ def fetch_json(url: str, character_encoding: Optional[str] = None, session: Opti
         raise FetchError(e) from e
 
 
-def post(url: str, data: Optional[Dict[str, str]] = None, json_data: Any = None) -> str:
+def post(url: str, data: dict[str, str] | None = None, json_data: Any = None) -> str:
     logger.info(f'POSTing to {url} with {data} / {json_data}')
     try:
         response = requests.post(url, data=data, json=json_data)

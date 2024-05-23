@@ -3,7 +3,7 @@ name: Deploy to PDM
 on:
   push:
     branches:
-      - master
+      - temp   # master
 
 jobs:
   deploy:

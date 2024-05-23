@@ -1,5 +1,4 @@
 import logging
-from typing import Dict, List, Tuple
 
 from shared.types.caching import CardPlayability
 from shared.types.card import Card
@@ -8,12 +7,12 @@ from shared.types.deck import Deck
 logger = logging.getLogger('dreadrise.popularity.playability')
 
 
-def run_playability(fmt: str, g_cards: Dict[str, Card], g_decks: List[Deck]) -> List[CardPlayability]:
+def run_playability(fmt: str, g_cards: dict[str, Card], g_decks: list[Deck]) -> list[CardPlayability]:
     decks_in_format = [x for x in g_decks if x.format == fmt] if fmt != '_all' else g_decks
     logger.info('Staple calculation: fast way')
     card_stuff = [(x, z.wins, z.losses) for z in decks_in_format for x in z.mainboard if x in g_cards]
-    counter: Dict[str, CardPlayability] = {}
-    wins_losses: Dict[str, Tuple[int, int]] = {}
+    counter: dict[str, CardPlayability] = {}
+    wins_losses: dict[str, tuple[int, int]] = {}
     for card_name, wins, losses in card_stuff:
         cp = counter.get(card_name, None)
         if not cp:

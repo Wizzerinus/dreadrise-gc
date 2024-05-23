@@ -1,4 +1,4 @@
-from typing import Callable, Dict, List, Literal, Tuple, get_args
+from typing import Callable, Literal, get_args
 
 from shared.core_enums import Distribution
 from shared.helpers.db_loader import load_cards_from_decks
@@ -6,12 +6,12 @@ from shared.types.card import Card
 from shared.types.deck import Deck
 
 DeckCheckStatus = Literal['Success!', 'Warnings found!', 'Errors found!']
-deck_check_statuses: Tuple[DeckCheckStatus, ...] = get_args(DeckCheckStatus)
+deck_check_statuses: tuple[DeckCheckStatus, ...] = get_args(DeckCheckStatus)
 
 
 def deck_check(dist: Distribution, d: Deck,
-               checkers: List[Callable[[Deck, Dict[str, Card]], Tuple[DeckCheckStatus, str]]]) -> \
-        Tuple[DeckCheckStatus, List[str], List[str], List[str]]:
+               checkers: list[Callable[[Deck, dict[str, Card]], tuple[DeckCheckStatus, str]]]) -> \
+        tuple[DeckCheckStatus, list[str], list[str], list[str]]:
     errors = []
     warnings = []
     messages = []
