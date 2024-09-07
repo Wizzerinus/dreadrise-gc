@@ -38,6 +38,8 @@ def process_mana_cost(cost: str) -> list[ManaSymbol]:
 
             if b == 'P' and a in colors_single:
                 ans.append(cast(ManaSymbol, 'p' + color_symbols_to_colors[a]))
+            elif a == 'C' and b in colors_single:
+                ans.append(cast(ManaSymbol, 'c' + color_symbols_to_colors[b]))
             elif (a == '2' or a in colors_single) and b in colors_single:
                 a = color_symbols_to_colors[a] if a != '2' else a
                 b = color_symbols_to_colors[b]
@@ -131,7 +133,6 @@ def process_oracle(o: str) -> str:
 
 def process_mana_cost_text(o: str) -> str:
     letters = {
-        'P': 'two life',
         'W': 'one white mana',
         'U': 'one blue mana',
         'B': 'one black mana',
@@ -142,7 +143,10 @@ def process_mana_cost_text(o: str) -> str:
         'Q': 'untap this permanent',
         'X': 'any amount of generic mana',
         'C': 'one colorless mana',
-        'E': 'one energy counter'
+        'E': 'one energy counter',
+        'P': 'paw',
+        'V': 'star',
+        'Vp': 'one prismatic mana',
     }
 
     number_words = ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten',
@@ -169,7 +173,7 @@ def process_mana_cost_text(o: str) -> str:
     o = re.sub(trisplit, replace, o)
     multicolor_regex = re.compile(r'{(.)/(.)}')
     o = re.sub(multicolor_regex, replace, o)
-    singlecolor_regex = re.compile(r'{(.)}')
+    singlecolor_regex = re.compile(r'{(.{1,2})}')
     o = re.sub(singlecolor_regex, replace, o)
     # loyalty_regex = re.compile(r'\[(0|[+-][0-9]+)]') # don't have loyalty symbols
     return Markup(o)

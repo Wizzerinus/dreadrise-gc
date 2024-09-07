@@ -1,6 +1,7 @@
 import pyparsing as pp
 
-from shared.card_enums import color_symbols_to_colors, colors, colors_single, mana_symbols
+from shared.card_enums import color_symbols_to_colors, colors, colors_single, mana_symbols, \
+    misc_to_mana_symbols, misc_symbols
 from shared.helpers.exceptions import RisingDataError
 
 
@@ -28,6 +29,8 @@ def get_mana_cost(query: str) -> list[int | str]:
                 ans.append(i)
             elif len(i) == 1 and i in colors_single:
                 ans.append(color_symbols_to_colors[i])
+            elif i in misc_symbols:
+                ans.append(misc_to_mana_symbols[i])
             elif len(i) == 2 and i[0] in colors and i[1] in colors:
                 c1 = color_symbols_to_colors[i[0]]
                 c2 = color_symbols_to_colors[i[1]]

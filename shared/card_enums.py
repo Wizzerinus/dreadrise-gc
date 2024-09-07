@@ -17,6 +17,7 @@ color_symbols_to_mana_types: dict[str, ManaType] = dict(zip(color_symbols_single
 
 ManaSymbol = Literal['white', 'blue', 'black', 'red', 'green', 'colorless', 'snow', 'any',
                      'pwhite', 'pblue', 'pblack', 'pred', 'pgreen',
+                     'cwhite', 'cblue', 'cblack', 'cred', 'cgreen',
                      'white/blue', 'blue/black', 'black/red', 'red/green', 'green/white',
                      'white/black', 'blue/red', 'black/green', 'red/white', 'green/blue',
                      '2/white', '2/blue', '2/black', '2/red', '2/green',
@@ -24,6 +25,11 @@ ManaSymbol = Literal['white', 'blue', 'black', 'red', 'green', 'colorless', 'sno
                      'pwhite/blue', 'pblue/black', 'pblack/red', 'pred/green', 'pgreen/white',
                      'pwhite/black', 'pblue/red', 'pblack/green', 'pred/white', 'pgreen/blue']
 mana_symbols: tuple[ManaSymbol, ...] = get_args(ManaSymbol)
+
+MiscellanousSymbol = Literal['X', 'S', 'V', 'C']
+misc_symbols: tuple[MiscellanousSymbol, ...] = get_args(MiscellanousSymbol)
+misc_mana_symbols: tuple[ManaSymbol, ...] = ('x', 'snow', 'prismatic', 'colorless')
+misc_to_mana_symbols: dict[str, ManaSymbol] = dict(zip(misc_symbols, misc_mana_symbols))
 
 basics: dict[str, Color] = {'Plains': 'white', 'Island': 'blue', 'Swamp': 'black', 'Mountain': 'red', 'Forest': 'green'}
 
