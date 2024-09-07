@@ -5,7 +5,7 @@ import arrow
 
 from shared.card_enums import Color, color_symbols_to_colors, colors
 from shared.helpers.exceptions import ScrapeError
-from shared.helpers.magic import get_rarity, process_mana_cost_dict
+from shared.helpers.magic import get_rarity, process_mana_cost_dict, add_braces
 from shared.helpers.util import int_def
 from shared.types.card import Card, CardFace
 from shared.types.set import Expansion
@@ -27,8 +27,9 @@ def process_cockatrice_card(card: dict, image_getter: Callable[[dict], str], fcl
     if ' // ' in f.name or ' (' in f.name:
         logger.warning(f'Card {f.name} has // in its face name')
     f.name = f.name.split('_')[0].split(' (')[0]
-    f.mana_cost_str = card['manaCost']
-    f.mana_cost = process_mana_cost_dict(card['manaCost'])
+    manaCost = add_braces(card['manaCost'])
+    f.mana_cost_str = manaCost
+    f.mana_cost = process_mana_cost_dict(manaCost)
     f.mana_value = card['faceConvertedManaCost'] \
         if 'faceConvertedManaCost' in card \
         else card['convertedManaCost']

@@ -184,3 +184,39 @@ def rarity_to_num(rarity: str) -> int:
     rarity_val = get_rarity(rarity)
     index = rarities.index(rarity_val)
     return 5 - index
+
+
+def add_braces(mana_cost: str) -> str:
+    """
+    Add braces to the mana cost that doesn't include them (i.e. 2R -> {2}{R}).
+    :param mana_cost: the mana cost to fix
+    :return: the fixed mana cost
+    """
+
+    if "{" in mana_cost:
+        return mana_cost
+
+    current_cost = []
+    current_selector = ""
+    current_mode: str = ""
+    for c in mana_cost:
+        if c in "0123456789":
+            if current_mode != "number":
+                current_cost.append(current_selector)
+                current_selector = ""
+            current_mode = "number"
+            current_selector += c
+        elif c == "/":
+            current_mode = "hybrid"
+            current_selector += c
+        elif c.islower():
+            current_mode = "char"
+            current_selector += c
+        else:
+            if current_mode != "hybrid":
+                current_cost.append(current_selector)
+                current_selector = ""
+            current_mode = "char"
+            current_selector += c
+    current_cost.append(current_selector)
+    return "".join(f"{{{x}}}" for x in current_cost if x)

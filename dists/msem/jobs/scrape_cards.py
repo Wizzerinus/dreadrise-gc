@@ -20,7 +20,11 @@ _msem_card_url = 'https://mse-modern.com/msem2/notlackey/AllSets.json'
 
 
 def _get_image_url(set_id: str, card_dict: dict) -> str:
-    num = card_dict['mciNumber']
+    try:
+        num = card_dict.get('mci_number', card_dict['number'])
+    except KeyError:
+        print(card_dict)
+        raise
     return f'https://mse-modern.com/msem2/images/{set_id}/{num}.jpg'
 
 

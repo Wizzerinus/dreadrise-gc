@@ -1,6 +1,6 @@
 from unittest import TestCase
 
-from shared.helpers.magic import process_mana_cost, calculate_mana_value, process_mana_cost_dict
+from shared.helpers.magic import process_mana_cost, calculate_mana_value, process_mana_cost_dict, add_braces
 
 
 class TestMana(TestCase):
@@ -26,3 +26,9 @@ class TestMana(TestCase):
         self.assertEqual(string_to_mv('{X}{X}'), 0)
         self.assertEqual(string_to_mv('{X}{R}{R}{R}'), 3)
         self.assertEqual(string_to_mv('{G/U/P}'), 1)
+
+    def test_braces(self):
+        self.assertEqual(add_braces("2R"), "{2}{R}")
+        self.assertEqual(add_braces("12R"), "{12}{R}")
+        self.assertEqual(add_braces("R/BG"), "{R/B}{G}")
+        self.assertEqual(add_braces("R/BVpR"), "{R/B}{Vp}{R}")
