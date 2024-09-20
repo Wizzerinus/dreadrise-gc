@@ -58,7 +58,8 @@ def process_cockatrice_set(cset: dict, image_getter: Callable[[str, dict], str],
 
     card_faces_dict = {}
     for i in cset['cards']:
-        card_faces_dict[i['id']] = process_cockatrice_card(i, lambda dct: image_getter(set_id, dct), fcls)
+        key = i.get('faceName', i['name'])
+        card_faces_dict[key] = process_cockatrice_card(i, lambda dct: image_getter(set_id, dct), fcls)
 
     answer: list[C] = []
     for i in cset['cards']:
@@ -67,9 +68,10 @@ def process_cockatrice_set(cset: dict, image_getter: Callable[[str, dict], str],
 
         c = ccls()
         c.layout = i['layout'].lower()
-        c.faces = [card_faces_dict[i['id']]]
-        if 'otherFaceIds' in i:
-            c.faces.append(card_faces_dict[i['otherFaceIds'][0]])
+        if 'faceName' in i and 'names' in i:
+            c.faces = [card_faces_dict[x] for x in i['names']]
+        else:
+            c.faces = [card_faces_dict[i['name']]]
         c.color_identity = list(set([color_symbols_to_colors[x] for x in i['colorIdentity']]))
         c.sets = [set_id]
         c.rarities = [get_rarity(i['rarity'])]
